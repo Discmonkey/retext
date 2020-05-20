@@ -8,8 +8,23 @@ import (
 	"net/http"
 )
 
-type DownloadResponse struct {
-	Contents string
+type Sentence struct {
+	Words []string
+}
+
+type Paragraph struct {
+	Sentences []Sentence
+}
+
+type Document struct {
+	Tags       []string
+	Title      []string
+	Paragraphs []Paragraph
+}
+
+func convert(unprocessed []byte) Document {
+
+	return Document{}
 }
 
 func DownloadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
