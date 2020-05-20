@@ -10,3 +10,7 @@ backend: frontend
 .PHONY: docker
 docker:
 	docker build . -f deployment/Dockerfile -t retext
+
+.PHONY: devserve
+devserve:
+	cd pkg/www/retext && npm run serve
