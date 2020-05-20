@@ -24,7 +24,7 @@ func (F *FSBackend) Init(pathToDir string) error {
 	return nil
 }
 
-func (F *FSBackend) UploadFile(filename string, contents []byte) (ID, error) {
+func (F *FSBackend) UploadFile(filename string, contents []byte) (FileID, error) {
 	filepath := path.Join(F.dirLocation, filename)
 	err := ioutil.WriteFile(filepath, contents, 0644)
 
@@ -35,7 +35,7 @@ func (F *FSBackend) UploadFile(filename string, contents []byte) (ID, error) {
 	return filename, nil
 }
 
-func (F *FSBackend) GetFile(id ID) ([]byte, error) {
+func (F *FSBackend) GetFile(id FileID) ([]byte, error) {
 	// shit's hacky ha
 	filepath := path.Join(F.dirLocation, id)
 
