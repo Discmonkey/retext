@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="container">
+  <div id="app" class="container-fluid">
     <div id="nav">
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
@@ -28,5 +28,9 @@
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.container-fluid {
+  padding: 5%;
 }
 </style>
