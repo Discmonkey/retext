@@ -1,17 +1,18 @@
 package db
 
-type ID = string
+type FileID = string
+type CategoryID = string
 type Category struct {
-	id   ID
-	name string
+	Id   CategoryID
+	Name string
 }
 
 type Store interface {
-	UploadFile(filename string, contents []byte) (ID, error)
-	GetFile(id ID) ([]byte, error)
-	Files() ([]ID, error)
+	UploadFile(filename string, contents []byte) (FileID, error)
+	GetFile(id FileID) ([]byte, error)
+	Files() ([]FileID, error)
 	CreateCategory(name string) (Category, error)
-	CategorizeText(categoryId ID, documentTexts []map[ID]string) error
-	GetCategory(ID) (Category, error)
-	Categories() ([]ID, error)
+	CategorizeText(categoryID CategoryID, documentID FileID, text string) error
+	GetCategory(categoryID CategoryID) (Category, error)
+	Categories() ([]CategoryID, error)
 }
