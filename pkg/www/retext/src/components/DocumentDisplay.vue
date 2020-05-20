@@ -1,8 +1,8 @@
 <template>
     <div class="container">
         <div class="row">
-            <div class="col-md-2">
-                <div class="row">
+            <div class="col-md-3 border-right">
+                <div class="row space-bottom">
                     <file-upload
                             class="btn"
                             post-action="/file/upload"
@@ -25,14 +25,13 @@
                         x
                     </button>
                 </div>
-                <div class="row">
-                    <div class="document-select" v-for="uploadedFile in uploadedFiles" :key="uploadedFile">
-                        <p>{{uploadedFile}} </p>
-                    </div>
+                <div class="document-select row" v-for="uploadedFile in uploadedFiles" :key="uploadedFile">
+                    <button v-bind:class="{ active: uploadedFile === selected}"
+                            class="btn" @click="loadDocument(uploadedFile)">{{uploadedFile}} </button>
                 </div>
             </div>
-            <div class="col-md-10">
-
+            <div class="col-md-9">
+                <TextRenderer :text="currentText"></TextRenderer>
             </div>
         </div>
     </div>
@@ -40,17 +39,21 @@
 
 <script>
     import FileUpload from "vue-upload-component"
+    import TextRenderer from "./TextRenderer";
     export default {
         name: "DocumentDisplay",
 
         components: {
-            FileUpload
+            FileUpload,
+            TextRenderer
         },
 
         data: () => {
             return {
                 files: [],
                 uploadedFiles: [],
+                currentText: "",
+                selected: "",
             }
         },
 
@@ -60,6 +63,14 @@
                     this.uploadedFiles.push(f);
                 }
             })
+        },
+
+        methods: {
+            loadDocument: function(documentName) {
+                this.axios.get(`/file/load?key=${documentName}`).then(res => {
+                    this.currentText = res.data.Contents;
+                })
+            }
         }
 
 
@@ -69,13 +80,26 @@
 <style scoped>
     .btn {
         border: 1px solid black;
+        background-color: white;
+        margin-right: 8px;
+        margin-bottom: 2px;
     }
 
     .container {
         padding: 10px;
     }
 
-    .document-select {
+    .active {
+        -webkit-box-shadow: inset 0px 0px 9px 0px rgba(80,191,93,1);
+        -moz-box-shadow: inset 0px 0px 9px 0px rgba(80,191,93,1);
+        box-shadow: inset 0px 0px 9px 0px rgba(80,191,93,1);
+    }
 
+    .space-bottom {
+        margin-bottom: 20px;
+    }
+
+    .border-right {
+        border-right: 3px blue dashed;
     }
 </style>
