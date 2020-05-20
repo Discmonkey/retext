@@ -56,5 +56,6 @@
 <style scoped>
     .btn {
         border: 1px solid black;
+
     }
 </style>
