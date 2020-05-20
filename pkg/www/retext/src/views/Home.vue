@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <DocumentDisplay />
-    <div></div>
     <HelloWorld msg="Two component test" />
   </div>
 </template>
@@ -23,7 +22,7 @@ export default {
   .home {
     display: grid;
     grid-template-rows: 100%;
-    grid-template-columns: 45% 10% 45%;
+    grid-template-columns: 60% 40%;
   }
 
 
