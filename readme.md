@@ -1,6 +1,7 @@
 #### Retext
 
-A small, self contained tool that lets users tag, classify, and manipulate sentences withing documens for qualitative build research.
+A small, self-contained tool that lets users tag, classify, and manipulate text within documents 
+for qualitative research.
 
 
 #### Build
