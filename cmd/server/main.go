@@ -20,6 +20,7 @@ func main() {
 	FailIfError(backend.Init("/tmp/uploadLocation"))
 
 	http.HandleFunc("/file/upload", file.AddUploadEndpoint(backend))
+	http.HandleFunc("/file/list", file.ListEndpoint(backend))
 
 	log.Println("Listening on :3000...")
 	FailIfError(http.ListenAndServe(":3000", nil))

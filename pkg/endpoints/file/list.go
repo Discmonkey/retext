@@ -3,16 +3,8 @@ package file
 import (
 	"encoding/json"
 	"github.com/discmonkey/retext/pkg/db"
+	"log"
 	"net/http"
-)
-
-package file
-
-import (
-"fmt"
-"github.com/discmonkey/retext/pkg/db"
-"io/ioutil"
-"net/http"
 )
 
 type ListResponse struct {
@@ -32,9 +24,13 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		files, err := store.Files()
 
-		json.NewEncoder(w).Encode(user)
-
-
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(500)
+		} else {
+			l.Files = files
+			_ = json.NewEncoder(w).Encode(l)
+		}
 	}
 
 	return t
