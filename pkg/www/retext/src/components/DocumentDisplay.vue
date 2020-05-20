@@ -42,15 +42,27 @@
     import FileUpload from "vue-upload-component"
     export default {
         name: "DocumentDisplay",
+
         components: {
             FileUpload
         },
+
         data: () => {
             return {
                 files: [],
-                uploadedFiles: ["test"],
+                uploadedFiles: [],
             }
+        },
+
+        mounted() {
+            this.axios.get("/file/list").then((res) => {
+                for (let f of res.data.Files) {
+                    this.uploadedFiles.push(f);
+                }
+            })
         }
+
+
     }
 </script>
 
