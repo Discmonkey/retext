@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
+	"sync"
 )
 
 type FSBackend struct {
 	dirLocation string
+	catMutex    sync.RWMutex
 }
 
 func (F *FSBackend) Init(pathToDir string) error {
@@ -59,12 +60,6 @@ func (F *FSBackend) Files() ([]string, error) {
 	return names, nil
 }
 
-//used for storing things in a file (remove if DB starts being used)
-//create a category-json file in the OS's temp directory
-var ex, _ = os.Executable()
-var exPath = filepath.Dir(ex)
-var categoriesFile = exPath + "/cat.json"
-
 func jsonFromFile(filename string, i interface{}) (err error) {
 	jsonFile, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -89,22 +84,29 @@ func jsonToFile(filename string, i interface{}) error {
 	return nil
 }
 
-func getCategoriesFromFile() (Categories, error) {
+func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
 	var cat Categories
-	err := jsonFromFile(categoriesFile, &cat)
+	err := jsonFromFile(F.dirLocation+"/cats.json", &cat)
 	return cat, err
 }
 
-func (F *FSBackend) CreateCategory(name string) (Category, error) {
-	// todo: use a db when worried about things like "concurrent requests"
-	//  category names should be unique (across documents?) either way,
+func (F *FSBackend) writeCategoriesToFile(cats Categories) error {
+	err := jsonToFile(F.dirLocation+"/cats.json", cats)
+
+	return err
+}
+
+func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
+	// todo: category names should be unique (across documents?) either way,
 	//  to be enforced by the db via constraints (check those errors)
-	cats, err := getCategoriesFromFile()
+	F.catMutex.Lock()
+	defer F.catMutex.Unlock()
+	cats, err := F.getCategoriesFromFile()
 	if err != nil {
 		if os.IsNotExist(err) { // no file? no problem, we're about to write to it
 			cats = Categories{Categories: map[string]Category{}}
 		} else {
-			return Category{}, err
+			return "", err
 		}
 	}
 
@@ -114,16 +116,18 @@ func (F *FSBackend) CreateCategory(name string) (Category, error) {
 
 	cats.Categories[name] = newCat
 
-	err = jsonToFile(categoriesFile, cats)
+	err = F.writeCategoriesToFile(cats)
 	if err != nil {
-		return Category{}, err
+		return "", err
 	}
 
-	return newCat, nil
+	return newCat.ID, nil
 }
 
 func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, text string) error {
-	cats, err := getCategoriesFromFile()
+	F.catMutex.Lock()
+	defer F.catMutex.Unlock()
+	cats, err := F.getCategoriesFromFile()
 	if err != nil {
 		return err
 	}
@@ -139,12 +143,14 @@ func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, tex
 	})
 	cats.Categories[categoryID] = cat
 
-	err = jsonToFile(categoriesFile, cats)
+	err = F.writeCategoriesToFile(cats)
 	return err
 }
 
 func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
-	cats, err := getCategoriesFromFile()
+	F.catMutex.RLock()
+	defer F.catMutex.RUnlock()
+	cats, err := F.getCategoriesFromFile()
 	if err != nil {
 		return Category{}, err
 	}
@@ -158,7 +164,9 @@ func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 }
 
 func (F *FSBackend) Categories() ([]CategoryID, error) {
-	currentCats, err := getCategoriesFromFile()
+	F.catMutex.RLock()
+	defer F.catMutex.RUnlock()
+	currentCats, err := F.getCategoriesFromFile()
 
 	if err != nil {
 		return nil, err

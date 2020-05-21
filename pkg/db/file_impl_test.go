@@ -1,13 +1,14 @@
 package db
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 )
 
 // TestFSBackend covers all the interface methods
 func TestFSBackend(t *testing.T) {
-	testDirName := "c:/windows/temp/filetest"
+	testDirName, _ := ioutil.TempDir("", "filetest")
 
 	_ = os.RemoveAll(testDirName)
 
@@ -73,7 +74,7 @@ func TestFSBackend(t *testing.T) {
 		t.Fatalf("failed to save category: %s", err)
 	}
 
-	c2, err := store.GetCategory(c.ID)
+	c2, err := store.GetCategory(c)
 	if err != nil {
 		t.Fatalf("failed to get category: %s", err)
 	}
@@ -83,11 +84,11 @@ func TestFSBackend(t *testing.T) {
 	//todo: write a test that looks for a non-existent category
 
 	testText := "made up text"
-	err = store.CategorizeText(c.ID, testFileName, testText)
+	err = store.CategorizeText(c, testFileName, testText)
 	if err != nil {
 		t.Fatalf("failed to categorize text: %s", err)
 	}
-	c2, _ = store.GetCategory(c.ID)
+	c2, _ = store.GetCategory(c)
 	if len(c2.Texts) == 0 {
 		t.Fatal("failed to categorize text")
 	}
