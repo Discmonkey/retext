@@ -20,7 +20,7 @@ type Store interface {
 	UploadFile(filename string, contents []byte) (FileID, error)
 	GetFile(id FileID) ([]byte, error)
 	Files() ([]FileID, error)
-	CreateCategory(name string) (Category, error)
+	CreateCategory(name string) (CategoryID, error)
 	CategorizeText(categoryID CategoryID, documentID FileID, text string) error
 	GetCategory(categoryID CategoryID) (Category, error)
 	Categories() ([]CategoryID, error)
