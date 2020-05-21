@@ -12,6 +12,11 @@ func FailIfError(err error) {
 		log.Fatal(err)
 	}
 }
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func main() {
 	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
 	http.Handle("/", fs)
@@ -19,9 +24,19 @@ func main() {
 	backend := &db.FSBackend{}
 	FailIfError(backend.Init("/tmp/uploadLocation"))
 
-	http.HandleFunc("/file/upload", file.AddUploadEndpoint(backend))
-	http.HandleFunc("/file/list", file.ListEndpoint(backend))
-	http.HandleFunc("/file/load", file.DownloadEndpoint(backend))
+	http.HandleFunc("/file/upload",
+		func(writer http.ResponseWriter, request *http.Request) {
+			enableCors(&writer)
+			file.AddUploadEndpoint(backend)(writer, request)
+		})
+	http.HandleFunc("/file/list", func(writer http.ResponseWriter, request *http.Request) {
+		enableCors(&writer)
+		file.ListEndpoint(backend)(writer, request)
+	})
+	http.HandleFunc("/file/load", func(writer http.ResponseWriter, request *http.Request) {
+		enableCors(&writer)
+		file.DownloadEndpoint(backend)(writer, request)
+	})
 
 	log.Println("Listening on :3000...")
 	FailIfError(http.ListenAndServe(":3000", nil))

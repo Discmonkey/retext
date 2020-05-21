@@ -58,7 +58,7 @@
         },
 
         mounted() {
-            this.axios.get("/file/list").then((res) => {
+            this.axios.get("http://localhost:3000/file/list").then((res) => {
                 for (let f of res.data.Files) {
                     this.uploadedFiles.push(f);
                 }
@@ -67,11 +67,27 @@
 
         methods: {
             loadDocument: function(documentName) {
-                this.axios.get(`/file/load?key=${documentName}`).then(res => {
-                    this.currentText = res.data.Contents;
+                this.axios.get(`http://localhost:3000/file/load?key=${documentName}`).then(res => {
+                    this.currentText = res.data;
                 })
             }
-        }
+        },
+
+        watch: {
+            // easy way to inform the user that new stuff got uploaded
+            files: function (newFiles) {
+                for (let obj of newFiles) {
+                    if (typeof(obj.response) === "string") {
+
+                        let file = obj.response;
+
+                        if (!this.uploadedFiles.includes(file)) {
+                            this.uploadedFiles.push(file);
+                        }
+                    }
+                }
+            }
+        },
 
 
     }
