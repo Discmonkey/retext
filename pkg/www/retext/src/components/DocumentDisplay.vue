@@ -118,4 +118,8 @@
     .border-right {
         border-right: 3px blue dashed;
     }
+
+    .col-md-9 {
+        padding-right: 50px;
+    }
 </style>
