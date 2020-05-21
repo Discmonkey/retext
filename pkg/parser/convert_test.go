@@ -99,7 +99,7 @@ func TestConvert(t *testing.T) {
 			sentenceConverted := paragraphConverted.Sentences[numS]
 
 			if len(sentenceConverted.Parts) != len(sentence.Parts) {
-				t.Fatal("word length does not match in setence")
+				t.Fatal("word length does not match in sentence")
 			}
 
 			for numW, word := range sentence.Parts {
