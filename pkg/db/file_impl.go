@@ -86,13 +86,12 @@ func jsonToFile(filename string, i interface{}) error {
 
 func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
 	var cat Categories
-	err := jsonFromFile(F.dirLocation+"/cats.json", &cat)
+	err := jsonFromFile(path.Join(F.dirLocation, "cats.json"), &cat)
 	return cat, err
 }
 
 func (F *FSBackend) writeCategoriesToFile(cats Categories) error {
-	err := jsonToFile(F.dirLocation+"/cats.json", cats)
-
+	err := jsonToFile(path.Join(F.dirLocation, "cats.json"), cats)
 	return err
 }
 

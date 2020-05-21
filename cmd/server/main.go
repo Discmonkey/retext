@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/discmonkey/retext/pkg/db"
+	"github.com/discmonkey/retext/pkg/endpoints/category"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"log"
 	"net/http"
@@ -36,6 +37,19 @@ func main() {
 	http.HandleFunc("/file/load", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
 		file.DownloadEndpoint(backend)(writer, request)
+	})
+
+	http.HandleFunc("/category/create", func(writer http.ResponseWriter, request *http.Request) {
+		category.CreateEndpoint(backend)(writer, request)
+	})
+	http.HandleFunc("/category/get", func(writer http.ResponseWriter, request *http.Request) {
+		category.GetEndpoint(backend)(writer, request)
+	})
+	http.HandleFunc("/category/list", func(writer http.ResponseWriter, request *http.Request) {
+		category.ListEndpoint(backend)(writer, request)
+	})
+	http.HandleFunc("/category/associate", func(writer http.ResponseWriter, request *http.Request) {
+		category.AssociateEndpoint(backend)(writer, request)
 	})
 
 	log.Println("Listening on :3000...")
