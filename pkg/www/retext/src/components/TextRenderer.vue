@@ -25,7 +25,7 @@
         div.style.maxHeight = "200px";
         // div.style.borderRadius = "10px";
         div.style.zIndex = "9999";
-        div.style.boxShadow = "3px 0px 43px -8px rgba(52,179,128,1)"
+        div.style.boxShadow = "0px 0px 43px -8px rgba(52,179,128,1)"
         div.style.backgroundColor = "rgba(255, 255, 255, 1)"
         div.style.padding = "10px"
         div.style.overflowY = "hidden"
