@@ -22,7 +22,7 @@
     let createDiv = (x, y) => {
         let div = document.createElement("div")
         div.style.width = "400px";
-        div.style.height = "200px";
+        div.style.maxHeight = "200px";
         // div.style.borderRadius = "10px";
         div.style.zIndex = "9999";
         div.style.boxShadow = "3px 0px 43px -8px rgba(52,179,128,1)"
@@ -117,7 +117,7 @@
 
                 let div = createDiv(e.clientX, e.clientY);
                 let p = document.createElement("p");
-                p.innerText = selectedWords.reduce((acc, val) => {return acc + " " + val;});
+                p.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
 
                 div.appendChild(p);
                 document.body.appendChild(div);
