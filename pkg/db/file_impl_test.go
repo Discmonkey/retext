@@ -1,15 +1,16 @@
 package db
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 )
 
 // TestFSBackend covers all the interface methods
 func TestFSBackend(t *testing.T) {
-	testDirName := "/tmp/filetest"
+	testDirName, _ := ioutil.TempDir("", "filetest")
 
-	_ = os.RemoveAll("/tmp/filetest")
+	_ = os.RemoveAll(testDirName)
 
 	store := &FSBackend{}
 
@@ -36,7 +37,8 @@ func TestFSBackend(t *testing.T) {
 	}
 
 	contents := []byte("hello")
-	key, err := store.UploadFile("test1.txt", contents)
+	testFileName := "test1.txt"
+	key, err := store.UploadFile(testFileName, contents)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,6 +67,43 @@ func TestFSBackend(t *testing.T) {
 		}
 	}
 
+	testCategoryName := "test"
+	c, err := store.CreateCategory(testCategoryName)
+	if err != nil {
+		t.Fatalf("failed to save category: %s", err)
+	}
+
+	c2, err := store.GetCategory(c)
+	if err != nil {
+		t.Fatalf("failed to get category: %s", err)
+	}
+	if c2.Name != testCategoryName {
+		t.Fatalf("category came back with unexpected name: %s", err)
+	}
+	_, err = store.GetCategory("asdfqwer")
+	if err != nil {
+		t.Fatal("non-existent categories should return an error")
+	}
+
+	testText := "made up text"
+	err = store.CategorizeText(c, testFileName, testText)
+	if err != nil {
+		t.Fatalf("failed to categorize text: %s", err)
+	}
+	c2, _ = store.GetCategory(c)
+	if len(c2.Texts) == 0 {
+		t.Fatal("failed to categorize text")
+	}
+
+	cats, err := store.Categories()
+	if err != nil {
+		t.Fatalf("failed to get list of categories: %s", err)
+	}
+	//this check for 1 will break if you
+	if len(cats) != 1 {
+		numCats := string(len(cats))
+		t.Fatalf("incorrect number of categories; got: %s", numCats)
+	}
 	_ = os.Remove("/tmp/filetest")
 
 }
