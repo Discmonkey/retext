@@ -1,5 +1,5 @@
 <template>
-    <div class="large" v-on:mouseleave="stop()">
+    <div class="large">
         <p class="paragraph" v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex">
             <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                 <span
@@ -18,6 +18,25 @@
 
 <script>
     import Vue from "vue"
+
+    let createDiv = (x, y) => {
+        let div = document.createElement("div")
+        div.style.width = "400px";
+        div.style.height = "200px";
+        // div.style.borderRadius = "10px";
+        div.style.zIndex = "9999";
+        div.style.boxShadow = "3px 0px 43px -8px rgba(52,179,128,1)"
+        div.style.backgroundColor = "rgba(255, 255, 255, 1)"
+        div.style.padding = "10px"
+        div.style.overflowY = "hidden"
+
+        div.style.position = "absolute";
+        div.style.left = x + "px";
+        div.style.top = y + "px"
+
+        return div;
+    };
+
     export default {
         name: "TextRenderer",
         props: ["text"],
@@ -45,9 +64,17 @@
         },
         methods: {
             start: function(paragraph, sentence, word, e) {
-                this.dragging = true;
                 this.dragTool.shift = e.shiftKey;
 
+                if (!this.words(paragraph, sentence)[word].Selected || this.dragTool.shift) {
+                    this.dragStart(paragraph, sentence, word);
+                } else {
+                    this.pickupStart(paragraph, sentence, word, e);
+                }
+            },
+
+            dragStart: function(paragraph, sentence, word) {
+                this.dragging = true;
                 this.dragTool.anchor.paragraph = paragraph;
                 this.dragTool.anchor.sentence = sentence;
                 this.dragTool.anchor.word = word;
@@ -60,7 +87,55 @@
 
                 this.updateWord(paragraph, sentence, word);
 
-                document.addEventListener("mouseup", this.stop);
+                document.addEventListener("mouseup", this.dragStop);
+            },
+
+            pickupStart: function(paragraph, sentence, word, e) {
+                console.log(e);
+
+                let selectedWords = [];
+                let currentWord = this.words(paragraph, sentence)[word];
+                let indices = [paragraph, sentence, word];
+
+                while (currentWord.Selected) {
+                    selectedWords.push(currentWord.Text);
+                    indices = this.previous(indices[0], indices[1], indices[2]);
+                    currentWord = this.words(indices[0], indices[1])[indices[2]];
+                }
+
+                selectedWords.reverse();
+
+                indices = this.next(paragraph, sentence, word);
+                currentWord = this.words(indices[0], indices[1])[indices[2]];
+
+                while (currentWord.Selected) {
+                    selectedWords.push(currentWord.Text);
+                    indices = this.next(indices[0], indices[1], indices[2]);
+                    currentWord = this.words(indices[0], indices[1])[indices[2]];
+                }
+
+
+                let div = createDiv(e.clientX, e.clientY);
+                let p = document.createElement("p");
+                p.innerText = selectedWords.reduce((acc, val) => {return acc + " " + val;});
+
+                div.appendChild(p);
+                document.body.appendChild(div);
+
+                let move = (e) => {
+                    div.style.left = e.clientX + "px";
+                    div.style.top = e.clientY + "px";
+                }
+
+                let remove = () => {
+                    div.remove()
+                    document.removeEventListener("mouseup", remove);
+                    document.removeEventListener("mousemove", move);
+                }
+
+                document.addEventListener("mousemove", move);
+                document.addEventListener("mouseup", remove);
+
             },
 
             // updates the view
@@ -68,10 +143,11 @@
                 Vue.set(this.words(paragraph, sentence), word, this.words(paragraph, sentence)[word]);
             },
 
-            stop: function() {
+            dragStop: function() {
                 this.dragging = false;
-                document.removeEventListener("mouseup", this.stop)
+                document.removeEventListener("mouseup", this.dragStop)
             },
+
 
             // returns true if point set 2 is greater than equal to point set 1
             greaterEqual: function(i2, j2, k2, i, j, k) {
