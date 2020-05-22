@@ -17,10 +17,21 @@
 </template>
 
 <script>
+    // eslint-disable-next-line no-unused-vars
+    let TextType = {
+        Paragraphs: [{
+            Sentences: {
+                Parts: [{
+                    Text: "",
+                    Selected: false
+                }]
+            }
+        }]
+    };
     import Vue from "vue"
     export default {
         name: "TextRenderer",
-        props: ["text"],
+        props: {text: TextType},
         data: function() {
             return {
                 path: [],
@@ -118,9 +129,9 @@
                     return;
                 }
 
-                // so first off we want to have everyting between our anchor and the current point highlighted
-                // we want to have everyting outside of this range, but in the range of lastPoint -> currentPoint
-                // unhighlighted
+                // so first off we want to have everything between our anchor and the current point highlighted
+                // we want to have everything outside of this range, but in the range of lastPoint -> currentPoint
+                // un-highlighted
 
                 let lasti = this.dragTool.last.paragraph;
                 let lastj = this.dragTool.last.sentence;
