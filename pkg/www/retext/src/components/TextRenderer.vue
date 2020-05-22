@@ -100,6 +100,10 @@
                 while (currentWord.Selected) {
                     selectedWords.push(currentWord.Text);
                     indices = this.previous(indices[0], indices[1], indices[2]);
+
+                    if (indices[3] === 0) {
+                        break;
+                    }
                     currentWord = this.words(indices[0], indices[1])[indices[2]];
                 }
 
@@ -111,6 +115,10 @@
                 while (currentWord.Selected) {
                     selectedWords.push(currentWord.Text);
                     indices = this.next(indices[0], indices[1], indices[2]);
+
+                    if (indices[3] === 0) {
+                        break;
+                    }
                     currentWord = this.words(indices[0], indices[1])[indices[2]];
                 }
 
@@ -240,23 +248,23 @@
             next: function(i, j, k) {
                 // last word in sentence condition
                 if (this.words(i, j).length - 1 !== k) {
-                    return [i, j, k + 1];
+                    return [i, j, k + 1, 1];
                 }
 
                 // now only the last word in the sentence, but also the last sentence in the paragraph
                 if (this.sentences(i).length - 1 !== j) {
 
                     // return the first word of the next sentence
-                    return [i, j + 1, 0];
+                    return [i, j + 1, 0, 1];
                 }
 
                 // well now we're really unlucky,
                 if (this.paragraphs().length -1 !== i) {
-                    return [i + 1, 0, 0]
+                    return [i + 1, 0, 0, 1]
                 }
 
                 // if we're in the last paragraph, last sentence, last word state, let's just return i, j, k
-                return [i, j, k]
+                return [i, j, k, 0]
             },
 
             paragraphs: function() {
@@ -273,7 +281,7 @@
 
             previous: function(i, j, k) {
                 if (k !== 0) {
-                    return [i, j, k - 1];
+                    return [i, j, k - 1, 1];
                 }
 
                 // if were not in the first sentence of a paragraph, we just need to grab the last word of the
@@ -281,16 +289,16 @@
                 if (j !== 0) {
 
                     // return the first word of the next sentence
-                    return [i, j - 1, this.words(i, j - 1).length - 1];
+                    return [i, j - 1, this.words(i, j - 1).length - 1, 1];
                 }
 
                 // well now we're really unlucky, but so long as we also weren't in the first paragraph we should be okay
                 if (i !== 0 ) {
                     let lastSentence = this.sentences(i - 1).length - 1;
-                    return [i - 1,  lastSentence, this.words(i - 1, lastSentence).length - 1]
+                    return [i - 1,  lastSentence, this.words(i - 1, lastSentence).length - 1, 1]
                 }
 
-                return [i, j, k]
+                return [i, j, k, 0]
             },
 
             iterate: function(i1, j1, k1, i2, j2, k2, callback) {
