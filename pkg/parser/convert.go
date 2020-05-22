@@ -6,6 +6,9 @@ import (
 
 type Word struct {
 	Text string
+
+	// frontend stuff starting here
+	Selected bool
 }
 
 type Sentence struct {
@@ -26,7 +29,6 @@ type Document struct {
 // paragraphs, sentences, and  words. For now punctuation and words are roughly equivalent. This is somewhat problematic in that stop != stop.
 // however it makes the implementation significantly easier for now. Saving punctuation forces the representationt o also
 // keep tracing spaces for example "some - text" versus "some-text" versus "12/30/2020".
-
 func Convert(unprocessed []byte) Document {
 
 	d := Document{
