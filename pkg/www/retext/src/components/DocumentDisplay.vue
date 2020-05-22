@@ -98,7 +98,7 @@
         border: 1px solid black;
         background-color: white;
         margin-right: 8px;
-        margin-bottom: 2px;
+        margin-bottom: 5px;
     }
 
     .container {
