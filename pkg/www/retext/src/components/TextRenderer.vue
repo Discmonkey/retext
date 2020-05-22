@@ -124,10 +124,8 @@
 
 
                 let div = createDiv(e.clientX, e.clientY);
-                let p = document.createElement("p");
-                p.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
+                div.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
 
-                div.appendChild(p);
                 document.body.appendChild(div);
 
                 let move = (e) => {
