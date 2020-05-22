@@ -21,7 +21,7 @@
 
     let createDiv = (x, y) => {
         let div = document.createElement("div")
-        div.style.width = "400px";
+        div.style.maxWidth = "400px";
         div.style.maxHeight = "200px";
         // div.style.borderRadius = "10px";
         div.style.zIndex = "9999";
