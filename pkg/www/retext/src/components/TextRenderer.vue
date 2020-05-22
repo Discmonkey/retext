@@ -56,7 +56,7 @@
                 this.dragTool.last.sentence = sentence;
                 this.dragTool.last.word = word;
 
-                this.words(paragraph, sentence)[word].Selected = true;
+                this.words(paragraph, sentence)[word].Selected = !this.dragTool.shift;
 
                 this.updateWord(paragraph, sentence, word);
 
