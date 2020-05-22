@@ -26,7 +26,7 @@ func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request)
 
 		categoryID, err := store.CreateCategory(name)
 
-		if endpoints.HttpNotOk(400, w, "", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new category.", err) {
 			return
 		} else {
 			_, _ = fmt.Fprint(w, categoryID)

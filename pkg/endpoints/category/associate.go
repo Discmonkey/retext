@@ -25,8 +25,7 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 		var req associateRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 
-		if err != nil {
-			endpoints.HttpNotOk(400, w, "", err)
+		if endpoints.HttpNotOk(400, w, "An error occurred.", err) {
 			return
 		}
 
@@ -47,7 +46,7 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 		}
 		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text)
 
-		if endpoints.HttpNotOk(400, w, "", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while trying to save the selected text.", err) {
 			return
 		}
 

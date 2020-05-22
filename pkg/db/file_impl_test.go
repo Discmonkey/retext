@@ -67,7 +67,6 @@ func TestFSBackend(t *testing.T) {
 		}
 	}
 
-	//todo: if your "categoriesFile" has categories added by using the website, the `len(cats) != 1` test will fail.
 	testCategoryName := "test"
 	c, err := store.CreateCategory(testCategoryName)
 	if err != nil {
@@ -81,7 +80,10 @@ func TestFSBackend(t *testing.T) {
 	if c2.Name != testCategoryName {
 		t.Fatalf("category came back with unexpected name: %s", err)
 	}
-	//todo: write a test that looks for a non-existent category
+	_, err = store.GetCategory("asdfqwer")
+	if err != nil {
+		t.Fatal("non-existent categories should return an error")
+	}
 
 	testText := "made up text"
 	err = store.CategorizeText(c, testFileName, testText)

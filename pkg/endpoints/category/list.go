@@ -24,7 +24,7 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		categories, err := store.Categories()
 
-		if endpoints.HttpNotOk(400, w, "", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categories.", err) {
 			return
 		} else {
 			l.Categories = categories

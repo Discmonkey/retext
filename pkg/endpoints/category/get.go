@@ -28,7 +28,7 @@ func GetEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		category, err := store.GetCategory(id)
 
-		if endpoints.HttpNotOk(400, w, "", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while getting your category. ", err) {
 			return
 		} else {
 			_, _ = fmt.Fprint(w, category)

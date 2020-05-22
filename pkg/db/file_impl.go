@@ -158,8 +158,7 @@ func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 		return cat, nil
 	}
 
-	// todo: is this how "no category found" should be returned?
-	return Category{}, nil
+	return Category{}, errors.New("no category found for ID: " + categoryID)
 }
 
 func (F *FSBackend) Categories() ([]CategoryID, error) {
