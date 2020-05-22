@@ -137,29 +137,26 @@
                 // so we have some overlap issues
                 // there are always a lot of edge cases. but let's do the easy thing.
 
+                let updateToFalse = (i, j, k) => {
+                    this.words(i, j)[k].Selected = false;
+                    this.updateWord(i, j, k);
+                }
                 if (this.greaterEqual(paragraph, sentence, word,
                     lasti, lastj, lastk)) {
-                    this.iterate(lasti, lastj, lastk, paragraph, sentence, word, (i, j, k) => {
-                        this.words(i, j)[k].Selected = false;
-                        this.updateWord(i, j, k);
-                    });
+                    this.iterate(lasti, lastj, lastk, paragraph, sentence, word, updateToFalse);
                 } else {
-                    this.iterate(paragraph, sentence, word, lasti, lastj, lastk, (i, j, k) => {
-                        this.words(i, j)[k].Selected = false;
-                        this.updateWord(i, j, k);
-                    });
+                    this.iterate(paragraph, sentence, word, lasti, lastj, lastk, updateToFalse);
+                }
+
+                let updateAgainstShift = (i, j, k) => {
+                    this.words(i, j)[k].Selected = !this.dragTool.shift;
+                    this.updateWord(i, j, k);
                 }
 
                 if (this.greaterEqual(paragraph, sentence, word, anchori, anchorj, anchork)) {
-                    this.iterate(anchori, anchorj, anchork, paragraph, sentence, word, (i, j, k) => {
-                        this.words(i, j)[k].Selected = !this.dragTool.shift;
-                        this.updateWord(i, j, k);
-                    })
+                    this.iterate(anchori, anchorj, anchork, paragraph, sentence, word, updateAgainstShift)
                 } else {
-                    this.iterate(paragraph, sentence, word, anchori, anchorj, anchork, (i, j, k) => {
-                        this.words(i, j)[k].Selected = !this.dragTool.shift;
-                        this.updateWord(i, j, k);
-                    })
+                    this.iterate(paragraph, sentence, word, anchori, anchorj, anchork, updateAgainstShift)
                 }
             },
 
