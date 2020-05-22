@@ -1,11 +1,19 @@
 package category
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
-	"log"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
 )
+
+type associateRequest struct {
+	CategoryID db.CategoryID `json:"categoryID"`
+	DocumentID db.FileID     `json:"documentID"`
+	Text       string        `json:"text"`
+}
 
 func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -14,29 +22,32 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		categoryID := r.FormValue("category")
-		documentID := r.FormValue("key")
-		text := r.FormValue("text")
-
-		if len(categoryID) == 0 {
-			w.WriteHeader(400)
-			log.Println("category parameter required")
-			return
-		}
-		if len(documentID) == 0 {
-			w.WriteHeader(400)
-			log.Println("key parameter required")
-			return
-		}
-		if len(text) == 0 {
-			w.WriteHeader(400)
-			log.Println("text parameter required")
-			return
-		}
-		err := store.CategorizeText(categoryID, documentID, text)
+		var req associateRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
 
 		if err != nil {
-			fmt.Println(err)
+			endpoints.HttpNotOk(400, w, "", err)
+			return
+		}
+
+		if len(req.CategoryID) == 0 {
+			err = errors.New("category parameter required")
+			endpoints.HttpNotOk(400, w, err.Error(), err)
+			return
+		}
+		if len(req.DocumentID) == 0 {
+			err = errors.New("key parameter required")
+			endpoints.HttpNotOk(400, w, err.Error(), err)
+			return
+		}
+		if len(req.Text) == 0 {
+			err = errors.New("text parameter required")
+			endpoints.HttpNotOk(400, w, err.Error(), err)
+			return
+		}
+		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text)
+
+		if endpoints.HttpNotOk(400, w, "", err) {
 			return
 		}
 

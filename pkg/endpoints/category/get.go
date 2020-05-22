@@ -2,9 +2,10 @@ package category
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
-	"log"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
 )
 
@@ -18,17 +19,17 @@ func GetEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 
 		if len(id) == 0 {
-			w.WriteHeader(400)
-			log.Println("id parameter required")
+			err := errors.New("id parameter required")
+			endpoints.HttpNotOk(http.StatusBadRequest, w, err.Error(), err)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 
 		category, err := store.GetCategory(id)
 
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(400)
+		if endpoints.HttpNotOk(400, w, "", err) {
+			return
 		} else {
 			_, _ = fmt.Fprint(w, category)
 			_ = json.NewEncoder(w).Encode(category)

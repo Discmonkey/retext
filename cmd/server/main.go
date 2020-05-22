@@ -43,9 +43,11 @@ func main() {
 		category.CreateEndpoint(backend)(writer, request)
 	})
 	http.HandleFunc("/category/get", func(writer http.ResponseWriter, request *http.Request) {
+		enableCors(&writer)
 		category.GetEndpoint(backend)(writer, request)
 	})
 	http.HandleFunc("/category/list", func(writer http.ResponseWriter, request *http.Request) {
+		enableCors(&writer)
 		category.ListEndpoint(backend)(writer, request)
 	})
 	http.HandleFunc("/category/associate", func(writer http.ResponseWriter, request *http.Request) {

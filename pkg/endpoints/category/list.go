@@ -3,12 +3,12 @@ package category
 import (
 	"encoding/json"
 	"github.com/discmonkey/retext/pkg/db"
-	"log"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
 )
 
 type CategoriesResponse struct {
-	categories []string
+	Categories []string
 }
 
 func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -24,11 +24,10 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		categories, err := store.Categories()
 
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(400)
+		if endpoints.HttpNotOk(400, w, "", err) {
+			return
 		} else {
-			l.categories = categories
+			l.Categories = categories
 			_ = json.NewEncoder(w).Encode(l)
 		}
 	}

@@ -1,9 +1,10 @@
 package category
 
 import (
+	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
-	"log"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
 )
 
@@ -17,17 +18,16 @@ func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request)
 		name := r.FormValue("category")
 
 		if len(name) == 0 {
-			w.WriteHeader(400)
-			log.Println("category parameter required")
+			err := errors.New("category parameter required")
+			endpoints.HttpNotOk(400, w, err.Error(), err)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 
 		categoryID, err := store.CreateCategory(name)
 
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(400)
+		if endpoints.HttpNotOk(400, w, "", err) {
+			return
 		} else {
 			_, _ = fmt.Fprint(w, categoryID)
 		}
