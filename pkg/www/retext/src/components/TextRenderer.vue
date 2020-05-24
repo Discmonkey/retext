@@ -1,5 +1,5 @@
 <template>
-    <div class="large" v-on:mouseleave="stop()">
+    <div class="large">
         <p class="paragraph" v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex">
             <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                 <span
@@ -29,6 +29,34 @@
         }]
     };
     import Vue from "vue"
+
+    let createDiv = (x, y) => {
+        let div = document.createElement("div")
+        div.style.maxWidth = "400px";
+        // div.style.maxHeight = "200px";
+        // div.style.borderRadius = "10px";
+        div.style.zIndex = "9999";
+
+        // to give floating effect
+        div.style.boxShadow = "0px 0px 43px -8px rgba(52,179,128,1)"
+
+        // otherwise its see through
+        div.style.backgroundColor = "rgba(255, 255, 255, 1)"
+
+        // #styling
+        div.style.padding = "10px"
+
+        // if its a lot of text, let's just cut it off
+        div.style.overflowY = "hidden"
+
+        // so that it follows the cursor
+        div.style.position = "absolute";
+        div.style.left = x + "px";
+        div.style.top = y + "px"
+
+        return div;
+    };
+
     export default {
         name: "TextRenderer",
         props: {text: TextType},
@@ -56,9 +84,17 @@
         },
         methods: {
             start: function(paragraph, sentence, word, e) {
-                this.dragging = true;
                 this.dragTool.shift = e.shiftKey;
 
+                if (!this.words(paragraph, sentence)[word].Selected || this.dragTool.shift) {
+                    this.dragStart(paragraph, sentence, word);
+                } else {
+                    this.pickupStart(paragraph, sentence, word, e);
+                }
+            },
+
+            dragStart: function(paragraph, sentence, word) {
+                this.dragging = true;
                 this.dragTool.anchor.paragraph = paragraph;
                 this.dragTool.anchor.sentence = sentence;
                 this.dragTool.anchor.word = word;
@@ -71,7 +107,61 @@
 
                 this.updateWord(paragraph, sentence, word);
 
-                document.addEventListener("mouseup", this.stop);
+                document.addEventListener("mouseup", this.dragStop);
+            },
+
+            pickupStart: function(paragraph, sentence, word, e) {
+                console.log(e);
+
+                let selectedWords = [];
+                let currentWord = this.words(paragraph, sentence)[word];
+                let indices = [paragraph, sentence, word];
+
+                while (currentWord.Selected) {
+                    selectedWords.push(currentWord.Text);
+                    indices = this.previous(indices[0], indices[1], indices[2]);
+
+                    if (indices[3] === 0) {
+                        break;
+                    }
+                    currentWord = this.words(indices[0], indices[1])[indices[2]];
+                }
+
+                selectedWords.reverse();
+
+                indices = this.next(paragraph, sentence, word);
+                currentWord = this.words(indices[0], indices[1])[indices[2]];
+
+                while (currentWord.Selected) {
+                    selectedWords.push(currentWord.Text);
+                    indices = this.next(indices[0], indices[1], indices[2]);
+
+                    if (indices[3] === 0) {
+                        break;
+                    }
+                    currentWord = this.words(indices[0], indices[1])[indices[2]];
+                }
+
+
+                let div = createDiv(e.clientX, e.clientY);
+                div.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
+
+                document.body.appendChild(div);
+
+                let move = (e) => {
+                    div.style.left = e.clientX + "px";
+                    div.style.top = e.clientY + "px";
+                }
+
+                let remove = () => {
+                    div.remove()
+                    document.removeEventListener("mouseup", remove);
+                    document.removeEventListener("mousemove", move);
+                }
+
+                document.addEventListener("mousemove", move);
+                document.addEventListener("mouseup", remove);
+
             },
 
             // updates the view
@@ -79,10 +169,11 @@
                 Vue.set(this.words(paragraph, sentence), word, this.words(paragraph, sentence)[word]);
             },
 
-            stop: function() {
+            dragStop: function() {
                 this.dragging = false;
-                document.removeEventListener("mouseup", this.stop)
+                document.removeEventListener("mouseup", this.dragStop)
             },
+
 
             // returns true if point set 2 is greater than equal to point set 1
             greaterEqual: function(i2, j2, k2, i, j, k) {
@@ -175,23 +266,23 @@
             next: function(i, j, k) {
                 // last word in sentence condition
                 if (this.words(i, j).length - 1 !== k) {
-                    return [i, j, k + 1];
+                    return [i, j, k + 1, 1];
                 }
 
                 // now only the last word in the sentence, but also the last sentence in the paragraph
                 if (this.sentences(i).length - 1 !== j) {
 
                     // return the first word of the next sentence
-                    return [i, j + 1, 0];
+                    return [i, j + 1, 0, 1];
                 }
 
                 // well now we're really unlucky,
                 if (this.paragraphs().length -1 !== i) {
-                    return [i + 1, 0, 0]
+                    return [i + 1, 0, 0, 1]
                 }
 
                 // if we're in the last paragraph, last sentence, last word state, let's just return i, j, k
-                return [i, j, k]
+                return [i, j, k, 0]
             },
 
             paragraphs: function() {
@@ -208,7 +299,7 @@
 
             previous: function(i, j, k) {
                 if (k !== 0) {
-                    return [i, j, k - 1];
+                    return [i, j, k - 1, 1];
                 }
 
                 // if were not in the first sentence of a paragraph, we just need to grab the last word of the
@@ -216,16 +307,16 @@
                 if (j !== 0) {
 
                     // return the first word of the next sentence
-                    return [i, j - 1, this.words(i, j - 1).length - 1];
+                    return [i, j - 1, this.words(i, j - 1).length - 1, 1];
                 }
 
                 // well now we're really unlucky, but so long as we also weren't in the first paragraph we should be okay
                 if (i !== 0 ) {
                     let lastSentence = this.sentences(i - 1).length - 1;
-                    return [i - 1,  lastSentence, this.words(i - 1, lastSentence).length - 1]
+                    return [i - 1,  lastSentence, this.words(i - 1, lastSentence).length - 1, 1]
                 }
 
-                return [i, j, k]
+                return [i, j, k, 0]
             },
 
             iterate: function(i1, j1, k1, i2, j2, k2, callback) {
