@@ -33,14 +33,23 @@
     let createDiv = (x, y) => {
         let div = document.createElement("div")
         div.style.maxWidth = "400px";
-        div.style.maxHeight = "200px";
+        // div.style.maxHeight = "200px";
         // div.style.borderRadius = "10px";
         div.style.zIndex = "9999";
+
+        // to give floating effect
         div.style.boxShadow = "0px 0px 43px -8px rgba(52,179,128,1)"
+
+        // otherwise its see through
         div.style.backgroundColor = "rgba(255, 255, 255, 1)"
+
+        // #styling
         div.style.padding = "10px"
+
+        // if its a lot of text, let's just cut it off
         div.style.overflowY = "hidden"
 
+        // so that it follows the cursor
         div.style.position = "absolute";
         div.style.left = x + "px";
         div.style.top = y + "px"
