@@ -58,7 +58,7 @@
         },
 
         mounted() {
-            this.axios.get("http://localhost:3000/file/list").then((res) => {
+            this.axios.get("/file/list").then((res) => {
                 for (let f of res.data.Files) {
                     this.uploadedFiles.push(f);
                 }
@@ -67,7 +67,7 @@
 
         methods: {
             loadDocument: function(documentName) {
-                this.axios.get(`http://localhost:3000/file/load?key=${documentName}`).then(res => {
+                this.axios.get(`/file/load?key=${documentName}`).then(res => {
                     this.currentText = res.data;
                 })
             }
