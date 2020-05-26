@@ -302,7 +302,7 @@
                     return [i, j, k - 1, 1];
                 }
 
-                // if were not in the first sentence of a paragraph, we just need to grab the last word of the
+                // if we're not in the first sentence of a paragraph, we just need to grab the last word of the
                 // previous sentence
                 if (j !== 0) {
 

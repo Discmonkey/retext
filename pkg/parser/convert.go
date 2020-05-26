@@ -21,7 +21,7 @@ type Paragraph struct {
 
 type Document struct {
 	Tags       []string
-	Title      []string
+	Title      string
 	Paragraphs []Paragraph
 }
 

@@ -1,18 +1,19 @@
 <template>
   <div class="home">
     <DocumentDisplay />
-    <HelloWorld msg="Two component test" />
+    <div>
+      Area for categories
+    </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+// import HelloWorld from '@/components/HelloWorld.vue'
 import DocumentDisplay from "@/components/DocumentDisplay";
 export default {
   name: 'Home',
   components: {
-    HelloWorld,
     DocumentDisplay
   }
 }
