@@ -27,8 +27,8 @@ export default {
     let channel = this.channel;
     // eslint-disable-next-line no-unused-vars
     // todo: make the order that one() and two() are called not matter
-    channel.one = (obj, three) => {
-      channel.obj = {oneObj: obj, cb: three};
+    channel.one = (threeCb) => {
+      channel.obj = {threeCb: threeCb};
     }
     // eslint-disable-next-line no-unused-vars
     channel.two = (obj, cb) => {
@@ -39,7 +39,7 @@ export default {
 
       channel.obj = false;
 
-      x.cb(x.oneObj, obj, cb);
+      x.threeCb(obj, cb);
       return x;
     }
   }

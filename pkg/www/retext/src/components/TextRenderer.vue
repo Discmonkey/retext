@@ -162,7 +162,10 @@
                     words.text = selectedWords.join(" ");
                     // this.$emit("dragStop", words);
 
-                    this.channel.two(words);
+                    this.channel.two(words, () => {
+                        // sample callback
+                        console.log(this.$parent.selected, words)
+                    });
                 }
 
                 document.addEventListener("mousemove", move);

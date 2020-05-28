@@ -4,6 +4,8 @@
             <div class="category" v-for="cat in categories" :key="cat.name">
                 <category-drop-zone :category="cat" @category-drop="associate($event)"/>
             </div>
+        </div>
+        <div class="row">
             <div class="category new-category">
                 <category-drop-zone :category="{name:'New'}" @category-drop="newCategoryAssociate()"/>
             </div>
@@ -24,6 +26,7 @@
             }]
         }]
     }
+    // todo: goland says this is unused. should i not export?
     export default {
         name: 'CategoryList',
         components: {CategoryDropZone},
@@ -37,81 +40,40 @@
             this.axios.get("/category/list").then((res) => {
                 this.categories = res.data.categories
             });
-            this.channel.receiveFunc = (r) => {
-                let dropOn = document.querySelectorAll(".category-drop-zone:hover");
-                if(!dropOn.length) {
-                    // cancel
-                }
-
-                if(!r)
-                    return;
-
-                if(dropOn[0].classList.contains('new-category')) {
-                    this.newCategoryAssociate(r);
-                } else {
-                    this.associate("", r)
-                }
-            }
-            // document.addEventListener("mouseup", this._listenForMouseUp);
         },
         methods: {
-            associate: function(categoryID) {
-                this.channel.one({categoryID: categoryID}, (one, two, twoCb) => {
-                    let words = two;
-
-                    this.axios.post("/category/associate", {
-                        key: words.documentID,
-                        categoryID: categoryID,
-                        text: words.text
-                    }).then((res) => {
-                        console.log(res);
-                        if(twoCb)
-                            twoCb(words);
-                    }, (res) => {
-                        // failed to send
-                        console.log(res);
-                    });
-                });
-            },
-            /*associate: function(categoryID, r) {
-                let r = this.channel.receive()
-
-                if(!r)
-                    return;
-
+            _actualAssociate: function(categoryID, words, twoCb) {
                 this.axios.post("/category/associate", {
-                    key: r.obj.documentID,
-                    category: categoryID,
-                    text: r.obj.text
+                    key: words.documentID,
+                    categoryID: categoryID,
+                    text: words.text
                 }).then((res) => {
                     console.log(res);
-                    if(r.callback)
-                        r.callback(true, r.obj);
-                },(res) => {
+                    if(twoCb)
+                        twoCb(words);
+                }, (res) => {
+                    // failed to send
                     console.log(res);
-                    if(r.callback)
-                        r.callback(false, r.obj);
-                })
-            },*/
-            newCategoryAssociate: function(r) {
+                });
+            },
+            associate: function(categoryID) {
+                this.channel.one((words, twoCb) => {
+                    this._actualAssociate(categoryID, words, twoCb);
+                });
+            },
+            newCategoryAssociate: function() {
                 console.log("new cat");
-                let newCatName = prompt("Name of new category?");
-                this.axios.post("/category/create", {category: newCatName})
+                this.channel.one((words, twoCb) => {
+                    let newCatName = prompt("Name of new category?");
+
+                    this.axios.post("/category/create", {category: newCatName})
                     .then((res) => {
                         let newCat = res.data;
                         this.categories.push(newCat);
-                        this.associate(newCat.id, r);
+                        this._actualAssociate(newCat.id, words, twoCb);
                     });
+                });
             }
-        },
-        _listenForMouseUp: function() {
-            let dropOn = document.querySelectorAll(".category-drop-zone:hover");
-            if(dropOn.length) {
-                console.log(dropOn)
-            }
-        },
-        beforeDestroy() {
-            // document.removeEventListener("mouseup", this._listenForMouseUp)
         }
     }
 </script>
