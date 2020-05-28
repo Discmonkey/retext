@@ -8,7 +8,7 @@ import (
 )
 
 type CategoriesResponse struct {
-	Categories []string
+	Categories []db.Category `json:"categories"`
 }
 
 func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -22,14 +22,21 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		l := CategoriesResponse{}
 
-		categories, err := store.Categories()
+		categoryIDS, err := store.Categories()
 
-		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categories.", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categoryIDS.", err) {
 			return
 		} else {
-			l.Categories = categories
-			_ = json.NewEncoder(w).Encode(l)
+			for _, categoryID := range categoryIDS {
+				newCat, err := store.GetCategory(categoryID)
+				if err != nil {
+					endpoints.HttpNotOk(500, w, "Unable to get a category|ID: "+categoryID, err)
+					return
+				}
+				l.Categories = append(l.Categories, newCat)
+			}
 		}
+		_ = json.NewEncoder(w).Encode(l)
 	}
 
 	return t

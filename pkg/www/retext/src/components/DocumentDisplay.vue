@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <TextRenderer :text="currentText"></TextRenderer>
+                <TextRenderer :text="currentText" :channel="channel"></TextRenderer>
             </div>
         </div>
     </div>
@@ -47,6 +47,8 @@
             FileUpload,
             TextRenderer
         },
+
+        props: ["channel"],
 
         data: () => {
             return {
@@ -69,6 +71,7 @@
             loadDocument: function(documentName) {
                 this.axios.get(`/file/load?key=${documentName}`).then(res => {
                     this.currentText = res.data;
+                    this.selected = documentName;
                 })
             }
         },

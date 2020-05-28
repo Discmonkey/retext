@@ -59,7 +59,7 @@
 
     export default {
         name: "TextRenderer",
-        props: {text: TextType},
+        props: {text: TextType, channel: Object},
         data: function() {
             return {
                 path: [],
@@ -142,21 +142,27 @@
                     currentWord = this.words(indices[0], indices[1])[indices[2]];
                 }
 
-
                 let div = createDiv(e.clientX, e.clientY);
                 div.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
 
                 document.body.appendChild(div);
 
                 let move = (e) => {
-                    div.style.left = e.clientX + "px";
-                    div.style.top = e.clientY + "px";
+                    div.style.left = (1 + e.clientX) + "px";
+                    div.style.top = (e.clientY) + "px";
                 }
 
                 let remove = () => {
                     div.remove()
                     document.removeEventListener("mouseup", remove);
                     document.removeEventListener("mousemove", move);
+
+                    let words = JSON.parse(JSON.stringify(this.dragTool));
+                    words.documentID = this.$parent.selected;
+                    words.text = selectedWords.join(" ");
+                    // this.$emit("dragStop", words);
+
+                    this.channel.two(words);
                 }
 
                 document.addEventListener("mousemove", move);

@@ -4,8 +4,8 @@ type FileID = string
 
 type CategoryID = string
 type DocumentText struct {
-	DocumentID FileID
-	Text       string
+	DocumentID FileID `json:"documentID"`
+	Text       string `json:"text"`
 }
 type Category struct {
 	ID    CategoryID     `json:"id"`

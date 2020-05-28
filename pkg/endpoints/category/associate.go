@@ -11,7 +11,7 @@ import (
 
 type associateRequest struct {
 	CategoryID db.CategoryID `json:"categoryID"`
-	DocumentID db.FileID     `json:"documentID"`
+	DocumentID db.FileID     `json:"key"`
 	Text       string        `json:"text"`
 }
 
