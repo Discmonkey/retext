@@ -8,7 +8,7 @@ import (
 
 // TestFSBackend covers all the interface methods
 func TestFSBackend(t *testing.T) {
-	testDirName, _ := ioutil.TempDir("", "filetest")
+	testDirName, _ := ioutil.TempDir("", "retext")
 
 	_ = os.RemoveAll(testDirName)
 

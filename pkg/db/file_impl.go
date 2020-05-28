@@ -12,6 +12,7 @@ import (
 type FSBackend struct {
 	dirLocation string
 	catMutex    sync.RWMutex
+	catFileLoc  string
 }
 
 func (F *FSBackend) Init(pathToDir string) error {
@@ -22,8 +23,26 @@ func (F *FSBackend) Init(pathToDir string) error {
 			return err
 		}
 	}
+	uploadDirLocation := path.Join(pathToDir, "uploadLocation")
+	if _, err := os.Stat(uploadDirLocation); os.IsNotExist(err) {
+		err = os.Mkdir(uploadDirLocation, 0766)
 
-	F.dirLocation = pathToDir
+		if err != nil {
+			return err
+		}
+	}
+
+	F.dirLocation = uploadDirLocation
+
+	//create file to store categories, if it doesn't already exist
+	F.catFileLoc = path.Join(pathToDir, "cats.json")
+	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
+		cats := Categories{Categories: map[string]Category{}}
+		err = jsonToFile(F.catFileLoc, cats)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -86,12 +105,12 @@ func jsonToFile(filename string, i interface{}) error {
 
 func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
 	var cat Categories
-	err := jsonFromFile(path.Join(F.dirLocation, "cats.json"), &cat)
+	err := jsonFromFile(F.catFileLoc, &cat)
 	return cat, err
 }
 
 func (F *FSBackend) writeCategoriesToFile(cats Categories) error {
-	err := jsonToFile(path.Join(F.dirLocation, "cats.json"), cats)
+	err := jsonToFile(F.catFileLoc, cats)
 	return err
 }
 
@@ -102,11 +121,7 @@ func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
 	defer F.catMutex.Unlock()
 	cats, err := F.getCategoriesFromFile()
 	if err != nil {
-		if os.IsNotExist(err) { // no file? no problem, we're about to write to it
-			cats = Categories{Categories: map[string]Category{}}
-		} else {
-			return "", err
-		}
+		return "", err
 	}
 
 	// since the ID is just going to be the name (until there's a db providing AI,
