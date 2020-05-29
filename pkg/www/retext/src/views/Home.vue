@@ -9,6 +9,7 @@
 // @ is an alias to /src
 import CategoryList from '@/components/CategoryList'
 import DocumentDisplay from "@/components/DocumentDisplay";
+import {Channel} from "@/components/Channel"
 export default {
   name: 'Home',
   components: {
@@ -17,32 +18,9 @@ export default {
   },
   data: () => {
     return {
-      channel: {
-        obj: false
-      }
+      channel: new Channel()
     }
   },
-  mounted() {
-    // don't know what to call this thing but channel doesn't really fit...
-    let channel = this.channel;
-    // eslint-disable-next-line no-unused-vars
-    // todo: make the order that one() and two() are called not matter
-    channel.one = (threeCb) => {
-      channel.obj = {threeCb: threeCb};
-    }
-    // eslint-disable-next-line no-unused-vars
-    channel.two = (obj, cb) => {
-      // todo: require three() to return a promise and call cb on the completion of that promise?
-      let x = channel.obj;
-      if(!x) // drag-drop didn't land on a category
-        return;
-
-      channel.obj = false;
-
-      x.threeCb(obj, cb);
-      return x;
-    }
-  }
 }
 </script>
 

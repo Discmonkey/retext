@@ -1,12 +1,12 @@
 <template>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <div class="category" v-for="cat in categories" :key="cat.name">
-                <category-drop-zone :category="cat" @category-drop="associate($event)"/>
+            <div class="col-md-4 category" v-for="cat in categories" :key="cat.name">
+                <category-drop-zone class="cat" :category="cat" @category-drop="associate($event)"/>
             </div>
         </div>
         <div class="row">
-            <div class="category new-category">
+            <div class="col-md-12 category new-category">
                 <category-drop-zone :category="{name:'New'}" @category-drop="newCategoryAssociate()"/>
             </div>
         </div>
@@ -42,36 +42,50 @@
             });
         },
         methods: {
-            _actualAssociate: function(categoryID, words, twoCb) {
+            _actualAssociate: function(categoryID, words) {
                 this.axios.post("/category/associate", {
                     key: words.documentID,
                     categoryID: categoryID,
                     text: words.text
                 }).then((res) => {
-                    console.log(res);
-                    if(twoCb)
-                        twoCb(words);
+                    // success toast or something
+                    console.log("cl _aA success", res);
                 }, (res) => {
+                    // failed toast or something (or maybe on a finally()?
                     // failed to send
-                    console.log(res);
+                    console.log("cl _aA success", res);
                 });
             },
             associate: function(categoryID) {
-                this.channel.one((words, twoCb) => {
-                    this._actualAssociate(categoryID, words, twoCb);
+                let x= this.channel.receive();
+                console.log(x);
+                x.then(words => {
+                    this._actualAssociate(categoryID, words);
+                }, (o) => {
+                    console.log('failed', o);
                 });
             },
             newCategoryAssociate: function() {
-                console.log("new cat");
-                this.channel.one((words, twoCb) => {
+                let x= this.channel.receive();
+                console.log(x);
+                x.then(words => {
+                    if(!words.documentID) {
+                        return false;
+                    }
                     let newCatName = prompt("Name of new category?");
+                    if (newCatName === false) {
+                        // don't grey out text if this is false... oh boy...
+                        return false;
+                    }
 
                     this.axios.post("/category/create", {category: newCatName})
                     .then((res) => {
                         let newCat = res.data;
                         this.categories.push(newCat);
-                        this._actualAssociate(newCat.id, words, twoCb);
+                        this._actualAssociate(newCat.id, words);
                     });
+                }, (o) => {
+                    console.log('failed2', o);
                 });
             }
         }

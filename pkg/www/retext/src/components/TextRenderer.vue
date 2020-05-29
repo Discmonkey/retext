@@ -59,7 +59,7 @@
 
     export default {
         name: "TextRenderer",
-        props: {text: TextType, channel: Object},
+        props: {text: TextType, documentID: String, channel: Object},
         data: function() {
             return {
                 path: [],
@@ -149,7 +149,7 @@
 
                 let move = (e) => {
                     div.style.left = (1 + e.clientX) + "px";
-                    div.style.top = (e.clientY) + "px";
+                    div.style.top = e.clientY + "px";
                 }
 
                 let remove = () => {
@@ -158,19 +158,15 @@
                     document.removeEventListener("mousemove", move);
 
                     let words = JSON.parse(JSON.stringify(this.dragTool));
-                    words.documentID = this.$parent.selected;
+                    words.documentID = this.documentID;
                     words.text = selectedWords.join(" ");
-                    // this.$emit("dragStop", words);
-
-                    this.channel.two(words, () => {
-                        // sample callback
-                        console.log(this.$parent.selected, words)
+                    this.channel.send(words).then(t => {
+                        console.log(`sample send callback: ${JSON.stringify(t)}`);
                     });
                 }
 
                 document.addEventListener("mousemove", move);
                 document.addEventListener("mouseup", remove);
-
             },
 
             // updates the view

@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <TextRenderer :text="currentText" :channel="channel"></TextRenderer>
+                <TextRenderer :text="currentText" :document-i-d="selected" :channel="channel"></TextRenderer>
             </div>
         </div>
     </div>
