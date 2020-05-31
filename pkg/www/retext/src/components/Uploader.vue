@@ -71,7 +71,6 @@
             <file-upload
                     class="btn btn-primary dropdown-toggle"
                     :post-action="postAction"
-                    :put-action="putAction"
                     :extensions="extensions"
                     :accept="accept"
                     :multiple="multiple"
@@ -117,10 +116,8 @@
             return {
                 files: [],
                 accept: '*',
-                extensions: 'txt,pdf',
-                // extensions: ['gif', 'jpg', 'jpeg','png', 'webp'],
-                // extensions: /\.(gif|jpe?g|png|webp)$/i,
-                minSize: 1024,
+                extensions: 'txt,pdf,docx',
+                minSize: 256,
                 size: 1024 * 1024 * 10,
                 multiple: true,
                 directory: false,
@@ -151,9 +148,9 @@
         watch: {
             'addData.show'(show) {
                 if (show) {
-                    this.addData.name = ''
-                    this.addData.type = ''
-                    this.addData.content = ''
+                    this.addData.name = '';
+                    this.addData.type = '';
+                    this.addData.content = '';
                 }
             },
         },
@@ -173,7 +170,7 @@
                         // progress
                     }
                     if (newFile.error && !oldFile.error) {
-                        // error
+                        console.error(newFile.error);
                     }
                     if (newFile.success && !oldFile.success) {
                         // success
@@ -205,44 +202,23 @@
                 this.editFile = { ...file, show: true }
                 this.$refs.upload.update(file, { error: 'edit' })
             },
-            onEditorFile() {
-                if (!this.$refs.upload.features.html5) {
-                    this.alert('Your browser does not support')
-                    this.editFile.show = false
-                    return
-                }
-                let data = {
-                    name: this.editFile.name,
-                }
-                if (this.editFile.cropper) {
-                    let binStr = atob(this.editFile.cropper.getCroppedCanvas().toDataURL(this.editFile.type).split(',')[1])
-                    let arr = new Uint8Array(binStr.length)
-                    for (let i = 0; i < binStr.length; i++) {
-                        arr[i] = binStr.charCodeAt(i)
-                    }
-                    data.file = new File([arr], data.name, { type: this.editFile.type })
-                    data.size = data.file.size
-                }
-                this.$refs.upload.update(this.editFile.id, data)
-                this.editFile.error = ''
-                this.editFile.show = false
-            },
+
             // add folader
             onAddFolder() {
                 if (!this.$refs.upload.features.directory) {
-                    this.alert('Your browser does not support')
+                    this.alert('Your browser does not support');
                     return
                 }
-                let input = this.$refs.upload.$el.querySelector('input')
-                input.directory = true
-                input.webkitdirectory = true
-                this.directory = true
-                input.onclick = null
-                input.click()
+                let input = this.$refs.upload.$el.querySelector('input');
+                input.directory = true;
+                input.webkitdirectory = true;
+                this.directory = true;
+                input.onclick = null;
+                input.click();
                 input.onclick = () => {
-                    this.directory = false
-                    input.directory = false
-                    input.webkitdirectory = false
+                    this.directory = false;
+                    input.directory = false;
+                    input.webkitdirectory = false;
                 }
             },
             onAddData() {
@@ -253,7 +229,7 @@
                 }
                 let file = new window.File([this.addData.content], this.addData.name, {
                     type: this.addData.type,
-                })
+                });
                 this.$refs.upload.add(file)
             }
         }
