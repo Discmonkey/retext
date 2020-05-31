@@ -81,7 +81,11 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	converted := Convert(text)
+	converted, err := Convert(text, Text)
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	if len(converted.Paragraphs) != len(expected.Paragraphs) {
 		t.Fatal("paragraph length does not match")
