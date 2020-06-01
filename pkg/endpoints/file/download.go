@@ -7,6 +7,7 @@ import (
 	"github.com/discmonkey/retext/pkg/parser"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func DownloadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +34,20 @@ func DownloadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reques
 			log.Println(err)
 			w.WriteHeader(400)
 		} else {
-			_ = json.NewEncoder(w).Encode(parser.Convert(contents))
+			filetype := parser.Text
+			if strings.HasSuffix(keys[0], ".docx") {
+				filetype = parser.DocX
+			}
+
+			converted, err := parser.Convert(contents, filetype)
+
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(500)
+				return
+			}
+
+			_ = json.NewEncoder(w).Encode(converted)
 		}
 	}
 

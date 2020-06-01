@@ -84,7 +84,12 @@ type documentBuilder struct {
 func (d *documentBuilder) Visit(element *xmltree.Element) {
 
 	paragraphIndex := len(d.doc.Paragraphs) - 1
-	if element.StartElement.Name.Local == "p" {
+
+	// the second condition checks to confirm that we have added at least one sentence to the previous paragraph
+	// before constructing a new paragraph
+	if element.StartElement.Name.Local == "p" &&
+		(paragraphIndex == -1 || len(d.doc.Paragraphs[paragraphIndex].Sentences) > 0) {
+
 		d.doc.Paragraphs = append(d.doc.Paragraphs, Paragraph{
 			Sentences: make([]Sentence, 0, 0)},
 		)
@@ -93,9 +98,15 @@ func (d *documentBuilder) Visit(element *xmltree.Element) {
 	}
 
 	if len(element.Children) == 0 {
-		sentence, _ := readSentence(element.Content, 0)
 
-		d.doc.Paragraphs[paragraphIndex].Sentences = append(d.doc.Paragraphs[paragraphIndex].Sentences, sentence)
+		currentIndex := 0
+		sentence := Sentence{}
+
+		for currentIndex < len(element.Content) {
+			sentence, currentIndex = readSentence(element.Content, currentIndex)
+			d.doc.Paragraphs[paragraphIndex].Sentences = append(d.doc.Paragraphs[paragraphIndex].Sentences, sentence)
+		}
+
 	}
 }
 

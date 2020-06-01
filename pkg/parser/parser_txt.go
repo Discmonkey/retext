@@ -1,6 +1,8 @@
 package parser
 
-import "strings"
+import (
+	"strings"
+)
 
 type TxtParser struct {
 }
@@ -88,6 +90,20 @@ func readSentence(text []byte, position int) (Sentence, int) {
 	return s, position
 }
 
+// isLastWord checks whether or not the current
+func isTerminating(text []byte, index int) bool {
+	if index == len(text)-1 {
+		return true
+	}
+
+	switch text[index+1] {
+	case '\n', '\f', '\r', '\t', ' ':
+		return true
+	default:
+		return false
+	}
+}
+
 type isLast = bool
 
 func readWord(text []byte, position int) (Word, int, isLast) {
@@ -112,12 +128,23 @@ func readWord(text []byte, position int) (Word, int, isLast) {
 			return word, position, false
 
 		// these are ending characters
-		case '.', '!', '?':
+
+		case '!', '?':
 			builder.WriteByte(text[position])
 			position++
 			word.Text = builder.String()
 
 			return word, position, true
+
+		case '.':
+			builder.WriteByte(text[position])
+			position++
+
+			if isTerminating(text, position-1) {
+				word.Text = builder.String()
+
+				return word, position, true
+			}
 
 		default:
 			builder.WriteByte(text[position])

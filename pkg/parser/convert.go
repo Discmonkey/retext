@@ -44,6 +44,8 @@ func GetParser(t DocumentType) (Parser, error) {
 	switch t {
 	case Text:
 		return TxtParser{}, nil
+	case DocX:
+		return DocXParser{}, nil
 	default:
 		return nil, errors.New("could not find registered parser for doc type")
 	}

@@ -117,3 +117,39 @@ func TestConvert(t *testing.T) {
 	}
 	fmt.Println(converted)
 }
+
+func TestIsLastWord(t *testing.T) {
+	withNumber := []byte("1.2 is a float")
+	asSentence := []byte("the end.")
+	ellipsis := []byte("... Thought continues")
+	inBetween := []byte(". is end")
+	aFile := []byte("t.doc")
+
+	if isTerminating(withNumber, 1) {
+		t.Fatalf("failed on number")
+	}
+
+	if !isTerminating(asSentence, len(asSentence)-1) {
+		t.Fatalf("failed on actual sentene")
+	}
+
+	if isTerminating(ellipsis, 0) {
+		t.Fatalf("failed on ellipsis first")
+	}
+
+	if isTerminating(ellipsis, 1) {
+		t.Fatalf("failed on ellipsis middle")
+	}
+
+	if !isTerminating(ellipsis, 2) {
+		t.Fatalf("failed on ellipsis last")
+	}
+
+	if !isTerminating(inBetween, 0) {
+		t.Fatalf("failed on mid sentence period")
+	}
+
+	if isTerminating(aFile, 1) {
+		t.Fatalf("failed on file extension")
+	}
+}
