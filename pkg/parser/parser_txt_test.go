@@ -37,17 +37,7 @@ func TestConvert(t *testing.T) {
 							{Text: "Two"},
 							{Text: "in"},
 							{Text: "this"},
-							{Text: "one."},
-						},
-					},
-					{
-						Parts: []Word{
-							{Text: "."},
-						},
-					},
-					{
-						Parts: []Word{
-							{Text: "."},
+							{Text: "one..."},
 						},
 					},
 					{
