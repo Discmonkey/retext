@@ -39,7 +39,8 @@
             newCat.id = newCat.name;
             return {
                 categories: [],
-                newCat: newCat
+                newCat: newCat,
+                currentCat: {},
             }
         },
         mounted() {
@@ -48,51 +49,41 @@
             });
         },
         methods: {
-            _actualAssociate: function(categoryID, words) {
+            _actualAssociate: function (categoryID, words, callback) {
                 this.axios.post("/category/associate", {
                     key: words.documentID,
                     categoryID: categoryID,
                     text: words.text
                 }).then((res) => {
-                    // success toast or something
+                    callback();
+                    // "success" toast or something
                     console.log("cl _aA success", res);
                 }, (res) => {
-                    // failed toast or something (or maybe on a finally()?
-                    // failed to send
-                    console.log("cl _aA success", res);
+                    // error on the server
+                    // "an error occurred" toast or something
+                    console.log("cl _aA failed", res);
                 });
             },
-            associate: function(categoryID) {
-                let x= this.channel.receive();
-                console.log(x);
-                x.then(words => {
-                    this._actualAssociate(categoryID, words);
-                }, (o) => {
-                    console.log('failed', o);
-                }).catch(() => {});
+            associate: function (categoryID) {
+                this.channel.receive((words, callback) => {
+                    this._actualAssociate(categoryID, words, callback);
+                });
             },
-            newCategoryAssociate: function() {
-                let x= this.channel.receive();
-                console.log(x);
-                x.then(words => {
-                    if(!words.documentID) {
-                        return false;
-                    }
+            newCategoryAssociate: function () {
+                this.channel.receive((words, callback) => {
                     let newCatName = prompt("Name of new category?");
-                    if (newCatName === false) {
-                        // don't grey out text if this is false... oh boy...
+                    if (newCatName === null) {
+                        // prompt was cancelled
                         return false;
                     }
 
                     this.axios.post("/category/create", {category: newCatName})
-                    .then((res) => {
-                        let newCat = res.data;
-                        this.categories.push(newCat);
-                        this._actualAssociate(newCat.id, words);
-                    });
-                }, (o) => {
-                    console.log('failed2', o);
-                }, () => {});
+                        .then((res) => {
+                            let newCat = res.data;
+                            this.categories.push(newCat);
+                            this._actualAssociate(newCat.id, words, callback);
+                        });
+                });
             }
         }
     }

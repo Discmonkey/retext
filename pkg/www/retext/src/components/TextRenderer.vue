@@ -161,11 +161,9 @@
                 let words = JSON.parse(JSON.stringify(this.dragTool));
                 words.documentID = this.documentID;
                 words.text = selectedWords.join(" ");
-                this.channel.send(words).then(t => {
-                    console.log(`sample send callback: ${JSON.stringify(t)}`);
-                }, () => {
-                    // always pass the failure function to handle reject() or else console errors, apparently(?)
-                });
+                this.channel.send(words, () => {
+                    console.log(`sample send callback: ${JSON.stringify(words)}`);
+                })
 
                 document.addEventListener("mousemove", move);
                 document.addEventListener("mouseup", remove);
