@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -37,7 +38,7 @@ func (F *FSBackend) Init(pathToDir string) error {
 	//create file to store categories, if it doesn't already exist
 	F.catFileLoc = path.Join(pathToDir, "cats.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		cats := Categories{Categories: map[string]Category{}}
+		cats := Categories{Categories: map[CategoryID]Category{}}
 		err = jsonToFile(F.catFileLoc, cats)
 		if err != nil {
 			return err
@@ -104,9 +105,9 @@ func jsonToFile(filename string, i interface{}) error {
 }
 
 func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
-	var cat Categories
-	err := jsonFromFile(F.catFileLoc, &cat)
-	return cat, err
+	var cats Categories
+	err := jsonFromFile(F.catFileLoc, &cats)
+	return cats, err
 }
 
 func (F *FSBackend) writeCategoriesToFile(cats Categories) error {
@@ -121,18 +122,20 @@ func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
 	defer F.catMutex.Unlock()
 	cats, err := F.getCategoriesFromFile()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
+
+	newId := len(cats.Categories) + 1
 
 	// since the ID is just going to be the name (until there's a db providing AI,
 	//  use the name as the ID. Therefor, no point in check if the name already exists
-	newCat := Category{Name: name, ID: name, Texts: []DocumentText{}}
+	newCat := Category{Name: name, ID: newId, Texts: []DocumentText{}}
 
-	cats.Categories[name] = newCat
+	cats.Categories[newId] = newCat
 
 	err = F.writeCategoriesToFile(cats)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	return newCat.ID, nil
@@ -147,7 +150,7 @@ func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, tex
 	}
 
 	if _, ok := cats.Categories[categoryID]; ok == false {
-		return errors.New("No category found with ID: " + categoryID)
+		return errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 	}
 
 	var cat = cats.Categories[categoryID]
@@ -173,7 +176,7 @@ func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 		return cat, nil
 	}
 
-	return Category{}, errors.New("no category found for ID: " + categoryID)
+	return Category{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 }
 
 func (F *FSBackend) Categories() ([]CategoryID, error) {

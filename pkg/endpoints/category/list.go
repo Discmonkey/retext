@@ -2,9 +2,11 @@ package category
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
+	"sort"
 )
 
 type CategoriesResponse struct {
@@ -30,12 +32,15 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 			for _, categoryID := range categoryIDS {
 				newCat, err := store.GetCategory(categoryID)
 				if err != nil {
-					endpoints.HttpNotOk(500, w, "Unable to get a category|ID: "+categoryID, err)
+					endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
 					return
 				}
 				l.Categories = append(l.Categories, newCat)
 			}
 		}
+		sort.Slice(l.Categories, func(i int, j int) bool {
+			return l.Categories[i].ID < l.Categories[j].ID
+		})
 		_ = json.NewEncoder(w).Encode(l)
 	}
 

@@ -7,14 +7,14 @@
 </template>
 
 <script>
-    import {gen_html, invertColor} from "@/components/Colors"
+    import {getColor, invertColor} from "@/components/Colors"
 
     export default {
         name: "CategoryDropZone",
         props: ["category"],
         beforeMount() {
             if (!this.category.bgColor) {
-                this.category.bgColor = gen_html();
+                this.category.bgColor = getColor(this.category.id);
                 this.category.color = invertColor(this.category.bgColor, true);
             }
         }

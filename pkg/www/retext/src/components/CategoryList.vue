@@ -2,8 +2,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-4 category"
-                 v-for="cat in categories"
-                 :key="cat.name">
+                 v-for="cat in categories" :key="cat.id">
                 <category-drop-zone :category="cat" @category-drop="associate($event)"/>
             </div>
         </div>
@@ -36,7 +35,7 @@
         props: ["channel"],
         data: () => {
             let newCat = {name: "New"}
-            newCat.id = newCat.name;
+            newCat.id = 0;
             return {
                 categories: [],
                 newCat: newCat,
@@ -59,7 +58,6 @@
                     // "success" toast or something
                     console.log("cl _aA success", res);
                 }, (res) => {
-                    // error on the server
                     // "an error occurred" toast or something
                     console.log("cl _aA failed", res);
                 });
