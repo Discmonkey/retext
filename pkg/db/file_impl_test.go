@@ -80,7 +80,7 @@ func TestFSBackend(t *testing.T) {
 	if c2.Name != testCategoryName {
 		t.Fatalf("category came back with unexpected name: %s", err)
 	}
-	_, err = store.GetCategory("asdfqwer")
+	_, err = store.GetCategory(1000)
 	if err == nil {
 		t.Fatal("non-existent categories should return an error")
 	}
