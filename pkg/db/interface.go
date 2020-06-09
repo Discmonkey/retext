@@ -12,9 +12,7 @@ type Category struct {
 	Name  string         `json:"name"`
 	Texts []DocumentText `json:"texts"`
 }
-type Categories struct {
-	Categories map[CategoryID]Category `json:"categories"`
-}
+type Categories = map[CategoryID]Category
 
 type Store interface {
 	UploadFile(filename string, contents []byte) (FileID, error)

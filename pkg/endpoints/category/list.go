@@ -9,9 +9,7 @@ import (
 	"sort"
 )
 
-type CategoriesResponse struct {
-	Categories []db.Category `json:"categories"`
-}
+type CategoriesResponse = []db.Category
 
 func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -24,22 +22,22 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		l := CategoriesResponse{}
 
-		categoryIDS, err := store.Categories()
+		categoryIDs, err := store.Categories()
 
-		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categoryIDS.", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categoryIDs.", err) {
 			return
 		} else {
-			for _, categoryID := range categoryIDS {
+			for _, categoryID := range categoryIDs {
 				newCat, err := store.GetCategory(categoryID)
 				if err != nil {
 					endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
 					return
 				}
-				l.Categories = append(l.Categories, newCat)
+				l = append(l, newCat)
 			}
 		}
-		sort.Slice(l.Categories, func(i int, j int) bool {
-			return l.Categories[i].ID < l.Categories[j].ID
+		sort.Slice(l, func(i int, j int) bool {
+			return l[i].ID < l[j].ID
 		})
 		_ = json.NewEncoder(w).Encode(l)
 	}

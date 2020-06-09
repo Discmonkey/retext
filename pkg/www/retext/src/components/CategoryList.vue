@@ -44,7 +44,7 @@
         },
         mounted() {
             this.axios.get("/category/list").then((res) => {
-                this.categories = res.data.categories
+                this.categories = res.data
             });
         },
         methods: {

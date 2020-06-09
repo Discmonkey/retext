@@ -38,7 +38,7 @@ func (F *FSBackend) Init(pathToDir string) error {
 	//create file to store categories, if it doesn't already exist
 	F.catFileLoc = path.Join(pathToDir, "cats.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		cats := Categories{Categories: map[CategoryID]Category{}}
+		cats := Categories{}
 		err = jsonToFile(F.catFileLoc, cats)
 		if err != nil {
 			return err
@@ -125,13 +125,13 @@ func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
 		return 0, err
 	}
 
-	newId := len(cats.Categories) + 1
+	newId := len(cats) + 1
 
 	// since the ID is just going to be the name (until there's a db providing AI,
 	//  use the name as the ID. Therefor, no point in check if the name already exists
 	newCat := Category{Name: name, ID: newId, Texts: []DocumentText{}}
 
-	cats.Categories[newId] = newCat
+	cats[newId] = newCat
 
 	err = F.writeCategoriesToFile(cats)
 	if err != nil {
@@ -149,16 +149,16 @@ func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, tex
 		return err
 	}
 
-	if _, ok := cats.Categories[categoryID]; ok == false {
+	if _, ok := cats[categoryID]; ok == false {
 		return errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 	}
 
-	var cat = cats.Categories[categoryID]
+	var cat = cats[categoryID]
 	cat.Texts = append(cat.Texts, DocumentText{
 		DocumentID: documentID,
 		Text:       text,
 	})
-	cats.Categories[categoryID] = cat
+	cats[categoryID] = cat
 
 	err = F.writeCategoriesToFile(cats)
 	return err
@@ -172,7 +172,7 @@ func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 		return Category{}, err
 	}
 
-	if cat, ok := cats.Categories[categoryID]; ok {
+	if cat, ok := cats[categoryID]; ok {
 		return cat, nil
 	}
 
@@ -190,7 +190,7 @@ func (F *FSBackend) Categories() ([]CategoryID, error) {
 
 	listCats := make([]CategoryID, 0)
 
-	for _, v := range currentCats.Categories {
+	for _, v := range currentCats {
 		listCats = append(listCats, v.ID)
 	}
 
