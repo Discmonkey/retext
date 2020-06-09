@@ -63,20 +63,20 @@
                 });
             },
             associate: function (categoryID) {
-                let packet = this.channel.receive();
-
-                if(packet === false) {
-                    return
+                if(!this.channel.isSending) {
+                    return;
                 }
+
+                let packet = this.channel.receive();
 
                 this._actualAssociate(categoryID, packet.data, packet.callback);
             },
             newCategoryAssociate: function () {
-                let packet = this.channel.receive();
-
-                if(packet === false) {
-                    return
+                if(!this.channel.isSending) {
+                    return;
                 }
+
+                let packet = this.channel.receive();
 
                 let newCatName = prompt("Name of new category?");
                 if (newCatName === null) {
