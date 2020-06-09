@@ -9,7 +9,7 @@
 // @ is an alias to /src
 import CategoryList from '@/components/CategoryList'
 import DocumentDisplay from "@/components/DocumentDisplay";
-import {Channel} from "@/components/Channel"
+import {Channel} from "@/core/Channel"
 export default {
   name: 'Home',
   components: {

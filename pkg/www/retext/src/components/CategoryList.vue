@@ -63,25 +63,34 @@
                 });
             },
             associate: function (categoryID) {
-                this.channel.receive((words, callback) => {
-                    this._actualAssociate(categoryID, words, callback);
-                });
+                let packet = this.channel.receive();
+
+                if(packet === false) {
+                    return
+                }
+
+                this._actualAssociate(categoryID, packet.data, packet.callback);
             },
             newCategoryAssociate: function () {
-                this.channel.receive((words, callback) => {
-                    let newCatName = prompt("Name of new category?");
-                    if (newCatName === null) {
-                        // prompt was cancelled
-                        return false;
-                    }
+                let packet = this.channel.receive();
 
-                    this.axios.post("/category/create", {category: newCatName})
-                        .then((res) => {
-                            let newCat = res.data;
-                            this.categories.push(newCat);
-                            this._actualAssociate(newCat.id, words, callback);
-                        });
-                });
+                if(packet === false) {
+                    return
+                }
+
+                let newCatName = prompt("Name of new category?");
+                if (newCatName === null) {
+                    // prompt was cancelled
+                    return false;
+                }
+
+                this.axios.post("/category/create", {category: newCatName})
+                    .then((res) => {
+                        let newCat = res.data;
+                        this.categories.push(newCat);
+                        this._actualAssociate(newCat.id, packet.data, packet.callback);
+                    });
+
             }
         }
     }

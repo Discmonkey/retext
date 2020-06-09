@@ -1,27 +1,33 @@
-export class Channel {
-    constructor() {
-        this._state = this._STATES.waiting;
-        this._sendCallback = () => {};
-        this._sendData = false;
-    }
-
-    send(data, sendCallback) {
-        // send a "sending" event to trigger a reject() on any waiting "sending" event
-        this._state = this._STATES.sending;
-        this._sendData = data;
-        this._sendCallback = sendCallback;
-    }
-
-    receive(receiveCallback) {
-        if (this.isSending()) {
-            this._state = this._STATES.waiting;
-            receiveCallback(this._sendData, this._sendCallback);
-        }
-    }
-
-    isSending() {
-        return this._state === this._STATES.sending;
+class Packet {
+    constructor(data, callback) {
+        this.data = data;
+        this.callback = callback;
     }
 }
 
-Channel.prototype._STATES = {"waiting": "wai", "receiving": "rec", "sending": "sen"};
+export class Channel {
+    constructor() {
+        this._packet = false;
+    }
+
+    /**
+     * Must be called receive or the data will be ignored/overwritten on the next call to send()
+     *
+     * @param data
+     * @param sendCallback
+     */
+    send(data, sendCallback) {
+        this._packet = new Packet(data, sendCallback);
+    }
+
+    /**
+     * Must be called after send or it'll just return false. Clears out the package after the first use.
+     *
+     * @returns {boolean|object}
+     */
+    receive() {
+        let pack = this._packet
+        this._packet = false;
+        return pack;
+    }
+}

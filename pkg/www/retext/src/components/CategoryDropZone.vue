@@ -7,7 +7,7 @@
 </template>
 
 <script>
-    import {getColor, invertColor} from "@/components/Colors"
+    import {getColor, invertColor} from "@/core/Colors"
 
     export default {
         name: "CategoryDropZone",
@@ -23,7 +23,7 @@
 
 <style>
     .category-drop-zone {
-        border-radius: 2px;
+        border-radius: 5px;
         min-height: 3em;
         text-align: center;
         /* https://css-tricks.com/centering-css-complete-guide/#both-flexbox */
