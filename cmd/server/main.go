@@ -6,6 +6,8 @@ import (
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"log"
 	"net/http"
+	"os"
+	"path"
 )
 
 func FailIfError(err error) {
@@ -23,7 +25,8 @@ func main() {
 	http.Handle("/", fs)
 
 	backend := &db.FSBackend{}
-	FailIfError(backend.Init("/tmp/uploadLocation"))
+	retextLocation := path.Join(os.TempDir(), "retext")
+	FailIfError(backend.Init(retextLocation))
 
 	http.HandleFunc("/file/upload",
 		func(writer http.ResponseWriter, request *http.Request) {

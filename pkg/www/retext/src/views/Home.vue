@@ -1,20 +1,26 @@
 <template>
   <div class="home">
-    <DocumentDisplay />
-    <HelloWorld msg="Two component test" />
+    <DocumentDisplay :channel="channel"  />
+    <CategoryList :channel="channel" />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import CategoryList from '@/components/CategoryList'
 import DocumentDisplay from "@/components/DocumentDisplay";
+import {Channel} from "@/core/Channel"
 export default {
   name: 'Home',
   components: {
-    HelloWorld,
+    CategoryList,
     DocumentDisplay
-  }
+  },
+  data: () => {
+    return {
+      channel: new Channel()
+    }
+  },
 }
 </script>
 
@@ -24,8 +30,4 @@ export default {
     grid-template-rows: 100%;
     grid-template-columns: 60% 40%;
   }
-
-
-
-
 </style>

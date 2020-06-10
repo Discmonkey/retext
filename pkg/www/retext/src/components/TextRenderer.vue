@@ -59,7 +59,7 @@
 
     export default {
         name: "TextRenderer",
-        props: {text: TextType},
+        props: {text: TextType, documentID: String, channel: Object},
         data: function() {
             return {
                 path: [],
@@ -142,14 +142,13 @@
                     currentWord = this.words(indices[0], indices[1])[indices[2]];
                 }
 
-
                 let div = createDiv(e.clientX, e.clientY);
                 div.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
 
                 document.body.appendChild(div);
 
                 let move = (e) => {
-                    div.style.left = e.clientX + "px";
+                    div.style.left = (1 + e.clientX) + "px";
                     div.style.top = e.clientY + "px";
                 }
 
@@ -159,9 +158,15 @@
                     document.removeEventListener("mousemove", move);
                 }
 
+                let words = JSON.parse(JSON.stringify(this.dragTool));
+                words.documentID = this.documentID;
+                words.text = selectedWords.join(" ");
+                this.channel.send(words, () => {
+                    console.log(`sample send callback: ${JSON.stringify(words)}`);
+                })
+
                 document.addEventListener("mousemove", move);
                 document.addEventListener("mouseup", remove);
-
             },
 
             // updates the view

@@ -7,6 +7,7 @@ import (
 	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
+	"strconv"
 )
 
 func GetEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -16,9 +17,9 @@ func GetEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		id := r.URL.Query().Get("id")
+		id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
-		if len(id) == 0 {
+		if err != nil || id == 0 {
 			err := errors.New("id parameter required")
 			endpoints.HttpNotOk(http.StatusBadRequest, w, err.Error(), err)
 			return
