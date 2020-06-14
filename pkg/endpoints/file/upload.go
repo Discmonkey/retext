@@ -1,11 +1,18 @@
 package file
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
+
+type AddResponse struct {
+	Key  string
+	Type string
+}
 
 func AddUploadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -16,10 +23,16 @@ func AddUploadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 
 		file, handle, err := r.FormFile("file")
 		if err != nil {
-			fmt.Println(w, "%v", err)
+			log.Println(err)
 			return
 		}
-		defer file.Close()
+
+		defer func() {
+			err := file.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}()
 
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
@@ -29,7 +42,14 @@ func AddUploadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 
 		key, err := store.UploadFile(handle.Filename, data)
 
-		fmt.Fprint(w, key)
+		err = json.NewEncoder(w).Encode(AddResponse{
+			Key:  key,
+			Type: "source",
+		})
+
+		if err != nil {
+			log.Println(err)
+		}
 
 	}
 
