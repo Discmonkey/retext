@@ -2,14 +2,14 @@ package category
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
+	"sort"
 )
 
-type CategoriesResponse struct {
-	Categories []string
-}
+type CategoriesResponse = []db.Category
 
 func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -22,14 +22,24 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		l := CategoriesResponse{}
 
-		categories, err := store.Categories()
+		categoryIDs, err := store.Categories()
 
-		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categories.", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categoryIDs.", err) {
 			return
 		} else {
-			l.Categories = categories
-			_ = json.NewEncoder(w).Encode(l)
+			for _, categoryID := range categoryIDs {
+				newCat, err := store.GetCategory(categoryID)
+				if err != nil {
+					endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
+					return
+				}
+				l = append(l, newCat)
+			}
 		}
+		sort.Slice(l, func(i int, j int) bool {
+			return l[i].ID < l[j].ID
+		})
+		_ = json.NewEncoder(w).Encode(l)
 	}
 
 	return t

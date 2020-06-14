@@ -11,7 +11,7 @@ import (
 
 type associateRequest struct {
 	CategoryID db.CategoryID `json:"categoryID"`
-	DocumentID db.FileID     `json:"documentID"`
+	DocumentID db.FileID     `json:"key"`
 	Text       string        `json:"text"`
 }
 
@@ -29,7 +29,7 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if len(req.CategoryID) == 0 {
+		if req.CategoryID == 0 {
 			err = errors.New("category parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return

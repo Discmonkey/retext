@@ -1,12 +1,16 @@
 package category
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"net/http"
 )
+
+type createRequest struct {
+	CategoryName string `json:"category"`
+}
 
 func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -15,22 +19,29 @@ func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		name := r.FormValue("category")
+		var req createRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
 
-		if len(name) == 0 {
+		if len(req.CategoryName) == 0 {
 			err := errors.New("category parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 
-		categoryID, err := store.CreateCategory(name)
+		categoryID, err := store.CreateCategory(req.CategoryName)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new category.", err) {
 			return
-		} else {
-			_, _ = fmt.Fprint(w, categoryID)
 		}
+
+		newCat, err := store.GetCategory(categoryID)
+		if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new category.", err) {
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(newCat)
 	}
 
 	return t

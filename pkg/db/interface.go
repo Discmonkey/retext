@@ -2,19 +2,17 @@ package db
 
 type FileID = string
 
-type CategoryID = string
+type CategoryID = int
 type DocumentText struct {
-	DocumentID FileID
-	Text       string
+	DocumentID FileID `json:"documentID"`
+	Text       string `json:"text"`
 }
 type Category struct {
 	ID    CategoryID     `json:"id"`
 	Name  string         `json:"name"`
 	Texts []DocumentText `json:"texts"`
 }
-type Categories struct {
-	Categories map[string]Category `json:"categories"`
-}
+type Categories = map[CategoryID]Category
 
 type Store interface {
 	UploadFile(filename string, contents []byte) (FileID, error)

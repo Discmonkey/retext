@@ -8,7 +8,7 @@ import (
 
 // TestFSBackend covers all the interface methods
 func TestFSBackend(t *testing.T) {
-	testDirName, _ := ioutil.TempDir("", "filetest")
+	testDirName, _ := ioutil.TempDir("", "retext")
 
 	_ = os.RemoveAll(testDirName)
 
@@ -80,8 +80,8 @@ func TestFSBackend(t *testing.T) {
 	if c2.Name != testCategoryName {
 		t.Fatalf("category came back with unexpected name: %s", err)
 	}
-	_, err = store.GetCategory("asdfqwer")
-	if err != nil {
+	_, err = store.GetCategory(1000)
+	if err == nil {
 		t.Fatal("non-existent categories should return an error")
 	}
 

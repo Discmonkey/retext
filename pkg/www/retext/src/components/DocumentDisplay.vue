@@ -11,7 +11,7 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <TextRenderer :text="currentText"></TextRenderer>
+                <TextRenderer :text="currentText" :document-i-d="selected" :channel="channel"></TextRenderer>
             </div>
         </div>
     </div>
@@ -26,6 +26,8 @@
             TextRenderer
         },
 
+        props: ["channel"],
+
         data: () => {
             return {
                 files: [],
@@ -36,7 +38,7 @@
         },
 
         mounted() {
-            this.axios.get("http://localhost:3000/file/list").then((res) => {
+            this.axios.get("/file/list").then((res) => {
                 for (let f of res.data.Files) {
                     this.uploadedFiles.push(f);
                 }
@@ -45,8 +47,9 @@
 
         methods: {
             loadDocument: function(documentName) {
-                this.axios.get(`http://localhost:3000/file/load?key=${documentName}`).then(res => {
+                this.axios.get(`/file/load?key=${documentName}`).then(res => {
                     this.currentText = res.data;
+                    this.selected = documentName;
                 })
             },
 
