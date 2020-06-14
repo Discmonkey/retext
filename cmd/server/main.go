@@ -30,10 +30,12 @@ func main() {
 			enableCors(&writer)
 			file.AddUploadEndpoint(backend)(writer, request)
 		})
+
 	http.HandleFunc("/file/list", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
 		file.ListEndpoint(backend)(writer, request)
 	})
+
 	http.HandleFunc("/file/load", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
 		file.DownloadEndpoint(backend)(writer, request)
@@ -42,14 +44,17 @@ func main() {
 	http.HandleFunc("/category/create", func(writer http.ResponseWriter, request *http.Request) {
 		category.CreateEndpoint(backend)(writer, request)
 	})
+
 	http.HandleFunc("/category/get", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
 		category.GetEndpoint(backend)(writer, request)
 	})
+
 	http.HandleFunc("/category/list", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
 		category.ListEndpoint(backend)(writer, request)
 	})
+
 	http.HandleFunc("/category/associate", func(writer http.ResponseWriter, request *http.Request) {
 		category.AssociateEndpoint(backend)(writer, request)
 	})
