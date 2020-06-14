@@ -1,17 +1,19 @@
 package db
 
 type FileID = string
-
 type CategoryID = int
+
 type DocumentText struct {
 	DocumentID FileID `json:"documentID"`
 	Text       string `json:"text"`
 }
+
 type Category struct {
 	ID    CategoryID     `json:"id"`
 	Name  string         `json:"name"`
 	Texts []DocumentText `json:"texts"`
 }
+
 type Categories = map[CategoryID]Category
 
 type Store interface {

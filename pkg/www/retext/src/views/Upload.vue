@@ -14,7 +14,7 @@
                 </button>
             </div>
             <div class="col-4">
-                <UploadFile/>
+                <UploadFile v-on:success="add($event)"></UploadFile>
             </div>
 
             <div class="col-4">
@@ -33,10 +33,17 @@
         <div class="row">
 
             <div class="col-6">
+                <h5>Source Files </h5>
 
+                <div class="source-file" v-for="file in uploadedSourceFiles" v-bind:key="file">
+                    {{file}}
+                </div>
             </div>
 
+
+
             <div class="col-6">
+                <h5> Demographic Information </h5>
 
             </div>
         </div>
@@ -49,10 +56,32 @@
     import UploadFile from "../components/files/UploadFile";
     export default {
         components: {UploadFile},
+
         component: {
             UploadFile
         },
+
         name: "Upload",
+
+        data() {
+            return {
+                uploadedSourceFiles: [],
+            }
+        },
+
+        mounted() {
+            this.axios.get("/file/list").then((res) => {
+                for (let f of res.data.Files) {
+                    this.uploadedSourceFiles.push(f);
+                }
+            })
+        },
+
+        methods: {
+            add(item) {
+                this.uploadedSourceFiles.push(item.Key);
+            }
+        }
     }
 </script>
 
@@ -63,5 +92,9 @@
 
     .space-bottom {
         margin-bottom: 2em;
+    }
+
+    h3, h4, h5 {
+        font-weight: bold;
     }
 </style>

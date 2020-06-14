@@ -24,24 +24,24 @@
                 }
 
                 let formData = new FormData();
-                let file = this.$refs.form.files[1];
+                let file = this.$refs.form.files[0];
 
-                formData.append(file.name, file);
+                formData.append("file", file);
 
-                console.log(this.$refs.form);
-
-                this.axios.post("/upload",
+                this.axios.post("/file/upload",
                     formData,
                     {
                         headers: {
                             "Content-Type": 'multipart/form-data'
                         }
                     }
-                ).then(function(received) {
-                    console.log(received);
-                }).catch(function(error) {
-                    console.error(error);
-                })
+                )
+                .then(
+                    (received) => this.$emit("success", received.data)
+                )
+                .catch(
+                    (error) => console.error(error)
+                )
             },
 
             clickFile() {
