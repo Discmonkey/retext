@@ -152,10 +152,23 @@
                     div.style.top = e.clientY + "px";
                 }
 
-                let remove = () => {
+                let remove = (e) => {
                     div.remove()
                     document.removeEventListener("mouseup", remove);
                     document.removeEventListener("mousemove", move);
+
+                    let textDropEvent = new CustomEvent("text-drop", {
+                        bubbles: true, cancelable: true,
+                        detail: {
+                            data: {words: words},
+                            callback: () => {
+                                // todo: grey-out text or whatever
+                                console.log(`sample: ${JSON.stringify(words)}`);
+                            }
+                        }
+                    })
+
+                    e.target.dispatchEvent(textDropEvent);
                 }
 
                 let words = JSON.parse(JSON.stringify(this.dragTool));
