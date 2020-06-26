@@ -10,10 +10,17 @@ import (
 	"sync"
 )
 
+type CacheCategory struct {
+	*Category
+	Subcategories []CategoryID `json:"subcategories"`
+}
+type CacheCategories = map[CategoryID]*CacheCategory
+
 type FSBackend struct {
 	dirLocation string
 	catMutex    sync.RWMutex
 	catFileLoc  string
+	cache       Categories
 }
 
 func (F *FSBackend) Init(pathToDir string) error {
@@ -38,8 +45,15 @@ func (F *FSBackend) Init(pathToDir string) error {
 	//create file to store categories, if it doesn't already exist
 	F.catFileLoc = path.Join(pathToDir, "cats.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		cats := Categories{}
-		err = jsonToFile(F.catFileLoc, cats)
+		F.cache = Categories{}
+		err = jsonToFile(F.catFileLoc, F.cache)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		F.cache, err = F.getCategoriesFromFile()
+
 		if err != nil {
 			return err
 		}
@@ -104,36 +118,79 @@ func jsonToFile(filename string, i interface{}) error {
 	return nil
 }
 
+/*
+	Reads the cache file (converts from "Cache structs" to the "interface structs")
+	- The "Cache structs" store the data in a way that reduces file size
+	- The "interface structs" store data in a way that is convenient to look up data
+*/
 func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
-	var cats Categories
-	err := jsonFromFile(F.catFileLoc, &cats)
-	return cats, err
+	var cacheCats CacheCategories
+	retCats := Categories{}
+	err := jsonFromFile(F.catFileLoc, &cacheCats)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for catID, cacheCat := range cacheCats {
+		newCat := cacheCat.Category
+		newCat.Subcategories = Subcategories{}
+		retCats[catID] = newCat
+	}
+	for catID, cacheCat := range cacheCats {
+		if len(cacheCat.Subcategories) == 0 {
+			continue
+		}
+
+		for _, subCatID := range cacheCat.Subcategories {
+			retCats[catID].Subcategories = append(retCats[catID].Subcategories, retCats[subCatID])
+		}
+	}
+
+	return retCats, err
 }
 
+/*
+	Writes to the cache file (converts from "interface structs" to "Cache structs". see getCategoriesFromFile comment)
+*/
 func (F *FSBackend) writeCategoriesToFile(cats Categories) error {
-	err := jsonToFile(F.catFileLoc, cats)
+	cacheCats := CacheCategories{}
+
+	for catID, cat := range cats {
+		cacheCat := CacheCategory{
+			Category:      cat,
+			Subcategories: []CategoryID{},
+		}
+
+		for _, subCat := range cat.Subcategories {
+			cacheCat.Subcategories = append(cacheCat.Subcategories, subCat.ID)
+		}
+		cacheCats[catID] = &cacheCat
+	}
+	err := jsonToFile(F.catFileLoc, cacheCats)
 	return err
 }
 
-func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
-	// todo: category names should be unique (across documents?) either way,
-	//  to be enforced by the db via constraints (check those errors)
+func (F *FSBackend) CreateCategory(name string, parentCategoryID CategoryID) (CategoryID, error) {
+	// todo: category names should be unique (per project, probably?)
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
-	cats, err := F.getCategoriesFromFile()
-	if err != nil {
-		return 0, err
+
+	newId := len(F.cache) + 1
+
+	newCat := Category{Name: name, ID: newId, Texts: []DocumentText{}, Subcategories: []*Category{}}
+
+	if parentCategoryID != 0 {
+		if cat, ok := F.cache[parentCategoryID]; ok {
+			newCat.IsSub = true
+			cat.Subcategories = append(F.cache[parentCategoryID].Subcategories, &newCat)
+			F.cache[parentCategoryID] = cat
+		}
 	}
 
-	newId := len(cats) + 1
+	F.cache[newId] = &newCat
 
-	// since the ID is just going to be the name (until there's a db providing AI,
-	//  use the name as the ID. Therefor, no point in check if the name already exists
-	newCat := Category{Name: name, ID: newId, Texts: []DocumentText{}}
-
-	cats[newId] = newCat
-
-	err = F.writeCategoriesToFile(cats)
+	err := F.writeCategoriesToFile(F.cache)
 	if err != nil {
 		return 0, err
 	}
@@ -141,39 +198,33 @@ func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
 	return newCat.ID, nil
 }
 
-func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, text string) error {
+func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
-	cats, err := F.getCategoriesFromFile()
-	if err != nil {
-		return err
-	}
 
-	if _, ok := cats[categoryID]; ok == false {
+	if _, ok := F.cache[categoryID]; ok == false {
 		return errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 	}
 
-	var cat = cats[categoryID]
+	var cat = F.cache[categoryID]
 	cat.Texts = append(cat.Texts, DocumentText{
 		DocumentID: documentID,
 		Text:       text,
+		FirstWord:  firstWord,
+		LastWord:   lastWord,
 	})
-	cats[categoryID] = cat
+	F.cache[categoryID] = cat
 
-	err = F.writeCategoriesToFile(cats)
+	err := F.writeCategoriesToFile(F.cache)
 	return err
 }
 
 func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
-	cats, err := F.getCategoriesFromFile()
-	if err != nil {
-		return Category{}, err
-	}
 
-	if cat, ok := cats[categoryID]; ok {
-		return cat, nil
+	if cat, ok := F.cache[categoryID]; ok {
+		return *cat, nil
 	}
 
 	return Category{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
@@ -182,15 +233,10 @@ func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 func (F *FSBackend) Categories() ([]CategoryID, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
-	currentCats, err := F.getCategoriesFromFile()
-
-	if err != nil {
-		return nil, err
-	}
 
 	listCats := make([]CategoryID, 0)
 
-	for _, v := range currentCats {
+	for _, v := range F.cache {
 		listCats = append(listCats, v.ID)
 	}
 

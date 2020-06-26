@@ -9,7 +9,8 @@ import (
 )
 
 type createRequest struct {
-	CategoryName string `json:"category"`
+	CategoryName     string        `json:"category"`
+	ParentCategoryID db.CategoryID `json:"parentCategoryID"`
 }
 
 func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +31,7 @@ func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request)
 
 		w.Header().Set("Content-Type", "application/json")
 
-		categoryID, err := store.CreateCategory(req.CategoryName)
+		categoryID, err := store.CreateCategory(req.CategoryName, req.ParentCategoryID)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new category.", err) {
 			return

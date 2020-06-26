@@ -4,7 +4,8 @@
             <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                 <span
                         v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
-                        v-on:mousedown.stop="start(parIndex, senIndex, wordIndex, $event)"
+                        v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
+                        @mousedown.right="contextMenu"
                         v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
                         v-bind:class="{active: word.Selected}"
                         class="border-on-hover word non-selectable"

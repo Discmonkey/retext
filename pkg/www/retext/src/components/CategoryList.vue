@@ -75,33 +75,6 @@
         mounted() {
             this.axios.get("/category/list").then((res) => {
                 this.categories = res.data
-                // todo: change back-end to return this response...
-                this.categories = [{
-                    "id": 1,
-                    "name": "test #1",
-                    "texts": [{
-                        "documentID": "test_doc.txt",
-                        "text": "nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of"
-                    }],
-                    "subcategories": [{
-                        "id": 2,
-                        "name": "cat 2",
-                        "texts": [{
-                            "documentID": "test_doc.txt",
-                            "text": "men, living and dead, who struggled here, have consecrated"
-                        }, {
-                            "documentID": "test_doc.txt",
-                            "text": "men, living and dead, who struggled here, have consecrated"
-                        }]
-                    }, {
-                        "id": 3,
-                        "name": "three",
-                        "texts": [{
-                            "documentID": "test_doc.txt",
-                            "text": "they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us -- that from these honored dead we take increased devotion"
-                        }]
-                    }]
-                }];
             });
         },
         methods: {
