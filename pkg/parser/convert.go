@@ -7,6 +7,7 @@ type DocumentType int
 const (
 	Text DocumentType = iota
 	DocX
+	Xlsx
 )
 
 type Word struct {
@@ -24,8 +25,13 @@ type Paragraph struct {
 	Sentences []Sentence
 }
 
+type Attributes struct {
+	Columns []string
+	Values  [][]string
+}
+
 type Document struct {
-	Tags       []string
+	Attributes Attributes
 	Title      string
 	Paragraphs []Paragraph
 }
@@ -46,6 +52,8 @@ func GetParser(t DocumentType) (Parser, error) {
 		return TxtParser{}, nil
 	case DocX:
 		return DocXParser{}, nil
+	case Xlsx:
+		return XlsxParser{}, nil
 	default:
 		return nil, errors.New("could not find registered parser for doc type")
 	}
