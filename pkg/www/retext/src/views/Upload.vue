@@ -36,7 +36,9 @@
                 <h5>Source Files </h5>
 
                 <div class="source-file" v-for="file in uploadedSourceFiles" v-bind:key="file">
-                    {{file}}
+                    <div class="mb-2">
+                        <ToDocument :document-id="file" :document-name="file"></ToDocument>
+                    </div>
                 </div>
             </div>
 
@@ -54,8 +56,10 @@
 
 <script>
     import UploadFile from "../components/files/UploadFile";
+    import ToDocument from "../components/nav/ToDocument";
+
     export default {
-        components: {UploadFile},
+        components: {UploadFile, ToDocument},
 
         component: {
             UploadFile
@@ -97,4 +101,5 @@
     h3, h4, h5 {
         font-weight: bold;
     }
+
 </style>

@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="141px" height="74px" viewBox="0 0 141 74" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="171px" height="117px" viewBox="0 0 171 117" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
     <title>Untitled</title>
     <desc>Created with Sketch.</desc>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Qode-Logo" transform="translate(1.000000, 0.999640)" fill="#2679F6">
-            <path d="M131.628936,-2.22044605e-16 L139.001036,0.00141945421 L139.001036,72.0014195 L68.8459404,72.001806 C69.6008136,68.7967898 70.0010363,65.4475742 70.0010363,62.0014195 C70.0010363,38.80546 51.8685687,20.0014195 29.5010363,20.0014195 C17.8713595,20.0014195 7.38656057,25.0847731 2.66453526e-15,33.2257734 L0.00103631596,0.00141945421 L87.3710645,-2.22044605e-16 C87.1273461,1.29721761 87,2.63424764 87,4.00035999 C87,16.1506245 97.0735931,26.00036 109.5,26.00036 C111.045534,26.00036 112.554673,25.847993 114.01256,25.5577836 C117.084434,25.2136439 119.915393,23.9833212 122.286157,22.1055074 C128.154932,18.1355308 132,11.5069987 132,4.00035999 C132,2.63424764 131.872654,1.29721761 131.628936,-2.22044605e-16 Z M96.5010363,36.0014195 C90.1497617,36.0014195 85.0010363,40.9262872 85.0010363,47.0014195 C85.0010363,53.0765517 90.1497617,58.0014195 96.5010363,58.0014195 C102.852311,58.0014195 108.001036,53.0765517 108.001036,47.0014195 C108.001036,40.9262872 102.852311,36.0014195 96.5010363,36.0014195 Z" id="Combined-Shape" stroke="#409DF7" stroke-width="1" fill-rule="evenodd"></path>
-            <text id="Qode" font-family="Roboto-Black, Roboto" font-size="24" font-weight="700">
-                <tspan x="4.69439569" y="58.0014195">Qode</tspan>
-            </text>
+        <g id="Group" transform="translate(0.000000, 3.000000)" fill="#0B3985">
+            <g>
+                <text id="Qode" font-family="STSongti-TC-Bold, Songti TC" font-size="70" font-weight="bold">
+                    <tspan x="0.36" y="90">Qode</tspan>
+                </text>
+                <polygon id="Rectangle" stroke="#2679F6" transform="translate(138.250000, 23.750000) scale(-1, -1) translate(-138.250000, -23.750000) " points="110.5 2.5 153.5 0 147.5 47.5 166 11.5"></polygon>
+            </g>
         </g>
     </g>
 </svg>

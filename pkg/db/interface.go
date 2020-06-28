@@ -18,7 +18,7 @@ type Categories = map[CategoryID]Category
 
 type Store interface {
 	UploadFile(filename string, contents []byte) (FileID, error)
-	DeleteFile(id FileID) error
+	//DeleteFile(id FileID) error
 	GetFile(id FileID) ([]byte, error)
 	Files() ([]FileID, error)
 	CreateCategory(name string) (CategoryID, error)

@@ -4,7 +4,7 @@
     </div>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
       <a class="navbar-brand" href="#">
-        <img src="./assets/qode.svg" alt="qode">
+        <img id="logo" src="./assets/qode.svg" alt="qode">
       </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -15,9 +15,7 @@
           <li class="nav-item">
             <router-link to="/upload" class="nav-link">Upload</router-link>
           </li>
-          <li class="nav-item active">
-            <router-link to="/" class="nav-link">Home</router-link>
-          </li>
+
           <li class="nav-item">
             <router-link to="/about" class="nav-link">About</router-link>
           </li>
@@ -52,6 +50,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+}
+
+#logo {
+  height: 3em;
 }
 
 /*#nav {*/
