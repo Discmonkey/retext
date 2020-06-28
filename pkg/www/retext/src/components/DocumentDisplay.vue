@@ -4,13 +4,7 @@
     <div class="container-fluid">
 
         <div class="row">
-            <div class="col-md-3 border-right">
-                <div class="document-select row" v-for="uploadedFile in uploadedFiles" :key="uploadedFile">
-                    <button v-bind:class="{ active: uploadedFile === selected}"
-                            class="btn white-background" @click="loadDocument(uploadedFile)">{{uploadedFile}} </button>
-                </div>
-            </div>
-            <div class="col-md-12">
+            <div class="col-md-12 document-display">
                 <TextRenderer :text="currentText" :document-i-d="selected" :channel="channel"></TextRenderer>
             </div>
         </div>
@@ -38,11 +32,7 @@
         },
 
         mounted() {
-            this.axios.get("/file/list").then((res) => {
-                for (let f of res.data.Files) {
-                    this.uploadedFiles.push(f);
-                }
-            })
+            this.loadDocument(this.$route.params.documentID);
         },
 
         methods: {
@@ -79,32 +69,9 @@
 </script>
 
 <style scoped>
-    .btn {
-        border: 1px solid black;
-        margin-right: 8px;
-        margin-bottom: 5px;
-    }
-
-    .white-background {
-        background-color: white;
-    }
-
-    .active {
-        -webkit-box-shadow: inset 0 0 9px 0 rgba(80,191,93,1);
-        -moz-box-shadow: inset 0 0 9px 0 rgba(80,191,93,1);
-        box-shadow: inset 0 0 9px 0 rgba(80,191,93,1);
-    }
-
-    .space-bottom {
-        margin-bottom: 20px;
-    }
-
-    .border-right {
-        border-right: 3px blue dashed;
-    }
-
-    .col-md-9 {
-        padding-right: 50px;
+    .document-display {
+        max-height: 90%;
+        overflow-y: scroll;
     }
 
     .row {
