@@ -87,11 +87,11 @@
 
 <style scoped>
     .row {
-        margin-top: 20px;
+        margin-top: 40px;
     }
 
     .space-bottom {
-        margin-bottom: 2em;
+        margin-bottom: 5em;
     }
 
     h3, h4, h5 {

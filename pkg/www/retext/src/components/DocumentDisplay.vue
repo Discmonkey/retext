@@ -10,7 +10,7 @@
                             class="btn white-background" @click="loadDocument(uploadedFile)">{{uploadedFile}} </button>
                 </div>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <TextRenderer :text="currentText" :document-i-d="selected" :channel="channel"></TextRenderer>
             </div>
         </div>

@@ -56,6 +56,6 @@
 <style scoped>
     input {
         position: absolute;
-        top: -500px;
+        top: -1000px;
     }
 </style>

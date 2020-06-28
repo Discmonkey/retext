@@ -11,7 +11,7 @@ import CategoryList from '@/components/CategoryList'
 import DocumentDisplay from "@/components/DocumentDisplay";
 import {Channel} from "@/core/Channel"
 export default {
-  name: 'Home',
+  name: 'Code',
   components: {
     CategoryList,
     DocumentDisplay
