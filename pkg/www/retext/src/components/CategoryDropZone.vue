@@ -1,9 +1,7 @@
 <template>
-    <div v-bind:style="{backgroundColor: category.bgColor, color: category.color}"
-         class="category-drop-zone"
-         @mouseup="$emit('category-drop', category.id)">
-        <span class="category-drop-zone-display">{{category.name}}</span>
-    </div>
+    <span @text-drop="textDrop($event)" class="category-drop-zone">
+        <slot></slot>
+    </span>
 </template>
 
 <script>
@@ -11,28 +9,43 @@
 
     export default {
         name: "CategoryDropZone",
-        props: ["category"],
+        props: ["category", "channel"],
         beforeMount() {
             if (!this.category.bgColor) {
                 this.category.bgColor = getColor(this.category.id);
                 this.category.color = invertColor(this.category.bgColor, true);
             }
+        },
+        methods: {
+            textDrop: function(e) {
+                console.log(e);
+                e.detail.data.category = this.category;
+                console.log(e.detail.data.categoryID)
+            },
+            getTextsLength() {
+                let length = this.category.texts.length;
+
+                if(this.category.subcategories) {
+                    for(let subCat of this.category.subcategories) {
+                        length += subCat.texts.length;
+                    }
+                }
+
+                return length;
+            }
         }
     }
 </script>
 
-<style>
-    .category-drop-zone {
-        border-radius: 5px;
-        min-height: 3em;
-        text-align: center;
-        /* https://css-tricks.com/centering-css-complete-guide/#both-flexbox */
-        display: flex;
-        justify-content: center;
-        align-items: center;
+<style scoped>
+    /* apply to empty element + a background-color to get a circle */
+    .category-color-drop {
+        border-radius: 50%;
+        padding: .5em;
+        margin-right: 5px;
     }
 
-    .category-drop-zone:hover {
-        box-shadow: inset 0 0 0 99999px rgba(255, 255, 255, 0.3);
+    .category-drop-zone {
+        cursor: default;
     }
 </style>

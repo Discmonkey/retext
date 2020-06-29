@@ -33,7 +33,10 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 					endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
 					return
 				}
-				l = append(l, newCat)
+				// subcategories are already included under parent categories
+				if !newCat.IsSub {
+					l = append(l, newCat)
+				}
 			}
 		}
 		sort.Slice(l, func(i int, j int) bool {

@@ -1,20 +1,53 @@
 <template>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-4 category"
-                 v-for="cat in categories" :key="cat.id">
-                <category-drop-zone :category="cat" @category-drop="associate($event)"/>
-            </div>
+            <button class="btn btn-primary offset-md-5 col-md-7"
+                    @text-drop="textDrop(newCat, $event.detail, $event)"
+                    @click="createCategory(categories, null)"
+            >Add a New Code
+            </button>
+
         </div>
-        <div class="row">
-            <div class="col-md-12 category new-category">
-                <category-drop-zone :category="newCat" @category-drop="newCategoryAssociate()"/>
+        <div @text-drop="textDrop(category, $event.detail, $event)"
+             class="col-md-12 category-wrapper"
+             v-for="category in categories" :key="category.id">
+            <div class="row">
+                <div class="col-sm-7"><b>
+                    <category-drop-zone :category="category">{{category.name}}</category-drop-zone>
+                </b></div>
+                <div class="col-sm-5 row">
+                    <div class="col-md-4">
+                        <category-drop-zone
+                                :category="newCat"
+                        >
+                            <div
+                                @click="createCategory(category.subcategories, category.id)"
+                                class="btn-primary parent-category-option">+</div>
+                        </category-drop-zone>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="btn-primary parent-category-option">D</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="btn-primary parent-category-option">{{getTextsLength(category)}}</div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-left: 7%" class="row">
+                <category-drop-zone class="row rounded-series subcategory" style="width:100%"
+                                    v-for="subCat in category.subcategories" :key="subCat.id"
+                                    :category="subCat"
+                >
+                    <span class="col-md-9">{{subCat.name}}</span>
+                    <span class="col-md-3">{{getTextsLength(subCat)}}</span>
+                </category-drop-zone>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+    // todo: add back colors
     import CategoryDropZone from "./CategoryDropZone";
 
     // eslint-disable-next-line no-unused-vars
@@ -28,18 +61,15 @@
             }]
         }]
     }
-    // todo: goland says this is unused. should i not export?
     export default {
         name: 'CategoryList',
         components: {CategoryDropZone},
         props: ["channel"],
         data: () => {
-            let newCat = {name: "New"}
-            newCat.id = 0;
+            let newCat = {name: "New", id: 0, texts: []};
             return {
                 categories: [],
                 newCat: newCat,
-                currentCat: {},
             }
         },
         mounted() {
@@ -48,12 +78,67 @@
             });
         },
         methods: {
-            _actualAssociate: function (categoryID, words, callback) {
+            textDrop: function (parentCategory, packet, e) {
+                e.stopPropagation(); // stop the even
+
+                let category = packet.data.category;
+
+                console.log(parentCategory, packet);
+
+                // unless an error happens, this function will get called
+                let associate = (cat) => {
+                    this._actualAssociate(cat, packet.data.words, packet.callback);
+                };
+
+                if (parentCategory.id === 0) {
+                    this.createCategory(this.categories, null).then(
+                        associate,
+                        this._cancelCreateCategory
+                    )
+                } else if (!category) {
+                    // dropped on the category-wrapper but not in a designated drop-zone.
+                    // todo: make the whole category-wrapper a drop zone?
+                    return false;
+                } else if (category.id === 0) {
+                    this.createCategory(parentCategory.subcategories, parentCategory.id).then(
+                        associate,
+                        this._cancelCreateCategory
+                    )
+                } else {
+                    associate(category);
+                }
+            },
+            createCategory: function (categories, parentCategoryID) {
+                let newCatName = prompt("Name of new category?");
+                if (newCatName === null) {
+                    // prompt was cancelled
+                    return Promise.reject(true).then(() => {}, () => {});
+                }
+
+                return this.axios.post("/category/create", {
+                    category: newCatName,
+                    parentCategoryID: parentCategoryID
+                }).then(function (res) {
+                    let newCat = res.data
+                    // todo: remove this if subcat...
+                    if (!newCat.subcategories) {
+                        newCat.subcategories = [];
+                    }
+                    categories.push(newCat);
+                    return newCat;
+                }, function (res) {
+                    // todo: alert the user of failure
+                    console.log("an error occurred", res);
+                    return false;
+                });
+            },
+            _actualAssociate: function (category, words, callback) {
                 this.axios.post("/category/associate", {
                     key: words.documentID,
-                    categoryID: categoryID,
+                    categoryID: category.id,
                     text: words.text
                 }).then((res) => {
+                    category.texts.push(words);
                     callback();
                     // "success" toast or something
                     console.log("cl _aA success", res);
@@ -62,42 +147,63 @@
                     console.log("cl _aA failed", res);
                 });
             },
-            associate: function (categoryID) {
-                if(!this.channel.isSending) {
-                    return;
+            _cancelCreateCategory: function(userCancelled) {
+                if(userCancelled) {
+                    // no worries?
+                } else {
+                    // the use should have been notified already in createCategory(); do nothing
                 }
-
-                let packet = this.channel.receive();
-
-                this._actualAssociate(categoryID, packet.data, packet.callback);
+                // why this function: prevent console errors for uncaught promises
             },
-            newCategoryAssociate: function () {
-                if(!this.channel.isSending) {
-                    return;
+            getTextsLength(category) {
+                let length = category.texts.length;
+
+                if (category.subcategories) {
+                    for (let subCat of category.subcategories) {
+                        length += subCat.texts.length;
+                    }
                 }
 
-                let packet = this.channel.receive();
-
-                let newCatName = prompt("Name of new category?");
-                if (newCatName === null) {
-                    // prompt was cancelled
-                    return false;
-                }
-
-                this.axios.post("/category/create", {category: newCatName})
-                    .then((res) => {
-                        let newCat = res.data;
-                        this.categories.push(newCat);
-                        this._actualAssociate(newCat.id, packet.data, packet.callback);
-                    });
-
+                return length;
             }
         }
     }
 </script>
 
-<style>
-    .category:nth-child(n+1) {
-        margin-top: 1%;
+<style scoped>
+    .category-wrapper {
+        border: 2px solid blue;
+        border-radius: .25em;
+        margin: 5px;
+        /*padding-bottom: 5px;*/
+    }
+
+    .category-wrapper, .subcategory {
+        margin-bottom: 1%;
+    }
+
+    .parent-category-option {
+        padding: 0;
+        margin-top: 50%;
+        line-height: 1em;
+        width: 1em;
+        text-align: center;
+    }
+
+    .rounded-series * {
+        border: 1px solid grey;
+        height: 100%;
+        text-align: center;
+    }
+
+    .rounded-series > :first-child {
+        text-align: left;
+        border-bottom-left-radius: .25em;
+        border-top-left-radius: .25em;
+    }
+
+    .rounded-series > :last-child {
+        border-bottom-right-radius: .25em;
+        border-top-right-radius: .25em;
     }
 </style>
