@@ -115,7 +115,8 @@ func TestFSBackend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get list of categories: %s", err)
 	}
-	//this check for 1 will break if you
+	//TODO: update the # used in this len() comparison if you increase the number
+	// of created categories
 	if len(cats) != 2 {
 		numCats := len(cats)
 		t.Fatalf("incorrect number of categories; got: %d", numCats)

@@ -10,9 +10,11 @@ import (
 )
 
 type associateRequest struct {
-	CategoryID db.CategoryID `json:"categoryID"`
-	DocumentID db.FileID     `json:"key"`
-	Text       string        `json:"text"`
+	CategoryID db.CategoryID     `json:"categoryID"`
+	DocumentID db.FileID         `json:"key"`
+	Text       string            `json:"text"`
+	FirstWord  db.WordCoordinate `json:"anchor"`
+	LastWord   db.WordCoordinate `json:"last"`
 }
 
 func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +46,7 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text)
+		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text, req.FirstWord, req.LastWord)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to save the selected text.", err) {
 			return
