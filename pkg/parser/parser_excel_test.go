@@ -8,12 +8,12 @@ import (
 
 func TestConvertXlsx(t *testing.T) {
 
-	b, err := ioutil.ReadFile("test_documents/excel.docx")
+	b, err := ioutil.ReadFile("test_documents/excel.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	parser := DocXParser{}
+	parser := XlsxParser{}
 
 	document, err := parser.Convert(b)
 
@@ -21,15 +21,8 @@ func TestConvertXlsx(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, paragraph := range document.Paragraphs {
-		fmt.Println()
-
-		for _, sentence := range paragraph.Sentences {
-
-			for _, part := range sentence.Parts {
-				fmt.Print(part.Text, " ")
-			}
-		}
+	for column := range document.Attributes.Columns {
+		fmt.Println(column)
 	}
 
 }

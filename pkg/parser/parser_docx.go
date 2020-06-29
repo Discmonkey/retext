@@ -39,7 +39,7 @@ func (t DocXParser) Convert(unprocessed []byte) (Document, error) {
 		return d, errors.New("could not find document.xml in docx file")
 	}
 
-	contents, err := readFile(main)
+	contents, err := readZipFile(main)
 	if err != nil {
 		return d, err
 	}
@@ -57,7 +57,7 @@ func (t DocXParser) Convert(unprocessed []byte) (Document, error) {
 	return d, nil
 }
 
-func readFile(file *zip.File) ([]byte, error) {
+func readZipFile(file *zip.File) ([]byte, error) {
 	reader, err := file.Open()
 	if err != nil {
 		return nil, err

@@ -27,7 +27,7 @@ type Paragraph struct {
 
 type Attributes struct {
 	Columns []string
-	Values  [][]string
+	Values  map[string][]string
 }
 
 type Document struct {
