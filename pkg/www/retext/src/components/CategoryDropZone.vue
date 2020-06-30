@@ -18,9 +18,7 @@
         },
         methods: {
             textDrop: function(e) {
-                console.log(e);
                 e.detail.data.category = this.category;
-                console.log(e.detail.data.categoryID)
             },
             getTextsLength() {
                 let length = this.category.texts.length;
