@@ -64,7 +64,6 @@
     export default {
         name: 'CategoryList',
         components: {CategoryDropZone},
-        props: ["channel"],
         data: () => {
             let newCat = {name: "New", id: 0, texts: []};
             return {
@@ -83,11 +82,9 @@
 
                 let category = packet.data.category;
 
-                console.log(parentCategory, packet);
-
                 // unless an error happens, this function will get called
                 let associate = (cat) => {
-                    this._actualAssociate(cat, packet.data.words, packet.callback);
+                    this._actuallyAssociate(cat, packet.data.words, packet.callback);
                 };
 
                 if (parentCategory.id === 0) {
@@ -132,7 +129,7 @@
                     return false;
                 });
             },
-            _actualAssociate: function (category, words, callback) {
+            _actuallyAssociate: function (category, words, callback) {
                 this.axios.post("/category/associate", {
                     key: words.documentID,
                     categoryID: category.id,

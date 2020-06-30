@@ -60,7 +60,7 @@
 
     export default {
         name: "TextRenderer",
-        props: {text: TextType, documentID: String, channel: Object},
+        props: {text: TextType, documentID: String},
         data: function() {
             return {
                 path: [],
@@ -158,6 +158,9 @@
                     document.removeEventListener("mouseup", remove);
                     document.removeEventListener("mousemove", move);
 
+                    let words = JSON.parse(JSON.stringify(this.dragTool));
+                    words.documentID = this.documentID;
+                    words.text = selectedWords.join(" ");
                     let textDropEvent = new CustomEvent("text-drop", {
                         bubbles: true, cancelable: true,
                         detail: {
@@ -171,13 +174,6 @@
 
                     e.target.dispatchEvent(textDropEvent);
                 }
-
-                let words = JSON.parse(JSON.stringify(this.dragTool));
-                words.documentID = this.documentID;
-                words.text = selectedWords.join(" ");
-                this.channel.send(words, () => {
-                    console.log(`sample send callback: ${JSON.stringify(words)}`);
-                })
 
                 document.addEventListener("mousemove", move);
                 document.addEventListener("mouseup", remove);

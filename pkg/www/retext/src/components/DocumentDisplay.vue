@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <TextRenderer :text="currentText" :document-i-d="selected" :channel="channel"></TextRenderer>
+                <TextRenderer :text="currentText" :document-i-d="selected"></TextRenderer>
             </div>
         </div>
     </div>
@@ -47,9 +47,6 @@
             FileUpload,
             TextRenderer
         },
-
-        props: ["channel"],
-
         data: () => {
             return {
                 files: [],
