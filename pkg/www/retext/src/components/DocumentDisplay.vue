@@ -5,7 +5,7 @@
 
         <div class="row">
             <div class="col-md-12 document-display">
-                <TextRenderer :text="currentText" :document-i-d="selected" :channel="channel"></TextRenderer>
+                <TextRenderer :text="currentText" :document-i-d="selected"></TextRenderer>
             </div>
         </div>
     </div>
@@ -19,9 +19,6 @@
         components: {
             TextRenderer
         },
-
-        props: ["channel"],
-
         data: () => {
             return {
                 files: [],
