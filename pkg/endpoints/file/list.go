@@ -8,7 +8,7 @@ import (
 )
 
 type ListResponse struct {
-	Files []string
+	Files []db.File
 }
 
 func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {

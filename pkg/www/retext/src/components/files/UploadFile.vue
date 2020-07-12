@@ -2,7 +2,7 @@
     <div>
         <input type="file" ref="form" v-on:change="upload()">
         <button class="btn btn-primary" @click="clickFile()">
-            Upload File
+            Upload {{fileType}}
         </button>
     </div>
 </template>
@@ -10,6 +10,7 @@
 <script>
     export default {
         name: "UploadFile",
+        props: ["fileType"],
         data: function() {
             return {
                 file: null,

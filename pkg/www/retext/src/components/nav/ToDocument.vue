@@ -3,23 +3,15 @@
 <template>
     <div class="doc-nav">
         <div class="row">
-            <div class="col-md-2">
-                <h4> {{documentName}}</h4>
+            <div class="col-md-9">
+                <h5> {{documentName}}</h5>
             </div>
 
-            <div class="offset-7 col-3">
-                <button class="btn btn-success bg-blue float-right" @click="goto()">
-                    Code
-                    <i class="fa fa-arrow-right"></i>
+            <div class="col-3">
+                <button class="btn btn-primary float-right" @click="goto()">
+                    {{ buttonText }}
                 </button>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="col-9">
-                ID: {{documentId}}
-            </div>
-
         </div>
     </div>
 </template>
@@ -28,10 +20,10 @@
 
     export default {
         name: "ToDocument",
-        props: ["documentName", "documentId"],
+        props: ["documentName", "documentId", "path", "buttonText"],
         methods: {
             goto() {
-                this.$router.push(`/code/${this.documentId}`)
+                this.$router.push(`${this.path}/${this.documentId}`)
             }
         }
     }
@@ -42,5 +34,9 @@
         border: 2px solid lightblue;
         border-radius: 5px;
         padding: 10px;
+    }
+    h5 {
+        font-weight: bolder;
+        color: gray;
     }
 </style>

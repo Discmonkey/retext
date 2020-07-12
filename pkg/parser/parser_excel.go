@@ -5,7 +5,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -34,8 +33,6 @@ func parseStrings(contents []byte) ([]string, error) {
 	visitor := arrayVisitor{
 		items: make([]string, 0, 0),
 	}
-
-	fmt.Println(root)
 
 	topDownWalk(root, &visitor)
 
@@ -138,7 +135,6 @@ func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
 	var sharedStrings *zip.File = nil
 
 	for _, file := range reader.File {
-		fmt.Println(file.Name)
 		if strings.HasSuffix(file.Name, "sheet1.xml") {
 			sheet = file
 		} else if strings.HasSuffix(file.Name, "sharedStrings.xml") {
@@ -155,8 +151,6 @@ func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
 	if err != nil {
 		return d, err
 	}
-
-	fmt.Println(string(contentsSheet))
 
 	commonStrings, err := parseStrings(contentsStrings)
 	if err != nil {

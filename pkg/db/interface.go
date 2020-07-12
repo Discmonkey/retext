@@ -1,6 +1,17 @@
 package db
 
 type FileID = string
+type FileType = string
+
+const (
+	SourceFile FileType = "SourceFile"
+	DemoFile   FileType = "DemoFile"
+)
+
+type File struct {
+	Id   FileID
+	Type FileType
+}
 
 type CategoryID = int
 
@@ -40,7 +51,7 @@ type Categories = map[CategoryID]*Category
 type Store interface {
 	UploadFile(filename string, contents []byte) (FileID, error)
 	GetFile(id FileID) ([]byte, error)
-	Files() ([]FileID, error)
+	Files() ([]File, error)
 	CreateCategory(name string, ParentCategoryID CategoryID) (CategoryID, error)
 	CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
 	GetCategory(categoryID CategoryID) (Category, error)
