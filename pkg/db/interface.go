@@ -9,6 +9,7 @@ type WordCoordinate struct {
 	Sentence  int `json:"sentence"`
 	Word      int `json:"word"`
 }
+
 type DocumentText struct {
 	DocumentID FileID         `json:"documentID"`
 	Text       string         `json:"text"`
@@ -17,12 +18,17 @@ type DocumentText struct {
 }
 
 type Category struct {
-	ID            CategoryID     `json:"id"`
-	Name          string         `json:"name"`
-	Texts         []DocumentText `json:"texts"`
-	IsSub         bool           `json:"isSub"`
-	Subcategories []*Category    `json:"subcategories"`
+	ID    CategoryID     `json:"id"`
+	Name  string         `json:"name"`
+	Texts []DocumentText `json:"texts"`
+	IsSub bool           `json:"isSub"`
 }
+
+type CategoryContainer struct {
+	main     Category
+	children []Category
+}
+
 type Subcategories = []*Category
 type CategoryParentMap struct {
 	parentID CategoryID

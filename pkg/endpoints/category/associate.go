@@ -44,7 +44,7 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text)
+		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text, db.WordCoordinate{}, db.WordCoordinate{})
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to save the selected text.", err) {
 			return

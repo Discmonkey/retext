@@ -42,10 +42,10 @@ type Parser interface {
 
 // GetParser returns the correct parser for the filetype or error if there is no correct parser
 // TODO may be worth adding an extra method to the Parser interface that returns a list of parseable documents
-// TODO then parsers can automatically declare themselves. On the other hand we would then need to keep around
-// TODO instances of the different parsers. The current approach uses a bit less state, with a lot of short lived
-// TODO parsers. This feels appropriate since parsers should never have state that extends past the lifetime of
-// TODO the document that they have just finished parsing.
+// then parsers can automatically declare themselves. On the other hand we would then need to keep around
+// instances of the different parsers. The current approach uses a bit less state, with a lot of short lived
+// parsers. This feels appropriate since parsers should never have state that extends past the lifetime of
+// the document that they have just finished parsing.
 func GetParser(t DocumentType) (Parser, error) {
 	switch t {
 	case Text:

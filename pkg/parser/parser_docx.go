@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -80,6 +81,15 @@ type visitor interface {
 type documentBuilder struct {
 	doc *Document
 }
+
+type debugVisitor struct {
+}
+
+func (d debugVisitor) Visit(element *xmltree.Element) {
+	fmt.Println(element)
+}
+
+var _ visitor = debugVisitor{}
 
 func (d *documentBuilder) Visit(element *xmltree.Element) {
 
