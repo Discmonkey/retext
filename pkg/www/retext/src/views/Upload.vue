@@ -70,6 +70,7 @@
         data() {
             return {
                 uploadedSourceFiles: [],
+                uploadedDemoFiles: [],
             }
         },
 

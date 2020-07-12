@@ -118,8 +118,6 @@ func parseSheet(contents []byte, values []string) (Attributes, error) {
 		}
 	}
 
-	fmt.Println(a.Columns)
-
 	return a, nil
 }
 
@@ -165,9 +163,9 @@ func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
 		return d, err
 	}
 
-	_, _ = parseSheet(contentsSheet, commonStrings)
+	d.Attributes, err = parseSheet(contentsSheet, commonStrings)
 
-	return d, nil
+	return d, err
 }
 
 var _ Parser = XlsxParser{}

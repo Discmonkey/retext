@@ -18,10 +18,11 @@ type DocumentText struct {
 }
 
 type Category struct {
-	ID    CategoryID     `json:"id"`
-	Name  string         `json:"name"`
-	Texts []DocumentText `json:"texts"`
-	IsSub bool           `json:"isSub"`
+	ID            CategoryID     `json:"id"`
+	Name          string         `json:"name"`
+	Texts         []DocumentText `json:"texts"`
+	IsSub         bool           `json:"isSub"`
+	Subcategories []*Category
 }
 
 type CategoryContainer struct {

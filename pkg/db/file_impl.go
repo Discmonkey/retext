@@ -134,7 +134,7 @@ func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
 
 	for catID, cacheCat := range cacheCats {
 		newCat := cacheCat.Category
-		newCat.Subcategories = Subcategories{}
+		//newCat.Subcategories = Subcategories{}
 		retCats[catID] = newCat
 	}
 	for catID, cacheCat := range cacheCats {
