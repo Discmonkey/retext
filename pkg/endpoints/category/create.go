@@ -37,12 +37,22 @@ func CreateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		newCat, err := store.GetCategory(categoryID)
-		if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new category.", err) {
-			return
-		}
+		encoder := json.NewEncoder(w)
+		if req.ParentCategoryID > 0 {
+			newCat, err := store.GetCategory(categoryID)
 
-		_ = json.NewEncoder(w).Encode(newCat)
+			if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new category.", err) {
+				return
+			}
+			_ = encoder.Encode(newCat)
+		} else {
+			newCat, err := store.GetCategoryMain(categoryID)
+
+			if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new category.", err) {
+				return
+			}
+			_ = encoder.Encode(newCat)
+		}
 	}
 
 	return t

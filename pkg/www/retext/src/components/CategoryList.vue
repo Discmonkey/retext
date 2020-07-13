@@ -2,26 +2,26 @@
     <div class="container-fluid">
         <div class="row">
             <button class="btn btn-primary offset-md-5 col-md-7"
-                    @text-drop="textDrop(newCat, $event.detail, $event)"
+                    @text-drop="textDrop(defaultNewCat, $event.detail, $event)"
                     @click="createCategory(categories, null)"
             >Add a New Code
             </button>
 
         </div>
-        <div @text-drop="textDrop(category, $event.detail, $event)"
-             class="col-md-12 category-wrapper"
-             v-for="category in categories" :key="category.id">
+        <div v-for="category in categories" :key="category.main.id"
+             @text-drop="textDrop(category, $event.detail, $event)"
+             class="col-md-12 category-wrapper">
             <div class="row">
                 <div class="col-sm-7"><b>
-                    <category-drop-zone :category="category">{{category.name}}</category-drop-zone>
+                    <category-drop-zone :category="category.main">{{category.main.name}}</category-drop-zone>
                 </b></div>
                 <div class="col-sm-5 row">
                     <div class="col-md-4">
                         <category-drop-zone
-                                :category="newCat"
+                                :category="defaultNewCat.main"
                         >
                             <div
-                                @click="createCategory(category.subcategories, category.id)"
+                                @click="createCategory(category.subcategories, category.main.id)"
                                 class="btn-primary parent-category-option">+</div>
                         </category-drop-zone>
                     </div>
@@ -34,12 +34,12 @@
                 </div>
             </div>
             <div style="margin-left: 7%" class="row">
-                <category-drop-zone class="row rounded-series subcategory" style="width:100%"
-                                    v-for="subCat in category.subcategories" :key="subCat.id"
+                <category-drop-zone v-for="subCat in category.subcategories" :key="subCat.id"
+                                    class="row rounded-series subcategory" style="width:100%"
                                     :category="subCat"
                 >
                     <span class="col-md-9">{{subCat.name}}</span>
-                    <span class="col-md-3">{{getTextsLength(subCat)}}</span>
+                    <span class="col-md-3">{{subCat.texts.length}}</span>
                 </category-drop-zone>
             </div>
         </div>
@@ -53,7 +53,7 @@
     // eslint-disable-next-line no-unused-vars
     let categoriesTypes = {
         categories: [{
-            id: "",
+            id: 0,
             name: "",
             texts: [{
                 documentID: "",
@@ -61,19 +61,33 @@
             }]
         }]
     }
+    function prepareCategory(mainCat) {
+        for(let i = 0; i <= mainCat.subcategories.length; ++i) {
+            if(mainCat.subcategories[i].id === mainCat.main) {
+                mainCat.main = mainCat.subcategories.splice(i, 1)[0];
+                break;
+            }
+        }
+        return mainCat;
+    }
     export default {
         name: 'CategoryList',
         components: {CategoryDropZone},
         data: () => {
-            let newCat = {name: "New", id: 0, texts: []};
+            let newCat = {main: {name: "New", id: 0, texts: []}, subcategories: {}};
             return {
                 categories: [],
-                newCat: newCat,
+                defaultNewCat: newCat,
             }
         },
         mounted() {
             this.axios.get("/category/list").then((res) => {
-                this.categories = res.data
+                let categories = res.data
+
+                this.categories = [];
+                for(let c of categories) {
+                    this.categories.push(prepareCategory(c));
+                }
             });
         },
         methods: {
@@ -84,22 +98,26 @@
 
                 // unless an error happens, this function will get called
                 let associate = (cat) => {
-                    this._actuallyAssociate(cat, packet.data.words, packet.callback);
+                    if(typeof cat === "boolean" || !cat)
+                        return;
+                    let c = cat;
+                    if(parentCategory.main.id === 0) {
+                        c = cat.main;
+                    }
+                    this._actuallyAssociate(c, packet.data.words, packet.callback);
                 };
 
-                if (parentCategory.id === 0) {
+                if (parentCategory.main.id === 0) {
                     this.createCategory(this.categories, null).then(
-                        associate,
-                        this._cancelCreateCategory
+                        associate
                     )
                 } else if (!category) {
                     // dropped on the category-wrapper but not in a designated drop-zone.
-                    // todo: make the whole category-wrapper a drop zone?
+                    // TODO: make the whole category-wrapper a drop zone? (see template above)
                     return false;
                 } else if (category.id === 0) {
-                    this.createCategory(parentCategory.subcategories, parentCategory.id).then(
-                        associate,
-                        this._cancelCreateCategory
+                    this.createCategory(parentCategory.subcategories, parentCategory.main.id).then(
+                        associate
                     )
                 } else {
                     associate(category);
@@ -117,9 +135,8 @@
                     parentCategoryID: parentCategoryID
                 }).then(function (res) {
                     let newCat = res.data
-                    // todo: remove this if subcat...
-                    if (!newCat.subcategories) {
-                        newCat.subcategories = [];
+                    if(!parentCategoryID) {
+                        newCat = prepareCategory(newCat);
                     }
                     categories.push(newCat);
                     return newCat;
@@ -144,16 +161,8 @@
                     console.log("cl _aA failed", res);
                 });
             },
-            _cancelCreateCategory: function(userCancelled) {
-                if(userCancelled) {
-                    // no worries?
-                } else {
-                    // the use should have been notified already in createCategory(); do nothing
-                }
-                // why this function: prevent console errors for uncaught promises
-            },
             getTextsLength(category) {
-                let length = category.texts.length;
+                let length = category.main.texts.length;
 
                 if (category.subcategories) {
                     for (let subCat of category.subcategories) {
