@@ -140,9 +140,8 @@
                     }
                     categories.push(newCat);
                     return newCat;
-                }, function (res) {
+                }, function () {
                     // todo: alert the user of failure
-                    console.log("an error occurred", res);
                     return false;
                 });
             },
@@ -151,14 +150,12 @@
                     key: words.documentID,
                     categoryID: category.id,
                     text: words.text
-                }).then((res) => {
+                }).then(() => {
                     category.texts.push(words);
                     callback();
-                    // "success" toast or something
-                    console.log("cl _aA success", res);
-                }, (res) => {
-                    // "an error occurred" toast or something
-                    console.log("cl _aA failed", res);
+                    // todo: "success" toast or something
+                }, () => {
+                    // todo: "an error occurred" toast or something
                 });
             },
             getTextsLength(category) {
