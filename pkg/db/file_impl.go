@@ -10,10 +10,15 @@ import (
 	"sync"
 )
 
+type FSCache struct {
+	Flat      CategoryMap
+	ParentMap CategoryParentIDMap
+}
 type FSBackend struct {
 	dirLocation string
 	catMutex    sync.RWMutex
 	catFileLoc  string
+	cache       FSCache
 }
 
 func (F *FSBackend) Init(pathToDir string) error {
@@ -38,8 +43,18 @@ func (F *FSBackend) Init(pathToDir string) error {
 	//create file to store categories, if it doesn't already exist
 	F.catFileLoc = path.Join(pathToDir, "cats.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		cats := Categories{}
-		err = jsonToFile(F.catFileLoc, cats)
+		F.cache = FSCache{
+			Flat:      CategoryMap{},
+			ParentMap: CategoryParentIDMap{},
+		}
+		err = jsonToFile(F.catFileLoc, F.cache)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		F.cache, err = F.getCategoriesFromFile()
+
 		if err != nil {
 			return err
 		}
@@ -104,36 +119,39 @@ func jsonToFile(filename string, i interface{}) error {
 	return nil
 }
 
-func (F *FSBackend) getCategoriesFromFile() (Categories, error) {
-	var cats Categories
-	err := jsonFromFile(F.catFileLoc, &cats)
-	return cats, err
+func (F *FSBackend) getCategoriesFromFile() (FSCache, error) {
+	var cache FSCache
+	err := jsonFromFile(F.catFileLoc, &cache)
+	return cache, err
 }
 
-func (F *FSBackend) writeCategoriesToFile(cats Categories) error {
-	err := jsonToFile(F.catFileLoc, cats)
+func (F *FSBackend) writeCategoriesToFile(cache FSCache) error {
+	err := jsonToFile(F.catFileLoc, cache)
 	return err
 }
 
-func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
-	// todo: category names should be unique (across documents?) either way,
-	//  to be enforced by the db via constraints (check those errors)
+func (F *FSBackend) CreateCategory(name string, parentCategoryID CategoryID) (CategoryID, error) {
+	// todo: category names should be unique (per project, probably?)
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
-	cats, err := F.getCategoriesFromFile()
-	if err != nil {
-		return 0, err
+
+	newID := len(F.cache.Flat) + 1
+
+	newCat := Category{Name: name, ID: newID, Texts: []DocumentText{}}
+
+	if parentCategoryID == 0 {
+		F.cache.ParentMap[newID] = []CategoryID{newID}
+	} else {
+		if subCats, ok := F.cache.ParentMap[parentCategoryID]; ok {
+			F.cache.ParentMap[parentCategoryID] = append(subCats, newID)
+		} else {
+			return 0, errors.New(fmt.Sprintf("CategoryID not found. ID: %d", parentCategoryID))
+		}
 	}
 
-	newId := len(cats) + 1
+	F.cache.Flat[newID] = newCat
 
-	// since the ID is just going to be the name (until there's a db providing AI,
-	//  use the name as the ID. Therefor, no point in check if the name already exists
-	newCat := Category{Name: name, ID: newId, Texts: []DocumentText{}}
-
-	cats[newId] = newCat
-
-	err = F.writeCategoriesToFile(cats)
+	err := F.writeCategoriesToFile(F.cache)
 	if err != nil {
 		return 0, err
 	}
@@ -141,57 +159,76 @@ func (F *FSBackend) CreateCategory(name string) (CategoryID, error) {
 	return newCat.ID, nil
 }
 
-func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, text string) error {
+func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
-	cats, err := F.getCategoriesFromFile()
+
+	cache, err := F.getCategoriesFromFile()
 	if err != nil {
 		return err
 	}
 
-	if _, ok := cats[categoryID]; ok == false {
+	if _, ok := cache.Flat[categoryID]; ok == false {
 		return errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 	}
 
-	var cat = cats[categoryID]
+	var cat = cache.Flat[categoryID]
 	cat.Texts = append(cat.Texts, DocumentText{
 		DocumentID: documentID,
 		Text:       text,
+		FirstWord:  firstWord,
+		LastWord:   lastWord,
 	})
-	cats[categoryID] = cat
+	cache.Flat[categoryID] = cat
 
-	err = F.writeCategoriesToFile(cats)
+	err = F.writeCategoriesToFile(cache)
+
+	F.cache = cache
 	return err
 }
 
 func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
-	cats, err := F.getCategoriesFromFile()
-	if err != nil {
-		return Category{}, err
-	}
 
-	if cat, ok := cats[categoryID]; ok {
+	if cat, ok := F.cache.Flat[categoryID]; ok {
 		return cat, nil
 	}
-
 	return Category{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
+}
+
+func (F *FSBackend) GetCategoryMain(categoryID CategoryID) (CategoryMain, error) {
+	F.catMutex.RLock()
+	defer F.catMutex.RUnlock()
+
+	if cat, ok := F.cache.Flat[categoryID]; ok {
+		cMain := CategoryMain{
+			Main:       cat.ID,
+			Categories: make([]Category, len(F.cache.ParentMap[cat.ID])),
+		}
+		for i, subCatID := range F.cache.ParentMap[cat.ID] {
+			cMain.Categories[i] = F.cache.Flat[subCatID]
+		}
+		return cMain, nil
+	}
+
+	return CategoryMain{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 }
 
 func (F *FSBackend) Categories() ([]CategoryID, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
-	currentCats, err := F.getCategoriesFromFile()
+	cache, err := F.getCategoriesFromFile()
 
 	if err != nil {
 		return nil, err
 	}
 
-	listCats := make([]CategoryID, 0)
-
-	for _, v := range currentCats {
-		listCats = append(listCats, v.ID)
+	listCats := make([]CategoryID, len(cache.ParentMap))
+	i := 0
+	for mainID := range cache.ParentMap {
+		listCats[i] = mainID
+		i++
 	}
 
 	return listCats, nil

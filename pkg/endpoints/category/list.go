@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-type CategoriesResponse = []db.Category
+type CategoriesResponse = []db.CategoryMain
 
 func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -20,25 +20,28 @@ func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 
-		l := CategoriesResponse{}
-
 		categoryIDs, err := store.Categories()
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categoryIDs.", err) {
 			return
-		} else {
-			for _, categoryID := range categoryIDs {
-				newCat, err := store.GetCategory(categoryID)
-				if err != nil {
-					endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
-					return
-				}
-				l = append(l, newCat)
-			}
 		}
+
+		l := make(CategoriesResponse, len(categoryIDs))
+
+		for i, categoryID := range categoryIDs {
+			main, err := store.GetCategoryMain(categoryID)
+			if err != nil {
+				endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
+				return
+			}
+
+			l[i] = main
+		}
+		// TODO: user-defined sorting instead of this
 		sort.Slice(l, func(i int, j int) bool {
-			return l[i].ID < l[j].ID
+			return l[i].Main < l[j].Main
 		})
+
 		_ = json.NewEncoder(w).Encode(l)
 	}
 

@@ -1,7 +1,7 @@
 <template>
   <div class="home">
-    <DocumentDisplay :channel="channel"  />
-    <CategoryList :channel="channel" />
+    <DocumentDisplay />
+    <CategoryList />
   </div>
 </template>
 
@@ -9,17 +9,11 @@
 // @ is an alias to /src
 import CategoryList from '@/components/CategoryList'
 import DocumentDisplay from "@/components/DocumentDisplay";
-import {Channel} from "@/core/Channel"
 export default {
   name: 'Home',
   components: {
     CategoryList,
     DocumentDisplay
-  },
-  data: () => {
-    return {
-      channel: new Channel()
-    }
   },
 }
 </script>

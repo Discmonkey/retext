@@ -4,7 +4,8 @@
             <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                 <span
                         v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
-                        v-on:mousedown.stop="start(parIndex, senIndex, wordIndex, $event)"
+                        v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
+                        @mousedown.right="contextMenu"
                         v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
                         v-bind:class="{active: word.Selected}"
                         class="border-on-hover word non-selectable"
@@ -59,7 +60,7 @@
 
     export default {
         name: "TextRenderer",
-        props: {text: TextType, documentID: String, channel: Object},
+        props: {text: TextType, documentID: String},
         data: function() {
             return {
                 path: [],
@@ -152,18 +153,27 @@
                     div.style.top = e.clientY + "px";
                 }
 
-                let remove = () => {
+                let remove = (e) => {
                     div.remove()
                     document.removeEventListener("mouseup", remove);
                     document.removeEventListener("mousemove", move);
-                }
 
-                let words = JSON.parse(JSON.stringify(this.dragTool));
-                words.documentID = this.documentID;
-                words.text = selectedWords.join(" ");
-                this.channel.send(words, () => {
-                    console.log(`sample send callback: ${JSON.stringify(words)}`);
-                })
+                    let words = JSON.parse(JSON.stringify(this.dragTool));
+                    words.documentID = this.documentID;
+                    words.text = selectedWords.join(" ");
+                    let textDropEvent = new CustomEvent("text-drop", {
+                        bubbles: true, cancelable: true,
+                        detail: {
+                            data: {words: words},
+                            callback: () => {
+                                // todo: grey-out text or whatever
+                                console.log(`sample: ${JSON.stringify(words)}`);
+                            }
+                        }
+                    })
+
+                    e.target.dispatchEvent(textDropEvent);
+                }
 
                 document.addEventListener("mousemove", move);
                 document.addEventListener("mouseup", remove);

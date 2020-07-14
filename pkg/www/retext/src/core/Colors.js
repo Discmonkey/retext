@@ -20,12 +20,27 @@ export function getColor(index) {
     return allColors[index];
 }
 
-// i'm pretty sure rgbToHex also comes from SO but i did not note the QA
+/**
+ * takes 3 numbers and turns them into a hex color code
+ * from https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+ *
+ * @param {Number} r
+ * @param {Number} g
+ * @param {Number} b
+ * @returns {string}
+ */
 const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
-// hsvToRgb(), goldenRatioConjugate, generateColor() from:
-//  https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-// HSV values in [0..1[
-// returns [r, g, b] values from 0 to 255
+
+/**
+ * Creates a color based on the values passed in
+ * h, s, v values must be in [0..1[
+ * from https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+ *
+ * @param h hue
+ * @param s saturation
+ * @param v value
+ * @returns {string} a hex color code
+ */
 function hsvToRgb(h, s, v) {
     let h_i = Math.floor(h * 6);
     let f = h * 6 - h_i;
@@ -56,12 +71,14 @@ function hsvToRgb(h, s, v) {
 }
 
 /**
- * generates a pleasing color using the "golden ratio conjugate". (see above link).
+ * generates a pleasing color using the "golden ratio conjugate". (see from link).
  * Passing in the same number for h will always return the same color.
  *
- * Note that the "h * grc + grc" part was added by me so, if the colors are weird,
- *  definitely check the above link(and in the wikipedia articles linked by the link)
- *  there's some crazy math going on
+ * Note that the original code stored h as a global variable so, if the colors are weird,
+ *  definitely check the "from" link(and in the wikipedia articles linked by the link)
+ *  there's some crazy math going on that may have been broken by the current set up.
+ *
+ * from https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
  *
  * @param h
  * @returns {string} returns a hex color code
@@ -78,7 +95,7 @@ function generateColor(h) {
  * Calculates an "opposite color". For example, pass in a background color,
  *  get back a foreground color that should be easily visible on the passed-in bg.
  *
- * taken from: https://stackoverflow.com/questions/35969656/how-can-i-generate-the-opposite-color-according-to-current-color/35970186#35970186
+ * from https://stackoverflow.com/questions/35969656/how-can-i-generate-the-opposite-color-according-to-current-color/35970186#35970186
  *
  * @param hex string containing a hex color code (with or without #). handles 3 and 6 digit codes
  * @param bw bool, true if you want only either black or white as the returned foreground color
