@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-type CSCache struct {
+type CategoryCache struct {
 	Flat      CategoryMap
 	ParentMap CategoryParentIDMap
 }
@@ -20,7 +20,7 @@ type FSBackendFile struct {
 type FSBackendCategory struct {
 	catMutex   sync.RWMutex
 	catFileLoc string
-	cache      CSCache
+	cache      CategoryCache
 }
 
 func (F *FSBackendFile) Init(pathToDir string) error {
@@ -57,7 +57,7 @@ func (F *FSBackendCategory) Init(pathToDir string) error {
 	//create file to store categories, if it doesn't already exist
 	F.catFileLoc = path.Join(pathToDir, "cats.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		F.cache = CSCache{
+		F.cache = CategoryCache{
 			Flat:      CategoryMap{},
 			ParentMap: CategoryParentIDMap{},
 		}
@@ -133,13 +133,13 @@ func jsonToFile(filename string, i interface{}) error {
 	return nil
 }
 
-func (F *FSBackendCategory) getCategoriesFromFile() (CSCache, error) {
-	var cache CSCache
+func (F *FSBackendCategory) getCategoriesFromFile() (CategoryCache, error) {
+	var cache CategoryCache
 	err := jsonFromFile(F.catFileLoc, &cache)
 	return cache, err
 }
 
-func (F *FSBackendCategory) writeCategoriesToFile(cache CSCache) error {
+func (F *FSBackendCategory) writeCategoriesToFile(cache CategoryCache) error {
 	err := jsonToFile(F.catFileLoc, cache)
 	return err
 }
