@@ -11,7 +11,7 @@ import (
 
 type CategoriesResponse = []db.CategoryMain
 
-func ListEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
+func ListEndpoint(store db.CategoryStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

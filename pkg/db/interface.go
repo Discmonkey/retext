@@ -31,10 +31,13 @@ type CategoryMain struct {
 type CategoryParentIDMap = map[CategoryID][]CategoryID
 type CategoryMap = map[CategoryID]Category
 
-type Store interface {
+type FileStore interface {
 	UploadFile(filename string, contents []byte) (FileID, error)
 	GetFile(id FileID) ([]byte, error)
 	Files() ([]FileID, error)
+}
+
+type CategoryStore interface {
 	CreateCategory(name string, ParentCategoryID CategoryID) (CategoryID, error)
 	CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
 	GetCategory(categoryID CategoryID) (Category, error)

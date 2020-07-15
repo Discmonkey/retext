@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func DownloadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
+func DownloadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

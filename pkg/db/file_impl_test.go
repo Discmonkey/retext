@@ -6,15 +6,15 @@ import (
 	"testing"
 )
 
-// TestFSBackend covers all the interface methods
-func TestFSBackend(t *testing.T) {
+// TestFSBackend covers all the file interface methods
+func TestFileStore(t *testing.T) {
 	testDirName, _ := ioutil.TempDir("", "retext")
 
 	_ = os.RemoveAll(testDirName)
 
-	store := &FSBackend{}
+	fileBackend := &FSBackendFile{}
 
-	err := store.Init(testDirName)
+	err := fileBackend.Init(testDirName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestFSBackend(t *testing.T) {
 		}
 	}
 
-	files, err := store.Files()
+	files, err := fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,12 +38,12 @@ func TestFSBackend(t *testing.T) {
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	key, err := store.UploadFile(testFileName, contents)
+	key, err := fileBackend.UploadFile(testFileName, contents)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	files, err = store.Files()
+	files, err = fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func TestFSBackend(t *testing.T) {
 		t.Fatal("key does not match files scan")
 	}
 
-	f, err := store.GetFile(key)
+	f, err := fileBackend.GetFile(key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,67 +65,5 @@ func TestFSBackend(t *testing.T) {
 		if b != contents[num] {
 			t.Fatal("file contents do not match")
 		}
-	}
-
-	testCategoryName := "test"
-	firstCategoryID, err := store.CreateCategory(testCategoryName, 0)
-	if err != nil {
-		t.Fatalf("failed to save category: %s", err)
-	}
-
-	firstCategoryMain, err := store.GetCategoryMain(firstCategoryID)
-	if err != nil {
-		t.Fatalf("failed to get category: %s", err)
-	}
-	if firstCategoryMain.Categories[0].Name != testCategoryName {
-		t.Fatalf("category came back with unexpected name: %s", err)
-	}
-	_, err = store.GetCategory(1000)
-	if err == nil {
-		t.Fatal("non-existent categories should return an error")
-	}
-	// test creating a subcategory
-	testSubCatName := "subcat 1 1"
-	_, err = store.CreateCategory(testSubCatName, firstCategoryMain.Main)
-	if err != nil {
-		t.Fatalf("unable to create a subcategory: %s", err)
-	}
-
-	testText := "made up text"
-	anchor := WordCoordinate{
-		Paragraph: 1,
-		Sentence:  1,
-		Word:      1,
-	}
-	lastWord := WordCoordinate{
-		Paragraph: 1,
-		Sentence:  1,
-		Word:      3,
-	}
-	err = store.CategorizeText(firstCategoryID, testFileName, testText, anchor, lastWord)
-	if err != nil {
-		t.Fatalf("failed to categorize text: %s", err)
-	}
-	firstCategory, err := store.GetCategory(firstCategoryID)
-	if err != nil || len(firstCategory.Texts) == 0 {
-		t.Fatalf("failed to categorize text: %s", err)
-	}
-
-	cats, err := store.Categories()
-	if err != nil {
-		t.Fatalf("failed to get list of categories: %s", err)
-	}
-	//TODO: update the # used in this len() comparison if you change the number
-	// of created categories
-	if len(cats) != 1 {
-		numCats := len(cats)
-		t.Fatalf("incorrect number of categories; got: %d", numCats)
-	}
-	_ = os.Remove("/tmp/filetest")
-
-	// second start-up tests "cache path"
-	err = store.Init(testDirName)
-	if err != nil {
-		t.Fatalf("failed to load cached categories: %s", err)
 	}
 }

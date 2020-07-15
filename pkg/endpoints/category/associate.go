@@ -17,7 +17,7 @@ type associateRequest struct {
 	LastWord   db.WordCoordinate `json:"last"`
 }
 
-func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
+func AssociateEndpoint(store db.CategoryStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

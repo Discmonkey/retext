@@ -24,37 +24,41 @@ func main() {
 	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
 	http.Handle("/", fs)
 
-	backend := &db.FSBackend{}
 	retextLocation := path.Join(os.TempDir(), "retext")
-	FailIfError(backend.Init(retextLocation))
+
+	fileBackend := &db.FSBackendFile{}
+	FailIfError(fileBackend.Init(retextLocation))
+
+	categoryBackend := &db.FSBackendCategory{}
+	FailIfError(categoryBackend.Init(retextLocation))
 
 	http.HandleFunc("/file/upload",
 		func(writer http.ResponseWriter, request *http.Request) {
 			enableCors(&writer)
-			file.AddUploadEndpoint(backend)(writer, request)
+			file.AddUploadEndpoint(fileBackend)(writer, request)
 		})
 	http.HandleFunc("/file/list", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
-		file.ListEndpoint(backend)(writer, request)
+		file.ListEndpoint(fileBackend)(writer, request)
 	})
 	http.HandleFunc("/file/load", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
-		file.DownloadEndpoint(backend)(writer, request)
+		file.DownloadEndpoint(fileBackend)(writer, request)
 	})
 
 	http.HandleFunc("/category/create", func(writer http.ResponseWriter, request *http.Request) {
-		category.CreateEndpoint(backend)(writer, request)
+		category.CreateEndpoint(categoryBackend)(writer, request)
 	})
 	http.HandleFunc("/category/get", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
-		category.GetEndpoint(backend)(writer, request)
+		category.GetEndpoint(categoryBackend)(writer, request)
 	})
 	http.HandleFunc("/category/list", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
-		category.ListEndpoint(backend)(writer, request)
+		category.ListEndpoint(categoryBackend)(writer, request)
 	})
 	http.HandleFunc("/category/associate", func(writer http.ResponseWriter, request *http.Request) {
-		category.AssociateEndpoint(backend)(writer, request)
+		category.AssociateEndpoint(categoryBackend)(writer, request)
 	})
 
 	log.Println("Listening on :3000...")

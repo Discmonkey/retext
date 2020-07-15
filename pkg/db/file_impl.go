@@ -10,18 +10,20 @@ import (
 	"sync"
 )
 
-type FSCache struct {
+type CSCache struct {
 	Flat      CategoryMap
 	ParentMap CategoryParentIDMap
 }
-type FSBackend struct {
+type FSBackendFile struct {
 	dirLocation string
-	catMutex    sync.RWMutex
-	catFileLoc  string
-	cache       FSCache
+}
+type FSBackendCategory struct {
+	catMutex   sync.RWMutex
+	catFileLoc string
+	cache      CSCache
 }
 
-func (F *FSBackend) Init(pathToDir string) error {
+func (F *FSBackendFile) Init(pathToDir string) error {
 	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 		err = os.Mkdir(pathToDir, 0766)
 
@@ -29,6 +31,7 @@ func (F *FSBackend) Init(pathToDir string) error {
 			return err
 		}
 	}
+
 	uploadDirLocation := path.Join(pathToDir, "uploadLocation")
 	if _, err := os.Stat(uploadDirLocation); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDirLocation, 0766)
@@ -40,10 +43,21 @@ func (F *FSBackend) Init(pathToDir string) error {
 
 	F.dirLocation = uploadDirLocation
 
+	return nil
+}
+func (F *FSBackendCategory) Init(pathToDir string) error {
+	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
+		err = os.Mkdir(pathToDir, 0766)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	//create file to store categories, if it doesn't already exist
 	F.catFileLoc = path.Join(pathToDir, "cats.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		F.cache = FSCache{
+		F.cache = CSCache{
 			Flat:      CategoryMap{},
 			ParentMap: CategoryParentIDMap{},
 		}
@@ -63,7 +77,7 @@ func (F *FSBackend) Init(pathToDir string) error {
 	return nil
 }
 
-func (F *FSBackend) UploadFile(filename string, contents []byte) (FileID, error) {
+func (F *FSBackendFile) UploadFile(filename string, contents []byte) (FileID, error) {
 	filepath := path.Join(F.dirLocation, filename)
 	err := ioutil.WriteFile(filepath, contents, 0644)
 
@@ -74,14 +88,14 @@ func (F *FSBackend) UploadFile(filename string, contents []byte) (FileID, error)
 	return filename, nil
 }
 
-func (F *FSBackend) GetFile(id FileID) ([]byte, error) {
+func (F *FSBackendFile) GetFile(id FileID) ([]byte, error) {
 	// shit's hacky ha
 	filepath := path.Join(F.dirLocation, id)
 
 	return ioutil.ReadFile(filepath)
 }
 
-func (F *FSBackend) Files() ([]string, error) {
+func (F *FSBackendFile) Files() ([]string, error) {
 	files, err := ioutil.ReadDir(F.dirLocation)
 	if err != nil {
 		return nil, err
@@ -119,18 +133,18 @@ func jsonToFile(filename string, i interface{}) error {
 	return nil
 }
 
-func (F *FSBackend) getCategoriesFromFile() (FSCache, error) {
-	var cache FSCache
+func (F *FSBackendCategory) getCategoriesFromFile() (CSCache, error) {
+	var cache CSCache
 	err := jsonFromFile(F.catFileLoc, &cache)
 	return cache, err
 }
 
-func (F *FSBackend) writeCategoriesToFile(cache FSCache) error {
+func (F *FSBackendCategory) writeCategoriesToFile(cache CSCache) error {
 	err := jsonToFile(F.catFileLoc, cache)
 	return err
 }
 
-func (F *FSBackend) CreateCategory(name string, parentCategoryID CategoryID) (CategoryID, error) {
+func (F *FSBackendCategory) CreateCategory(name string, parentCategoryID CategoryID) (CategoryID, error) {
 	// todo: category names should be unique (per project, probably?)
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
@@ -159,7 +173,7 @@ func (F *FSBackend) CreateCategory(name string, parentCategoryID CategoryID) (Ca
 	return newCat.ID, nil
 }
 
-func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
+func (F *FSBackendCategory) CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
 
@@ -187,7 +201,7 @@ func (F *FSBackend) CategorizeText(categoryID CategoryID, documentID FileID, tex
 	return err
 }
 
-func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
+func (F *FSBackendCategory) GetCategory(categoryID CategoryID) (Category, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
 
@@ -197,7 +211,7 @@ func (F *FSBackend) GetCategory(categoryID CategoryID) (Category, error) {
 	return Category{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 }
 
-func (F *FSBackend) GetCategoryMain(categoryID CategoryID) (CategoryMain, error) {
+func (F *FSBackendCategory) GetCategoryMain(categoryID CategoryID) (CategoryMain, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
 
@@ -215,7 +229,7 @@ func (F *FSBackend) GetCategoryMain(categoryID CategoryID) (CategoryMain, error)
 	return CategoryMain{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
 }
 
-func (F *FSBackend) Categories() ([]CategoryID, error) {
+func (F *FSBackendCategory) Categories() ([]CategoryID, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
 	cache, err := F.getCategoriesFromFile()
@@ -233,5 +247,3 @@ func (F *FSBackend) Categories() ([]CategoryID, error) {
 
 	return listCats, nil
 }
-
-var _ Store = &FSBackend{}
