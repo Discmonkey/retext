@@ -1,4 +1,4 @@
-package category
+package code
 
 import (
 	"encoding/json"
@@ -9,9 +9,9 @@ import (
 	"sort"
 )
 
-type CategoriesResponse = []db.CategoryMain
+type CodesResponse = []db.CodeContainer
 
-func ListEndpoint(store db.CategoryStore) func(w http.ResponseWriter, r *http.Request) {
+func ListEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -20,18 +20,18 @@ func ListEndpoint(store db.CategoryStore) func(w http.ResponseWriter, r *http.Re
 
 		w.Header().Set("Content-Type", "application/json")
 
-		categoryIDs, err := store.Categories()
+		codeIDs, err := store.Codes()
 
-		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all categoryIDs.", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all codeIDs.", err) {
 			return
 		}
 
-		l := make(CategoriesResponse, len(categoryIDs))
+		l := make(CodesResponse, len(codeIDs))
 
-		for i, categoryID := range categoryIDs {
-			main, err := store.GetCategoryMain(categoryID)
+		for i, codeID := range codeIDs {
+			main, err := store.GetCodeContainer(codeID)
 			if err != nil {
-				endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a category|ID: %d", categoryID), err)
+				endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a code|ID: %d", codeID), err)
 				return
 			}
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/discmonkey/retext/pkg/db"
-	"github.com/discmonkey/retext/pkg/endpoints/category"
+	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"log"
 	"net/http"
@@ -26,11 +26,11 @@ func main() {
 
 	retextLocation := path.Join(os.TempDir(), "retext")
 
-	fileBackend := &db.FSBackendFile{}
+	fileBackend := &db.DevFileBackend{}
 	FailIfError(fileBackend.Init(retextLocation))
 
-	categoryBackend := &db.FSBackendCategory{}
-	FailIfError(categoryBackend.Init(retextLocation))
+	codeBackend := &db.DevCodeBackend{}
+	FailIfError(codeBackend.Init(retextLocation))
 
 	http.HandleFunc("/file/upload",
 		func(writer http.ResponseWriter, request *http.Request) {
@@ -46,19 +46,19 @@ func main() {
 		file.DownloadEndpoint(fileBackend)(writer, request)
 	})
 
-	http.HandleFunc("/category/create", func(writer http.ResponseWriter, request *http.Request) {
-		category.CreateEndpoint(categoryBackend)(writer, request)
+	http.HandleFunc("/code/create", func(writer http.ResponseWriter, request *http.Request) {
+		code.CreateEndpoint(codeBackend)(writer, request)
 	})
-	http.HandleFunc("/category/get", func(writer http.ResponseWriter, request *http.Request) {
+	http.HandleFunc("/code/get", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
-		category.GetEndpoint(categoryBackend)(writer, request)
+		code.GetEndpoint(codeBackend)(writer, request)
 	})
-	http.HandleFunc("/category/list", func(writer http.ResponseWriter, request *http.Request) {
+	http.HandleFunc("/code/list", func(writer http.ResponseWriter, request *http.Request) {
 		enableCors(&writer)
-		category.ListEndpoint(categoryBackend)(writer, request)
+		code.ListEndpoint(codeBackend)(writer, request)
 	})
-	http.HandleFunc("/category/associate", func(writer http.ResponseWriter, request *http.Request) {
-		category.AssociateEndpoint(categoryBackend)(writer, request)
+	http.HandleFunc("/code/associate", func(writer http.ResponseWriter, request *http.Request) {
+		code.AssociateEndpoint(codeBackend)(writer, request)
 	})
 
 	log.Println("Listening on :3000...")

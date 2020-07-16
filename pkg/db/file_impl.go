@@ -10,20 +10,20 @@ import (
 	"sync"
 )
 
-type CategoryCache struct {
-	Flat      CategoryMap
-	ParentMap CategoryParentIDMap
+type CodeCache struct {
+	Flat      CodeMap
+	ParentMap CodeParentIDMap
 }
-type FSBackendFile struct {
+type DevFileBackend struct {
 	dirLocation string
 }
-type FSBackendCategory struct {
+type DevCodeBackend struct {
 	catMutex   sync.RWMutex
 	catFileLoc string
-	cache      CategoryCache
+	cache      CodeCache
 }
 
-func (F *FSBackendFile) Init(pathToDir string) error {
+func (F *DevFileBackend) Init(pathToDir string) error {
 	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 		err = os.Mkdir(pathToDir, 0766)
 
@@ -45,7 +45,7 @@ func (F *FSBackendFile) Init(pathToDir string) error {
 
 	return nil
 }
-func (F *FSBackendCategory) Init(pathToDir string) error {
+func (F *DevCodeBackend) Init(pathToDir string) error {
 	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 		err = os.Mkdir(pathToDir, 0766)
 
@@ -54,12 +54,12 @@ func (F *FSBackendCategory) Init(pathToDir string) error {
 		}
 	}
 
-	//create file to store categories, if it doesn't already exist
-	F.catFileLoc = path.Join(pathToDir, "cats.json")
+	//create file to store codes, if it doesn't already exist
+	F.catFileLoc = path.Join(pathToDir, "codes.json")
 	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
-		F.cache = CategoryCache{
-			Flat:      CategoryMap{},
-			ParentMap: CategoryParentIDMap{},
+		F.cache = CodeCache{
+			Flat:      CodeMap{},
+			ParentMap: CodeParentIDMap{},
 		}
 		err = jsonToFile(F.catFileLoc, F.cache)
 		if err != nil {
@@ -67,7 +67,7 @@ func (F *FSBackendCategory) Init(pathToDir string) error {
 		}
 
 	} else {
-		F.cache, err = F.getCategoriesFromFile()
+		F.cache, err = F.getCodesFromFile()
 
 		if err != nil {
 			return err
@@ -77,7 +77,7 @@ func (F *FSBackendCategory) Init(pathToDir string) error {
 	return nil
 }
 
-func (F *FSBackendFile) UploadFile(filename string, contents []byte) (FileID, error) {
+func (F *DevFileBackend) UploadFile(filename string, contents []byte) (FileID, error) {
 	filepath := path.Join(F.dirLocation, filename)
 	err := ioutil.WriteFile(filepath, contents, 0644)
 
@@ -88,14 +88,14 @@ func (F *FSBackendFile) UploadFile(filename string, contents []byte) (FileID, er
 	return filename, nil
 }
 
-func (F *FSBackendFile) GetFile(id FileID) ([]byte, error) {
+func (F *DevFileBackend) GetFile(id FileID) ([]byte, error) {
 	// shit's hacky ha
 	filepath := path.Join(F.dirLocation, id)
 
 	return ioutil.ReadFile(filepath)
 }
 
-func (F *FSBackendFile) Files() ([]string, error) {
+func (F *DevFileBackend) Files() ([]string, error) {
 	files, err := ioutil.ReadDir(F.dirLocation)
 	if err != nil {
 		return nil, err
@@ -133,117 +133,117 @@ func jsonToFile(filename string, i interface{}) error {
 	return nil
 }
 
-func (F *FSBackendCategory) getCategoriesFromFile() (CategoryCache, error) {
-	var cache CategoryCache
+func (F *DevCodeBackend) getCodesFromFile() (CodeCache, error) {
+	var cache CodeCache
 	err := jsonFromFile(F.catFileLoc, &cache)
 	return cache, err
 }
 
-func (F *FSBackendCategory) writeCategoriesToFile(cache CategoryCache) error {
+func (F *DevCodeBackend) writeCodesToFile(cache CodeCache) error {
 	err := jsonToFile(F.catFileLoc, cache)
 	return err
 }
 
-func (F *FSBackendCategory) CreateCategory(name string, parentCategoryID CategoryID) (CategoryID, error) {
-	// todo: category names should be unique (per project, probably?)
+func (F *DevCodeBackend) CreateCode(name string, parentCodeID CodeID) (CodeID, error) {
+	// todo: code names should be unique (per project, probably?)
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
 
 	newID := len(F.cache.Flat) + 1
 
-	newCat := Category{Name: name, ID: newID, Texts: []DocumentText{}}
+	newCode := Code{Name: name, ID: newID, Texts: []DocumentText{}}
 
-	if parentCategoryID == 0 {
-		F.cache.ParentMap[newID] = []CategoryID{newID}
+	if parentCodeID == 0 {
+		F.cache.ParentMap[newID] = []CodeID{newID}
 	} else {
-		if subCats, ok := F.cache.ParentMap[parentCategoryID]; ok {
-			F.cache.ParentMap[parentCategoryID] = append(subCats, newID)
+		if subCodes, ok := F.cache.ParentMap[parentCodeID]; ok {
+			F.cache.ParentMap[parentCodeID] = append(subCodes, newID)
 		} else {
-			return 0, errors.New(fmt.Sprintf("CategoryID not found. ID: %d", parentCategoryID))
+			return 0, errors.New(fmt.Sprintf("CodeID not found. ID: %d", parentCodeID))
 		}
 	}
 
-	F.cache.Flat[newID] = newCat
+	F.cache.Flat[newID] = newCode
 
-	err := F.writeCategoriesToFile(F.cache)
+	err := F.writeCodesToFile(F.cache)
 	if err != nil {
 		return 0, err
 	}
 
-	return newCat.ID, nil
+	return newCode.ID, nil
 }
 
-func (F *FSBackendCategory) CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
+func (F *DevCodeBackend) CategorizeText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
 	F.catMutex.Lock()
 	defer F.catMutex.Unlock()
 
-	cache, err := F.getCategoriesFromFile()
+	cache, err := F.getCodesFromFile()
 	if err != nil {
 		return err
 	}
 
-	if _, ok := cache.Flat[categoryID]; ok == false {
-		return errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
+	if _, ok := cache.Flat[codeID]; ok == false {
+		return errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
 	}
 
-	var cat = cache.Flat[categoryID]
-	cat.Texts = append(cat.Texts, DocumentText{
+	var code = cache.Flat[codeID]
+	code.Texts = append(code.Texts, DocumentText{
 		DocumentID: documentID,
 		Text:       text,
 		FirstWord:  firstWord,
 		LastWord:   lastWord,
 	})
-	cache.Flat[categoryID] = cat
+	cache.Flat[codeID] = code
 
-	err = F.writeCategoriesToFile(cache)
+	err = F.writeCodesToFile(cache)
 
 	F.cache = cache
 	return err
 }
 
-func (F *FSBackendCategory) GetCategory(categoryID CategoryID) (Category, error) {
+func (F *DevCodeBackend) GetCode(codeID CodeID) (Code, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
 
-	if cat, ok := F.cache.Flat[categoryID]; ok {
-		return cat, nil
+	if code, ok := F.cache.Flat[codeID]; ok {
+		return code, nil
 	}
-	return Category{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
+	return Code{}, errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
 }
 
-func (F *FSBackendCategory) GetCategoryMain(categoryID CategoryID) (CategoryMain, error) {
+func (F *DevCodeBackend) GetCodeContainer(codeID CodeID) (CodeContainer, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
 
-	if cat, ok := F.cache.Flat[categoryID]; ok {
-		cMain := CategoryMain{
-			Main:       cat.ID,
-			Categories: make([]Category, len(F.cache.ParentMap[cat.ID])),
+	if code, ok := F.cache.Flat[codeID]; ok {
+		codeContainer := CodeContainer{
+			Main:  code.ID,
+			Codes: make([]Code, len(F.cache.ParentMap[code.ID])),
 		}
-		for i, subCatID := range F.cache.ParentMap[cat.ID] {
-			cMain.Categories[i] = F.cache.Flat[subCatID]
+		for i, subCatID := range F.cache.ParentMap[code.ID] {
+			codeContainer.Codes[i] = F.cache.Flat[subCatID]
 		}
-		return cMain, nil
+		return codeContainer, nil
 	}
 
-	return CategoryMain{}, errors.New(fmt.Sprintf("No category found with ID: %d", categoryID))
+	return CodeContainer{}, errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
 }
 
-func (F *FSBackendCategory) Categories() ([]CategoryID, error) {
+func (F *DevCodeBackend) Codes() ([]CodeID, error) {
 	F.catMutex.RLock()
 	defer F.catMutex.RUnlock()
-	cache, err := F.getCategoriesFromFile()
+	cache, err := F.getCodesFromFile()
 
 	if err != nil {
 		return nil, err
 	}
 
-	listCats := make([]CategoryID, len(cache.ParentMap))
+	codeList := make([]CodeID, len(cache.ParentMap))
 	i := 0
 	for mainID := range cache.ParentMap {
-		listCats[i] = mainID
+		codeList[i] = mainID
 		i++
 	}
 
-	return listCats, nil
+	return codeList, nil
 }
