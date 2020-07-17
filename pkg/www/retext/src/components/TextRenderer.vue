@@ -34,8 +34,6 @@
     let createDiv = (x, y) => {
         let div = document.createElement("div")
         div.style.maxWidth = "400px";
-        // div.style.maxHeight = "200px";
-        // div.style.borderRadius = "10px";
         div.style.zIndex = "9999";
 
         // to give floating effect
@@ -54,6 +52,7 @@
         div.style.position = "absolute";
         div.style.left = x + "px";
         div.style.top = y + "px"
+        div.style.pointerEvents = "none";
 
         return div;
     };
@@ -161,6 +160,7 @@
                     let words = JSON.parse(JSON.stringify(this.dragTool));
                     words.documentID = this.documentID;
                     words.text = selectedWords.join(" ");
+
                     let textDropEvent = new CustomEvent("text-drop", {
                         bubbles: true, cancelable: true,
                         detail: {
