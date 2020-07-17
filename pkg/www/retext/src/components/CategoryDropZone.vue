@@ -9,7 +9,7 @@
 
     export default {
         name: "CategoryDropZone",
-        props: ["category", "channel"],
+        props: ["category"],
         beforeMount() {
             if (!this.category.bgColor) {
                 this.category.bgColor = getColor(this.category.id);
