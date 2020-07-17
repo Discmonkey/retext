@@ -39,10 +39,6 @@
                     this.selected = documentName;
                 })
             },
-
-            openUpload: function() {
-                this.$modal.show("upload-modal");
-            }
         },
 
         watch: {
