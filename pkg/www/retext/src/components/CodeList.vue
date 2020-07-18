@@ -124,14 +124,14 @@
                 }
             },
             createCode: function (codes, parentCodeID) {
-                let newCatName = prompt("Name of new code?");
-                if (newCatName === null) {
+                let name = prompt("Name of new code?");
+                if (name === null) {
                     // prompt was cancelled
                     return Promise.reject(true).then(() => {}, () => {});
                 }
 
                 return this.axios.post("/code/create", {
-                    code: newCatName,
+                    code: name,
                     parentCodeID: parentCodeID
                 }).then(function (res) {
                     let newCode = res.data

@@ -97,8 +97,8 @@ func TestCodeStore(t *testing.T) {
 		t.Fatal("non-existent codes should return an error")
 	}
 	// test creating a subcode
-	testSubCatName := "subcode 1 1"
-	_, err = codeBackend.CreateCode(testSubCatName, firstCodeMain.Main)
+	testSubCodeName := "subcode 1 1"
+	_, err = codeBackend.CreateCode(testSubCodeName, firstCodeMain.Main)
 	if err != nil {
 		t.Fatalf("unable to create a subcode: %s", err)
 	}
@@ -115,13 +115,13 @@ func TestCodeStore(t *testing.T) {
 		Word:      3,
 	}
 	testFileName := "test1.txt"
-	err = codeBackend.CategorizeText(firstCodeID, testFileName, testText, anchor, lastWord)
+	err = codeBackend.CodifyText(firstCodeID, testFileName, testText, anchor, lastWord)
 	if err != nil {
-		t.Fatalf("failed to categorize text: %s", err)
+		t.Fatalf("failed to codify text: %s", err)
 	}
 	firstCode, err := codeBackend.GetCode(firstCodeID)
 	if err != nil || len(firstCode.Texts) == 0 {
-		t.Fatalf("failed to categorize text: %s", err)
+		t.Fatalf("failed to codify text: %s", err)
 	}
 
 	codes, err := codeBackend.Codes()
@@ -131,8 +131,8 @@ func TestCodeStore(t *testing.T) {
 	//TODO: update the # used in this len() comparison if you change the number
 	// of created codes
 	if len(codes) != 1 {
-		numCats := len(codes)
-		t.Fatalf("incorrect number of codes; got: %d", numCats)
+		numCodes := len(codes)
+		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 	_ = os.Remove("/tmp/filetest")
 

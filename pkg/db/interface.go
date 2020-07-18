@@ -39,7 +39,7 @@ type FileStore interface {
 
 type CodeStore interface {
 	CreateCode(name string, ParentCodeID CodeID) (CodeID, error)
-	CategorizeText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
+	CodifyText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
 	GetCode(codeID CodeID) (Code, error)
 	GetCodeContainer(codeID CodeID) (CodeContainer, error)
 	Codes() ([]CodeID, error)

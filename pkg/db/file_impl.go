@@ -18,9 +18,9 @@ type DevFileBackend struct {
 	dirLocation string
 }
 type DevCodeBackend struct {
-	catMutex   sync.RWMutex
-	catFileLoc string
-	cache      CodeCache
+	codeMutex   sync.RWMutex
+	codeFileLoc string
+	cache       CodeCache
 }
 
 func (F *DevFileBackend) Init(pathToDir string) error {
@@ -55,13 +55,13 @@ func (F *DevCodeBackend) Init(pathToDir string) error {
 	}
 
 	//create file to store codes, if it doesn't already exist
-	F.catFileLoc = path.Join(pathToDir, "codes.json")
-	if _, err := os.Stat(F.catFileLoc); os.IsNotExist(err) {
+	F.codeFileLoc = path.Join(pathToDir, "codes.json")
+	if _, err := os.Stat(F.codeFileLoc); os.IsNotExist(err) {
 		F.cache = CodeCache{
 			Flat:      CodeMap{},
 			ParentMap: CodeParentIDMap{},
 		}
-		err = jsonToFile(F.catFileLoc, F.cache)
+		err = jsonToFile(F.codeFileLoc, F.cache)
 		if err != nil {
 			return err
 		}
@@ -135,19 +135,19 @@ func jsonToFile(filename string, i interface{}) error {
 
 func (F *DevCodeBackend) getCodesFromFile() (CodeCache, error) {
 	var cache CodeCache
-	err := jsonFromFile(F.catFileLoc, &cache)
+	err := jsonFromFile(F.codeFileLoc, &cache)
 	return cache, err
 }
 
 func (F *DevCodeBackend) writeCodesToFile(cache CodeCache) error {
-	err := jsonToFile(F.catFileLoc, cache)
+	err := jsonToFile(F.codeFileLoc, cache)
 	return err
 }
 
 func (F *DevCodeBackend) CreateCode(name string, parentCodeID CodeID) (CodeID, error) {
 	// todo: code names should be unique (per project, probably?)
-	F.catMutex.Lock()
-	defer F.catMutex.Unlock()
+	F.codeMutex.Lock()
+	defer F.codeMutex.Unlock()
 
 	newID := len(F.cache.Flat) + 1
 
@@ -173,9 +173,9 @@ func (F *DevCodeBackend) CreateCode(name string, parentCodeID CodeID) (CodeID, e
 	return newCode.ID, nil
 }
 
-func (F *DevCodeBackend) CategorizeText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
-	F.catMutex.Lock()
-	defer F.catMutex.Unlock()
+func (F *DevCodeBackend) CodifyText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
+	F.codeMutex.Lock()
+	defer F.codeMutex.Unlock()
 
 	cache, err := F.getCodesFromFile()
 	if err != nil {
@@ -202,8 +202,8 @@ func (F *DevCodeBackend) CategorizeText(codeID CodeID, documentID FileID, text s
 }
 
 func (F *DevCodeBackend) GetCode(codeID CodeID) (Code, error) {
-	F.catMutex.RLock()
-	defer F.catMutex.RUnlock()
+	F.codeMutex.RLock()
+	defer F.codeMutex.RUnlock()
 
 	if code, ok := F.cache.Flat[codeID]; ok {
 		return code, nil
@@ -212,16 +212,16 @@ func (F *DevCodeBackend) GetCode(codeID CodeID) (Code, error) {
 }
 
 func (F *DevCodeBackend) GetCodeContainer(codeID CodeID) (CodeContainer, error) {
-	F.catMutex.RLock()
-	defer F.catMutex.RUnlock()
+	F.codeMutex.RLock()
+	defer F.codeMutex.RUnlock()
 
 	if code, ok := F.cache.Flat[codeID]; ok {
 		codeContainer := CodeContainer{
 			Main:  code.ID,
 			Codes: make([]Code, len(F.cache.ParentMap[code.ID])),
 		}
-		for i, subCatID := range F.cache.ParentMap[code.ID] {
-			codeContainer.Codes[i] = F.cache.Flat[subCatID]
+		for i, subCodeID := range F.cache.ParentMap[code.ID] {
+			codeContainer.Codes[i] = F.cache.Flat[subCodeID]
 		}
 		return codeContainer, nil
 	}
@@ -230,8 +230,8 @@ func (F *DevCodeBackend) GetCodeContainer(codeID CodeID) (CodeContainer, error) 
 }
 
 func (F *DevCodeBackend) Codes() ([]CodeID, error) {
-	F.catMutex.RLock()
-	defer F.catMutex.RUnlock()
+	F.codeMutex.RLock()
+	defer F.codeMutex.RUnlock()
 	cache, err := F.getCodesFromFile()
 
 	if err != nil {
