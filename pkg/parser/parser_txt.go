@@ -90,7 +90,7 @@ func readSentence(text []byte, position int) (Sentence, int) {
 	return s, position
 }
 
-// isLastWord checks whether or not the current
+// isTerminating checks whether or not the current index is the last word in a paragraph
 func isTerminating(text []byte, index int) bool {
 	if index == len(text)-1 {
 		return true
