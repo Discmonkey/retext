@@ -12,6 +12,54 @@ import (
 type XlsxParser struct {
 }
 
+func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
+	d := Document{
+		Attributes: Attributes{
+			Columns: make([]string, 0, 0),
+			Values:  make(map[string][]string),
+		},
+	}
+
+	reader, err := zip.NewReader(bytes.NewReader(unprocessed), int64(len(unprocessed)))
+	if err != nil {
+		return d, err
+	}
+
+	var sheet *zip.File = nil
+	var sharedStrings *zip.File = nil
+
+	for _, file := range reader.File {
+		if strings.HasSuffix(file.Name, "sheet1.xml") {
+			sheet = file
+		} else if strings.HasSuffix(file.Name, "sharedStrings.xml") {
+			sharedStrings = file
+		}
+	}
+
+	if sheet == nil {
+		return d, errors.New("could not find content in excel file")
+	}
+
+	contentsSheet, err := readZipFile(sheet)
+	if err != nil {
+		return d, err
+	}
+
+	contentsStrings, err := readZipFile(sharedStrings)
+	if err != nil {
+		return d, err
+	}
+
+	commonStrings, err := parseStrings(contentsStrings)
+	if err != nil {
+		return d, err
+	}
+
+	d.Attributes, err = parseSheet(contentsSheet, commonStrings)
+
+	return d, err
+}
+
 type arrayVisitor struct {
 	items []string
 }
@@ -116,50 +164,6 @@ func parseSheet(contents []byte, values []string) (Attributes, error) {
 	}
 
 	return a, nil
-}
-
-func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
-	d := Document{
-		Attributes: Attributes{
-			Columns: make([]string, 0, 0),
-			Values:  make(map[string][]string),
-		},
-	}
-
-	reader, err := zip.NewReader(bytes.NewReader(unprocessed), int64(len(unprocessed)))
-	if err != nil {
-		return d, err
-	}
-
-	var sheet *zip.File = nil
-	var sharedStrings *zip.File = nil
-
-	for _, file := range reader.File {
-		if strings.HasSuffix(file.Name, "sheet1.xml") {
-			sheet = file
-		} else if strings.HasSuffix(file.Name, "sharedStrings.xml") {
-			sharedStrings = file
-		}
-	}
-
-	contentsSheet, err := readZipFile(sheet)
-	if err != nil {
-		return d, err
-	}
-
-	contentsStrings, err := readZipFile(sharedStrings)
-	if err != nil {
-		return d, err
-	}
-
-	commonStrings, err := parseStrings(contentsStrings)
-	if err != nil {
-		return d, err
-	}
-
-	d.Attributes, err = parseSheet(contentsSheet, commonStrings)
-
-	return d, err
 }
 
 var _ Parser = XlsxParser{}
