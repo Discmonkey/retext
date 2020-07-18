@@ -18,7 +18,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Source" v-on:success="addSource($event)"></UploadFile>
+                    <UploadFile file-type="Source" v-on:success="addSource($event)" accepted-files=".docx,.txt,.text"></UploadFile>
                 </div>
             </div>
 
@@ -32,7 +32,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)"></UploadFile>
+                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)" accepted-files=".xlsx"></UploadFile>
                 </div>
             </div>
         </div>
@@ -65,9 +65,9 @@ export default {
         this.axios.get("/file/list").then((res) => {
             for (let f of res.data.Files) {
                 if (f.Type === "SourceFile") {
-                    this.uploadedSourceFiles.push(f.Id)
+                    this.uploadedSourceFiles.push(f.ID)
                 } else if (f.Type === "DemoFile") {
-                    this.uploadedDemoFiles.push(f.Id)
+                    this.uploadedDemoFiles.push(f.ID)
                 }
             }
         })
@@ -94,9 +94,6 @@ export default {
     margin-bottom: 1em;
 }
 
-.space-bottom {
-    margin-bottom: 5em;
-}
 
 h3, h4, h5 {
     font-weight: bold;

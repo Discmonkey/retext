@@ -1,6 +1,6 @@
 <template>
     <div>
-        <input type="file" ref="form" v-on:change="upload()">
+        <input type="file" ref="form" v-on:change="upload()" :accept="acceptedFiles">
         <button class="btn btn-primary" @click="clickFile()">
             Upload {{fileType}}
         </button>
@@ -10,7 +10,7 @@
 <script>
     export default {
         name: "UploadFile",
-        props: ["fileType"],
+        props: ["fileType", "acceptedFiles"],
         data: function() {
             return {
                 file: null,
