@@ -97,7 +97,7 @@ func (F *FSBackend) Files() ([]File, error) {
 		}
 
 		files[i] = File{
-			Id:   f.Name(),
+			ID:   f.Name(),
 			Type: fType,
 		}
 	}

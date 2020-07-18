@@ -9,7 +9,7 @@ const (
 )
 
 type File struct {
-	Id   FileID
+	ID   FileID
 	Type FileType
 }
 
