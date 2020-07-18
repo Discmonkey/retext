@@ -3,9 +3,11 @@
     <h3>hello </h3>
     <table class="table table-striped">
         <thead>
-            <th scope="col" v-for="(val, idx) in columns" v-bind:key="idx">
-                {{val}}
-            </th>
+            <tr>
+                <th scope="col" v-for="(val, idx) in columns" v-bind:key="idx">
+                    {{val}}
+                </th>
+            </tr>
         </thead>
 
         <tbody>
