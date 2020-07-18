@@ -2,7 +2,6 @@ package file
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/discmonkey/retext/pkg/db"
 	"io/ioutil"
 	"log"
@@ -36,7 +35,7 @@ func AddUploadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 
