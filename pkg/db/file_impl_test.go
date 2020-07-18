@@ -52,7 +52,7 @@ func TestFSBackend(t *testing.T) {
 		t.Fatal("incorrect number of files returned")
 	}
 
-	if key != files[0] {
+	if key != files[0].Id {
 		t.Fatal("key does not match files scan")
 	}
 
