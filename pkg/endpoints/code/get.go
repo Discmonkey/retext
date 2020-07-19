@@ -1,4 +1,4 @@
-package category
+package code
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func GetEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
+func GetEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -27,13 +27,13 @@ func GetEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 
-		category, err := store.GetCategory(id)
+		code, err := store.GetCode(id)
 
-		if endpoints.HttpNotOk(400, w, "An error occurred while getting your category. ", err) {
+		if endpoints.HttpNotOk(400, w, "An error occurred while getting your code. ", err) {
 			return
 		} else {
-			_, _ = fmt.Fprint(w, category)
-			_ = json.NewEncoder(w).Encode(category)
+			_, _ = fmt.Fprint(w, code)
+			_ = json.NewEncoder(w).Encode(code)
 		}
 	}
 

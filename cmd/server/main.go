@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/discmonkey/retext/pkg/db"
-	"github.com/discmonkey/retext/pkg/endpoints/category"
+	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"log"
 	"net/http"
@@ -24,23 +24,32 @@ func main() {
 	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
 	http.Handle("/", fs)
 
-	backend := &db.FSBackend{}
 	retextLocation := path.Join(os.TempDir(), "retext")
-	FailIfError(backend.Init(retextLocation))
 
-	http.HandleFunc("/file/upload", file.AddUploadEndpoint(backend))
+	fileBackend := &db.DevFileBackend{}
+	FailIfError(fileBackend.Init(retextLocation))
 
-	http.HandleFunc("/file/list", file.ListEndpoint(backend))
+	codeBackend := &db.DevCodeBackend{}
+	FailIfError(codeBackend.Init(retextLocation))
 
-	http.HandleFunc("/file/load", file.DownloadEndpoint(backend))
+	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
 
-	http.HandleFunc("/category/create", category.CreateEndpoint(backend))
+	http.HandleFunc("/file/list", file.ListEndpoint(fileBackend))
 
-	http.HandleFunc("/category/get", category.GetEndpoint(backend))
+	http.HandleFunc("/file/load", file.DownloadEndpoint(fileBackend))
 
-	http.HandleFunc("/category/list", category.ListEndpoint(backend))
-
-	http.HandleFunc("/category/associate", category.AssociateEndpoint(backend))
+	http.HandleFunc("/code/create", func(writer http.ResponseWriter, request *http.Request) {
+		code.CreateEndpoint(codeBackend)(writer, request)
+	})
+	http.HandleFunc("/code/get", func(writer http.ResponseWriter, request *http.Request) {
+		code.GetEndpoint(codeBackend)(writer, request)
+	})
+	http.HandleFunc("/code/list", func(writer http.ResponseWriter, request *http.Request) {
+		code.ListEndpoint(codeBackend)(writer, request)
+	})
+	http.HandleFunc("/code/associate", func(writer http.ResponseWriter, request *http.Request) {
+		code.AssociateEndpoint(codeBackend)(writer, request)
+	})
 
 	log.Println("Listening on :3000...")
 	FailIfError(http.ListenAndServe(":3000", nil))
