@@ -1,4 +1,4 @@
-package category
+package code
 
 import (
 	"encoding/json"
@@ -10,14 +10,14 @@ import (
 )
 
 type associateRequest struct {
-	CategoryID db.CategoryID     `json:"categoryID"`
+	CodeID     db.CodeID         `json:"codeID"`
 	DocumentID db.FileID         `json:"key"`
 	Text       string            `json:"text"`
 	FirstWord  db.WordCoordinate `json:"anchor"`
 	LastWord   db.WordCoordinate `json:"last"`
 }
 
-func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
+func AssociateEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -31,8 +31,8 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if req.CategoryID == 0 {
-			err = errors.New("category parameter required")
+		if req.CodeID == 0 {
+			err = errors.New("code parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
@@ -46,7 +46,7 @@ func AssociateEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Reque
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		err = store.CategorizeText(req.CategoryID, req.DocumentID, req.Text, req.FirstWord, req.LastWord)
+		err = store.CodifyText(req.CodeID, req.DocumentID, req.Text, req.FirstWord, req.LastWord)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to save the selected text.", err) {
 			return

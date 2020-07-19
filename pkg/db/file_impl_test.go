@@ -6,20 +6,23 @@ import (
 	"testing"
 )
 
-// TestFSBackend covers all the interface methods
-func TestFSBackend(t *testing.T) {
+func createTestDir() string {
 	testDirName, _ := ioutil.TempDir("", "retext")
+	return testDirName
+}
 
-	_ = os.RemoveAll(testDirName)
+// TestFSBackend covers all the file interface methods
+func TestFileStore(t *testing.T) {
+	testDirName := createTestDir()
 
-	store := &FSBackend{}
+	fileBackend := &DevFileBackend{}
 
-	err := store.Init(testDirName)
+	err := fileBackend.Init(testDirName)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if info, err := os.Stat(testDirName); err != nil || !info.IsDir() {
+	if info, err := os.Stat(testDirName + "/uploadLocation"); err != nil || !info.IsDir() {
 		if err != nil {
 			t.Fatal(err)
 		} else {
@@ -27,7 +30,7 @@ func TestFSBackend(t *testing.T) {
 		}
 	}
 
-	files, err := store.Files()
+	files, err := fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,12 +41,12 @@ func TestFSBackend(t *testing.T) {
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	key, err := store.UploadFile(testFileName, contents)
+	key, err := fileBackend.UploadFile(testFileName, contents)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	files, err = store.Files()
+	files, err = fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +59,7 @@ func TestFSBackend(t *testing.T) {
 		t.Fatal("key does not match files scan")
 	}
 
-	f, err := store.GetFile(key)
+	f, err := fileBackend.GetFile(key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,28 +70,37 @@ func TestFSBackend(t *testing.T) {
 		}
 	}
 
-	testCategoryName := "test"
-	firstCategoryID, err := store.CreateCategory(testCategoryName, 0)
+	_ = os.Remove(testDirName)
+}
+
+func TestCodeStore(t *testing.T) {
+	testDirName := createTestDir()
+
+	codeBackend := &DevCodeBackend{}
+	err := codeBackend.Init(testDirName)
+
+	testCodeName := "test"
+	firstCodeID, err := codeBackend.CreateCode(testCodeName, 0)
 	if err != nil {
-		t.Fatalf("failed to save category: %s", err)
+		t.Fatalf("failed to save code: %s", err)
 	}
 
-	firstCategoryMain, err := store.GetCategoryMain(firstCategoryID)
+	firstCodeMain, err := codeBackend.GetCodeContainer(firstCodeID)
 	if err != nil {
-		t.Fatalf("failed to get category: %s", err)
+		t.Fatalf("failed to get code: %s", err)
 	}
-	if firstCategoryMain.Categories[0].Name != testCategoryName {
-		t.Fatalf("category came back with unexpected name: %s", err)
+	if firstCodeMain.Codes[0].Name != testCodeName {
+		t.Fatalf("code came back with unexpected name: %s", err)
 	}
-	_, err = store.GetCategory(1000)
+	_, err = codeBackend.GetCode(1000)
 	if err == nil {
-		t.Fatal("non-existent categories should return an error")
+		t.Fatal("non-existent codes should return an error")
 	}
-	// test creating a subcategory
-	testSubCatName := "subcat 1 1"
-	_, err = store.CreateCategory(testSubCatName, firstCategoryMain.Main)
+	// test creating a subcode
+	testSubCodeName := "subcode 1 1"
+	_, err = codeBackend.CreateCode(testSubCodeName, firstCodeMain.Main)
 	if err != nil {
-		t.Fatalf("unable to create a subcategory: %s", err)
+		t.Fatalf("unable to create a subcode: %s", err)
 	}
 
 	testText := "made up text"
@@ -102,30 +114,33 @@ func TestFSBackend(t *testing.T) {
 		Sentence:  1,
 		Word:      3,
 	}
-	err = store.CategorizeText(firstCategoryID, testFileName, testText, anchor, lastWord)
+	testFileName := "test1.txt"
+	err = codeBackend.CodifyText(firstCodeID, testFileName, testText, anchor, lastWord)
 	if err != nil {
-		t.Fatalf("failed to categorize text: %s", err)
+		t.Fatalf("failed to codify text: %s", err)
 	}
-	firstCategory, err := store.GetCategory(firstCategoryID)
-	if err != nil || len(firstCategory.Texts) == 0 {
-		t.Fatalf("failed to categorize text: %s", err)
+	firstCode, err := codeBackend.GetCode(firstCodeID)
+	if err != nil || len(firstCode.Texts) == 0 {
+		t.Fatalf("failed to codify text: %s", err)
 	}
 
-	cats, err := store.Categories()
+	codes, err := codeBackend.Codes()
 	if err != nil {
-		t.Fatalf("failed to get list of categories: %s", err)
+		t.Fatalf("failed to get list of codes: %s", err)
 	}
 	//TODO: update the # used in this len() comparison if you change the number
-	// of created categories
-	if len(cats) != 1 {
-		numCats := len(cats)
-		t.Fatalf("incorrect number of categories; got: %d", numCats)
+	// of created codes
+	if len(codes) != 1 {
+		numCodes := len(codes)
+		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 	_ = os.Remove("/tmp/filetest")
 
 	// second start-up tests "cache path"
-	err = store.Init(testDirName)
+	err = codeBackend.Init(testDirName)
 	if err != nil {
-		t.Fatalf("failed to load cached categories: %s", err)
+		t.Fatalf("failed to load cached codes: %s", err)
 	}
+
+	_ = os.Remove(testDirName)
 }

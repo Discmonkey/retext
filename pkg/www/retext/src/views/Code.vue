@@ -1,18 +1,18 @@
 <template>
   <div class="home">
     <DocumentDisplay />
-    <CategoryList />
+    <CodeList />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import CategoryList from '@/components/CategoryList'
+import CodeList from '@/components/CodeList'
 import DocumentDisplay from "@/components/DocumentDisplay";
 export default {
   name: 'Code',
   components: {
-    CategoryList,
+    CodeList,
     DocumentDisplay
   },
 }
