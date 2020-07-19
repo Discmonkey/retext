@@ -1,5 +1,5 @@
 <template>
-    <div class="large">
+    <div class="text-display">
         <p class="paragraph" v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex">
             <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                 <span
@@ -386,8 +386,13 @@
         -ms-user-select: none;
     }
 
+    .text-display {
+        overflow-y: scroll;
+    }
     .word {
         padding-top: .25em;
         padding-bottom: .25em;
     }
+
+
 </style>

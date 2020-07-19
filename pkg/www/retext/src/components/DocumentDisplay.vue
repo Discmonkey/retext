@@ -64,7 +64,7 @@
 <style scoped>
     .document-display {
         max-height: 90%;
-        overflow-y: scroll;
+        overflow-y:hidden;
     }
 
     .row {
