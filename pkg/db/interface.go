@@ -2,7 +2,7 @@ package db
 
 type FileID = string
 
-type CategoryID = int
+type CodeID = int
 
 type WordCoordinate struct {
 	Paragraph int `json:"paragraph"`
@@ -18,26 +18,29 @@ type DocumentText struct {
 	LastWord  WordCoordinate `json:"last"`
 }
 
-type Category struct {
-	ID    CategoryID     `json:"id"`
+type Code struct {
+	ID    CodeID         `json:"id"`
 	Name  string         `json:"name"`
 	Texts []DocumentText `json:"texts"`
 }
-type CategoryMain struct {
-	Main       CategoryID `json:"main"`
-	Categories []Category `json:"subcategories"`
+type CodeContainer struct {
+	Main  CodeID `json:"main"`
+	Codes []Code `json:"subcodes"`
 }
 
-type CategoryParentIDMap = map[CategoryID][]CategoryID
-type CategoryMap = map[CategoryID]Category
+type CodeParentIDMap = map[CodeID][]CodeID
+type CodeMap = map[CodeID]Code
 
-type Store interface {
+type FileStore interface {
 	UploadFile(filename string, contents []byte) (FileID, error)
 	GetFile(id FileID) ([]byte, error)
 	Files() ([]FileID, error)
-	CreateCategory(name string, ParentCategoryID CategoryID) (CategoryID, error)
-	CategorizeText(categoryID CategoryID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
-	GetCategory(categoryID CategoryID) (Category, error)
-	GetCategoryMain(categoryID CategoryID) (CategoryMain, error)
-	Categories() ([]CategoryID, error)
+}
+
+type CodeStore interface {
+	CreateCode(name string, ParentCodeID CodeID) (CodeID, error)
+	CodifyText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
+	GetCode(codeID CodeID) (Code, error)
+	GetCodeContainer(codeID CodeID) (CodeContainer, error)
+	Codes() ([]CodeID, error)
 }

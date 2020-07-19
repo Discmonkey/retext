@@ -112,8 +112,6 @@
             },
 
             pickupStart: function(paragraph, sentence, word, e) {
-                console.log(e);
-
                 let selectedWords = [];
                 let currentWord = this.words(paragraph, sentence)[word];
                 let indices = [paragraph, sentence, word];
@@ -166,7 +164,7 @@
                         detail: {
                             data: {words: words},
                             callback: () => {
-                                // todo: grey-out text or whatever
+                                // todo: add code-specific color-class
                                 console.log(`sample: ${JSON.stringify(words)}`);
                             }
                         }
@@ -376,6 +374,7 @@
         box-shadow: inset 0 0 10px indianred;
     }
 
+    /*noinspection CssUnusedSymbol*/
     .active {
         background-color: palegreen;
     }

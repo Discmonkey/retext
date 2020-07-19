@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func AddUploadEndpoint(store db.Store) func(w http.ResponseWriter, r *http.Request) {
+func AddUploadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

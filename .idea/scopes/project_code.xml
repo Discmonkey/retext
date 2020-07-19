@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="project code" pattern="(file[retext]:cmd//*||file[retext]:deployment//*||file[retext]:pkg//*)&amp;&amp;!file:pkg/www/retext/package.json||file:go.mod||file:makefile||file:readme.md" />
+</component>
