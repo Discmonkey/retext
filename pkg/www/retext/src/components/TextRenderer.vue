@@ -1,19 +1,29 @@
 <template>
-    <div class="text-display">
-        <p class="paragraph" v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex">
-            <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
-                <span
-                        v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
-                        v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
-                        @mousedown.right="contextMenu"
-                        v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
-                        v-bind:class="{active: word.Selected}"
-                        class="border-on-hover word non-selectable"
-                >
-                    {{word.Text}}
-                </span>
-            </span>
-        </p>
+    <div class="scroll-container flip">
+        <div class="text-display flip">
+            <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false">
+                <p class="paragraph">
+                    <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
+                        <span
+                                v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
+                                v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
+                                @mousedown.right="contextMenu"
+                                v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
+                                v-bind:class="{active: word.Selected}"
+                                class="border-on-hover word non-selectable"
+                        >
+                            {{word.Text}}
+                        </span>
+                    </span>
+                </p>
+
+                <div class="done">
+
+                </div>
+            </div>
+
+
+        </div>
     </div>
 </template>
 
@@ -380,15 +390,36 @@
         background-color: palegreen;
     }
 
+    .flip {
+        transform: scaleX(-1);
+    }
+
     .non-selectable {
         -moz-user-select: none;
         -webkit-user-select: none;
         -ms-user-select: none;
     }
 
-    .text-display {
-        overflow-y: scroll;
+    .paragraph {
+        width: 85%;
+        float: left;
     }
+
+    .done {
+        width: 15%;
+        float: right;
+    }
+
+    .text-display {
+        padding: 20px;
+
+    }
+
+    .scroll-container {
+        height: 80vh;
+        overflow: auto;
+    }
+
     .word {
         padding-top: .25em;
         padding-bottom: .25em;
