@@ -5,17 +5,11 @@
 </template>
 
 <script>
-    import {getColor, invertColor} from "@/core/Colors"
 
     export default {
         name: "CodeDropZone",
         props: ["code"],
-        beforeMount() {
-            if (!this.code.bgColor) {
-                this.code.bgColor = getColor(this.code.id);
-                this.code.color = invertColor(this.code.bgColor, true);
-            }
-        },
+
         methods: {
             textDrop: function(e) {
                 e.detail.data.code = this.code;
