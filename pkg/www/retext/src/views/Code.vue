@@ -22,6 +22,6 @@ export default {
   .home {
     display: grid;
     grid-template-rows: 100%;
-    grid-template-columns: 60% 40%;
+    grid-template-columns: 75% 25%;
   }
 </style>

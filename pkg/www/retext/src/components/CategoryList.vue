@@ -1,55 +1,56 @@
 <template>
-    <div class="container-fluid">
+    <div class="container-fluid pad-20">
         <div class="row">
-            <button class="btn btn-primary offset-md-5 col-md-7"
-                    @text-drop="textDrop(defaultNewCat, $event.detail, $event)"
-                    @click="createCategory(categories, null)"
-            >Add a New Code
-            </button>
+            <div class="col-12 text-right">
+                <button class="btn btn-primary bold add-height" id="add-button"
+                        @text-drop="textDrop(defaultNewCat, $event.detail, $event)"
+                        @click="createCategory(categories, null)">
+                    Add a New Code
+                </button>
+            </div>
 
         </div>
-        <div v-for="category in categories" :key="category.main.id"
-             @text-drop="textDrop(category, $event.detail, $event)"
-             class="col-md-12 category-wrapper">
-            <div class="row">
-                <div class="col-sm-7"><b>
-                    <category-drop-zone :category="category.main">{{category.main.name}}</category-drop-zone>
-                </b></div>
-                <div class="col-sm-5 row">
-                    <div class="col-md-4">
-                        <category-drop-zone
-                                :category="defaultNewCat.main"
-                        >
-                            <div
-                                @click="createCategory(category.subcategories, category.main.id)"
-                                class="btn-primary parent-category-option">+</div>
-                        </category-drop-zone>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="btn-primary parent-category-option">D</div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="btn-primary parent-category-option">{{getTextsLength(category)}}</div>
+<!--        @text-drop="textDrop(category, $event.detail, $event)" class="category-wrapper">-->
+        <draggable v-model="categories" group="people" @start="drag=true" @end="drag=false">
+            <div v-for="code in categories" :key="code.main.id">
+                <div class="spacer">
+                    <div :style="style(code.main.id)">
+                        <div class="top-container margined">
+                            <h5 class="code-title">{{code.main.name}}</h5>
+
+                            <div class="btn btn-primary float-right no-events just-number self-right">
+                                {{code.main.texts.length}}
+                            </div>
+
+                            <button class="btn btn-primary float-right">
+                                <i class="fa fa-plus"></i>
+                            </button>
+
+
+                        </div>
+
+                        <div v-for="subcategory in code.subcategories" v-bind:key="subcategory.id" class="subcategory margin-top">
+                            <div class="item">
+                                <div class="col-8 rborder">
+                                    {{subcategory.name}}
+                                </div>
+
+                                <div class="col-4 center-text">
+                                    {{subcategory.texts.length}}
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-            <div style="margin-left: 7%" class="row">
-                <category-drop-zone v-for="subCat in category.subcategories" :key="subCat.id"
-                                    class="row rounded-series subcategory" style="width:100%"
-                                    :category="subCat"
-                >
-                    <span class="col-md-9">{{subCat.name}}</span>
-                    <span class="col-md-3">{{subCat.texts.length}}</span>
-                </category-drop-zone>
-            </div>
-        </div>
+        </draggable>
     </div>
 </template>
 
 <script>
-    // todo: add back colors
-    import CategoryDropZone from "./CategoryDropZone";
-
+    import Draggable from 'vuedraggable';
+    import {getColor} from '@/core/Colors';
     // eslint-disable-next-line no-unused-vars
     let categoriesTypes = {
         categories: [{
@@ -72,7 +73,7 @@
     }
     export default {
         name: 'CategoryList',
-        components: {CategoryDropZone},
+        components: {Draggable},
         data: () => {
             let newCat = {main: {name: "New", id: 0, texts: []}, subcategories: {}};
             return {
@@ -158,16 +159,9 @@
                     // todo: "an error occurred" toast or something
                 });
             },
-            getTextsLength(category) {
-                let length = category.main.texts.length;
 
-                if (category.subcategories) {
-                    for (let subCat of category.subcategories) {
-                        length += subCat.texts.length;
-                    }
-                }
-
-                return length;
+            style(id) {
+                return `border-radius: 10px; border: 3px solid ${getColor(id)}; padding: 20px;`;
             }
         }
     }
@@ -181,6 +175,18 @@
         /*padding-bottom: 5px;*/
     }
 
+    .bold {
+        font-weight: bold;
+    }
+
+    #add-button {
+        height: 50px;
+    }
+
+    .add-height {
+        width: 200px
+    }
+
     .category-wrapper, .subcategory {
         margin-bottom: 1%;
     }
@@ -191,6 +197,14 @@
         line-height: 1em;
         width: 1em;
         text-align: center;
+    }
+
+    .overflow {
+        overflow: auto;
+    }
+
+    .pad-20 {
+        padding: 20px;
     }
 
     .rounded-series * {
@@ -208,5 +222,68 @@
     .rounded-series > :last-child {
         border-bottom-right-radius: .25em;
         border-top-right-radius: .25em;
+    }
+
+    .spacer {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .wide {
+        width: 100%;
+    }
+
+    .center-text {
+        text-align: center;
+    }
+    .code-title {
+        text-transform: capitalize;
+        font-weight: bolder;
+        margin: 0;
+    }
+
+    .just-number {
+        background-color: white;
+        color: black;
+        border: none;
+        font-weight: bolder;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .margin-top {
+        margin-top: 20px;
+    }
+
+    .no-events {
+        pointer-events:none;
+    }
+
+    .rborder {
+        border-right: 1px solid gray;
+    }
+
+    .subcategory {
+        border-radius: 3px;
+        color: gray;
+        padding: 3px;
+        margin-bottom: 5px;
+        border: 1px solid gray;
+    }
+
+    .top-container {
+        display: flex;
+        align-content: center;
+        align-items: center;
+    }
+
+    .self-right {
+        margin-left: auto;
     }
 </style>

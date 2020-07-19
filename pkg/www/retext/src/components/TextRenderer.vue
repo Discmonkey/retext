@@ -401,12 +401,12 @@
     }
 
     .paragraph {
-        width: 85%;
+        width: 95%;
         float: left;
     }
 
     .done {
-        width: 15%;
+        width: 5%;
         float: right;
     }
 
