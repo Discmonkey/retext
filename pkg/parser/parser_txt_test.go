@@ -37,17 +37,7 @@ func TestConvert(t *testing.T) {
 							{Text: "Two"},
 							{Text: "in"},
 							{Text: "this"},
-							{Text: "one."},
-						},
-					},
-					{
-						Parts: []Word{
-							{Text: "."},
-						},
-					},
-					{
-						Parts: []Word{
-							{Text: "."},
+							{Text: "one..."},
 						},
 					},
 					{
@@ -81,7 +71,11 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	converted := Convert(text)
+	converted, err := Convert(text, Text)
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 
 	if len(converted.Paragraphs) != len(expected.Paragraphs) {
 		t.Fatal("paragraph length does not match")
@@ -112,4 +106,40 @@ func TestConvert(t *testing.T) {
 		}
 	}
 	fmt.Println(converted)
+}
+
+func TestIsLastWord(t *testing.T) {
+	withNumber := []byte("1.2 is a float")
+	asSentence := []byte("the end.")
+	ellipsis := []byte("... Thought continues")
+	inBetween := []byte(". is end")
+	aFile := []byte("t.doc")
+
+	if isTerminating(withNumber, 1) {
+		t.Fatalf("failed on number")
+	}
+
+	if !isTerminating(asSentence, len(asSentence)-1) {
+		t.Fatalf("failed on actual sentene")
+	}
+
+	if isTerminating(ellipsis, 0) {
+		t.Fatalf("failed on ellipsis first")
+	}
+
+	if isTerminating(ellipsis, 1) {
+		t.Fatalf("failed on ellipsis middle")
+	}
+
+	if !isTerminating(ellipsis, 2) {
+		t.Fatalf("failed on ellipsis last")
+	}
+
+	if !isTerminating(inBetween, 0) {
+		t.Fatalf("failed on mid sentence period")
+	}
+
+	if isTerminating(aFile, 1) {
+		t.Fatalf("failed on file extension")
+	}
 }

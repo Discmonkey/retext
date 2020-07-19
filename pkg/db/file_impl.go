@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"sync"
 )
 
@@ -95,18 +96,27 @@ func (F *DevFileBackend) GetFile(id FileID) ([]byte, error) {
 	return ioutil.ReadFile(filepath)
 }
 
-func (F *DevFileBackend) Files() ([]string, error) {
-	files, err := ioutil.ReadDir(F.dirLocation)
+func (F *DevFileBackend) Files() ([]File, error) {
+	osFiles, err := ioutil.ReadDir(F.dirLocation)
 	if err != nil {
 		return nil, err
 	}
-	var names []string
 
-	for _, f := range files {
-		names = append(names, f.Name())
+	files := make([]File, len(osFiles))
+
+	for i, f := range osFiles {
+		fType := SourceFile
+		if strings.HasSuffix(f.Name(), "xlsx") {
+			fType = DemoFile
+		}
+
+		files[i] = File{
+			ID:   f.Name(),
+			Type: fType,
+		}
 	}
 
-	return names, nil
+	return files, nil
 }
 
 func jsonFromFile(filename string, i interface{}) (err error) {

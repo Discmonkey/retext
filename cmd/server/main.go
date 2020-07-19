@@ -32,29 +32,19 @@ func main() {
 	codeBackend := &db.DevCodeBackend{}
 	FailIfError(codeBackend.Init(retextLocation))
 
-	http.HandleFunc("/file/upload",
-		func(writer http.ResponseWriter, request *http.Request) {
-			enableCors(&writer)
-			file.AddUploadEndpoint(fileBackend)(writer, request)
-		})
-	http.HandleFunc("/file/list", func(writer http.ResponseWriter, request *http.Request) {
-		enableCors(&writer)
-		file.ListEndpoint(fileBackend)(writer, request)
-	})
-	http.HandleFunc("/file/load", func(writer http.ResponseWriter, request *http.Request) {
-		enableCors(&writer)
-		file.DownloadEndpoint(fileBackend)(writer, request)
-	})
+	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
+
+	http.HandleFunc("/file/list", file.ListEndpoint(fileBackend))
+
+	http.HandleFunc("/file/load", file.DownloadEndpoint(fileBackend))
 
 	http.HandleFunc("/code/create", func(writer http.ResponseWriter, request *http.Request) {
 		code.CreateEndpoint(codeBackend)(writer, request)
 	})
 	http.HandleFunc("/code/get", func(writer http.ResponseWriter, request *http.Request) {
-		enableCors(&writer)
 		code.GetEndpoint(codeBackend)(writer, request)
 	})
 	http.HandleFunc("/code/list", func(writer http.ResponseWriter, request *http.Request) {
-		enableCors(&writer)
 		code.ListEndpoint(codeBackend)(writer, request)
 	})
 	http.HandleFunc("/code/associate", func(writer http.ResponseWriter, request *http.Request) {

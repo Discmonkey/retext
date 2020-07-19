@@ -1,6 +1,17 @@
 package db
 
 type FileID = string
+type FileType = string
+
+const (
+	SourceFile FileType = "SourceFile"
+	DemoFile   FileType = "DemoFile"
+)
+
+type File struct {
+	ID   FileID
+	Type FileType
+}
 
 type CodeID = int
 
@@ -34,7 +45,7 @@ type CodeMap = map[CodeID]Code
 type FileStore interface {
 	UploadFile(filename string, contents []byte) (FileID, error)
 	GetFile(id FileID) ([]byte, error)
-	Files() ([]FileID, error)
+	Files() ([]File, error)
 }
 
 type CodeStore interface {

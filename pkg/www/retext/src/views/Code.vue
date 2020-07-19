@@ -10,7 +10,7 @@
 import CodeList from '@/components/CodeList'
 import DocumentDisplay from "@/components/DocumentDisplay";
 export default {
-  name: 'Home',
+  name: 'Code',
   components: {
     CodeList,
     DocumentDisplay

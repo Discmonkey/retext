@@ -55,7 +55,7 @@ func TestFileStore(t *testing.T) {
 		t.Fatal("incorrect number of files returned")
 	}
 
-	if key != files[0] {
+	if key != files[0].ID {
 		t.Fatal("key does not match files scan")
 	}
 
