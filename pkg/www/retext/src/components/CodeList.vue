@@ -31,11 +31,11 @@
                         <div v-for="subCode in code.subcodes" v-bind:key="subCode.id" class="subcode margin-top">
                             <code-drop-zone :code="subCode">
                                 <div class="row item">
-                                    <div class="col-10 center-text pad-">
+                                    <div class="col-10 center-text pad-3 rborder">
                                         {{subCode.name}}
                                     </div>
 
-                                    <div class="col-2 center-text">
+                                    <div class="col-2 center-text pad-3">
                                         {{subCode.texts.length}}
                                     </div>
                                 </div>
@@ -203,6 +203,10 @@
         padding: 20px;
     }
 
+    .pad-3 {
+        padding: 3px;
+    }
+
     .rounded-series * {
         border: 1px solid grey;
         height: 100%;
@@ -277,7 +281,6 @@
     .subcode {
         border-radius: 3px;
         color: gray;
-        padding: 3px;
         margin-bottom: 5px;
         border: 1px solid gray;
     }
