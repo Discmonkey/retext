@@ -1,57 +1,60 @@
 <template>
-    <div class="container-fluid">
+    <div class="container-fluid pad-20 limited">
         <div class="row">
-            <button class="btn btn-primary offset-md-5 col-md-7"
-                    @text-drop="textDrop(defaultNewCode, $event.detail, $event)"
-                    @click="createCode(codes, null)"
-            >Add a New Code
-            </button>
-
+            <div class="col-12 text-right">
+                <button class="btn btn-primary bold add-height" id="add-button"
+                        @text-drop="textDrop(defaultNewCode, $event.detail, $event)"
+                        @click="createCode(codes, null)">
+                    Add a New Code
+                </button>
+            </div>
         </div>
-        <div v-for="code in codes" :key="code.main.id"
-             @text-drop="textDrop(code, $event.detail, $event)"
-             class="col-md-12 code-wrapper">
-            <div class="row">
-                <div class="col-sm-7"><b>
-                    <code-drop-zone :code="code.main">{{code.main.name}}</code-drop-zone>
-                </b></div>
-                <div class="col-sm-5 row">
-                    <div class="col-md-4">
-                        <code-drop-zone
-                                :code="defaultNewCode.main"
-                        >
-                            <div
-                                @click="createCode(code.subcodes, code.main.id)"
-                                class="btn-primary parent-code-option">+</div>
+
+        <draggable v-model="codes" group="people" @start="drag=true" @end="drag=false">
+            <div v-for="code in codes" :key="code.main.id" @text-drop="textDrop(code, $event.detail, $event)">
+                <div class="spacer">
+                    <div :style="style(code.main.id)">
+                        <code-drop-zone :code="code.main">
+                            <div class="top-container margined">
+                                <h5 class="code-title">{{code.main.name}}</h5>
+
+                                <div class="btn btn-primary float-right no-events just-number self-right">
+                                    {{getTextsLength(code)}}
+                                </div>
+
+                                <button class="btn btn-primary float-right" @click="createCode(code.subcodes, code.main.id)">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
                         </code-drop-zone>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="btn-primary parent-code-option">D</div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="btn-primary parent-code-option">{{getTextsLength(code)}}</div>
+
+                        <div v-for="subCode in code.subcodes" v-bind:key="subCode.id" class="subcode margin-top">
+                            <code-drop-zone :code="subCode">
+                                <div class="row item">
+                                    <div class="col-10 center-text pad-3 rborder">
+                                        {{subCode.name}}
+                                    </div>
+
+                                    <div class="col-2 center-text pad-3">
+                                        {{subCode.texts.length}}
+                                    </div>
+                                </div>
+                            </code-drop-zone>
+                        </div>
+
                     </div>
                 </div>
             </div>
-            <div style="margin-left: 7%" class="row">
-                <code-drop-zone v-for="subCode in code.subcodes" :key="subCode.id"
-                                    class="row rounded-series subcode" style="width:100%"
-                                    :code="subCode"
-                >
-                    <span class="col-md-9">{{subCode.name}}</span>
-                    <span class="col-md-3">{{subCode.texts.length}}</span>
-                </code-drop-zone>
-            </div>
-        </div>
+        </draggable>
     </div>
 </template>
 
 <script>
-    // todo: add back colors
-    import CodeDropZone from "./CodeDropZone";
-
+    import Draggable from 'vuedraggable';
+    import CodeDropZone from "@/components/CodeDropZone";
+    import {getColor} from "@/core/Colors";
     // eslint-disable-next-line no-unused-vars
-    let codesTypes = {
+    let codeTypes = {
         codes: [{
             id: 0,
             name: "",
@@ -71,8 +74,8 @@
         return mainCode;
     }
     export default {
-        name: 'CodeList',
-        components: {CodeDropZone},
+        name: 'codeList',
+        components: {Draggable, CodeDropZone},
         data: () => {
             let newCode = {main: {name: "New", id: 0, texts: []}, subcodes: {}};
             return {
@@ -82,10 +85,9 @@
         },
         mounted() {
             this.axios.get("/code/list").then((res) => {
-                let codes = res.data
+                let categories = res.data
 
-                this.codes = [];
-                for(let c of codes) {
+                for(let c of categories) {
                     this.codes.push(prepareCode(c));
                 }
             });
@@ -98,10 +100,10 @@
 
                 // unless an error happens, this function will get called
                 let associate = (code) => {
-                    if(typeof code === "boolean" || !code)
+                    if (typeof code === "boolean" || !code)
                         return;
                     let c = code;
-                    if(parentCode.main.id === 0) {
+                    if (parentCode.main.id === 0) {
                         c = code.main;
                     }
                     this._actuallyAssociate(c, packet.data.words, packet.callback);
@@ -123,11 +125,14 @@
                     associate(code);
                 }
             },
+
             createCode: function (codes, parentCodeID) {
                 let name = prompt("Name of new code?");
                 if (name === null) {
                     // prompt was cancelled
-                    return Promise.reject(true).then(() => {}, () => {});
+                    return Promise.reject(true).then(() => {
+                    }, () => {
+                    });
                 }
 
                 return this.axios.post("/code/create", {
@@ -135,10 +140,10 @@
                     parentCodeID: parentCodeID
                 }).then(function (res) {
                     let newCode = res.data
-                    if(!parentCodeID) {
+                    if (!parentCodeID) {
                         newCode = prepareCode(newCode);
                     }
-                    codes.push(newCode);
+                    codes.splice(0, 0, newCode);
                     return newCode;
                 }, function () {
                     // todo: alert the user of failure
@@ -168,29 +173,38 @@
                 }
 
                 return length;
+            },
+
+
+            style(idx) {
+                return `border-radius: 10px; border: 3px solid ${getColor(idx)}; padding: 20px;`;
             }
         }
+
     }
 </script>
 
 <style scoped>
-    .code-wrapper {
-        border: 2px solid blue;
-        border-radius: .25em;
-        margin: 5px;
-        /*padding-bottom: 5px;*/
+
+    .bold {
+        font-weight: bold;
     }
 
-    .code-wrapper, .subcode {
-        margin-bottom: 1%;
+    #add-button {
+        height: 50px;
     }
 
-    .parent-code-option {
-        padding: 0;
-        margin-top: 50%;
-        line-height: 1em;
-        width: 1em;
-        text-align: center;
+    .add-height {
+        width: 200px
+    }
+
+
+    .pad-20 {
+        padding: 20px;
+    }
+
+    .pad-3 {
+        padding: 3px;
     }
 
     .rounded-series * {
@@ -208,5 +222,76 @@
     .rounded-series > :last-child {
         border-bottom-right-radius: .25em;
         border-top-right-radius: .25em;
+    }
+
+    .spacer {
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+
+    .center-text {
+        text-align: center;
+    }
+    .code-title {
+        text-transform: capitalize;
+        font-weight: bolder;
+        margin: 0;
+    }
+
+    .just-number {
+        background-color: white;
+        color: black;
+        border: none;
+        font-weight: bolder;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .margin-top {
+        margin-top: 20px;
+    }
+
+    .limited {
+        height: 80vh;
+        overflow-y: scroll;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .limited::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    .no-events {
+        pointer-events:none;
+    }
+
+    .rborder {
+        border-right: 1px solid gray;
+    }
+
+    .subcode {
+        border-radius: 3px;
+        color: gray;
+        margin-bottom: 5px;
+        border: 1px solid gray;
+    }
+
+    .top-container {
+        display: flex;
+        align-content: center;
+        align-items: center;
+    }
+
+    .self-right {
+        margin-left: auto;
     }
 </style>
