@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS project(
 );
 
 CREATE TABLE IF NOT EXISTS file(
-    id SERIAL PRIMARY KEY,
+    id SERIAL UNIQUE PRIMARY KEY,
     project_id int,
     name text,
     uploaded time,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS attribute_column(
     demo_file_id int,
     CONSTRAINT fk_demo_file
         FOREIGN KEY (demo_file_id)
-            REFERENCES demo_file(id)
+            REFERENCES file(id)
 );
 
 -- store the specific row where an attribute was found, useful for linking to source files
@@ -48,13 +48,13 @@ CREATE TABLE IF NOT EXISTS attribute_row(
     
     CONSTRAINT fk_demo_file
         FOREIGN KEY (demo_file_id)
-            REFERENCES demo_file(id),
+            REFERENCES file(id),
             
     source_file_id int default NULL,
     
     CONSTRAINT fk_source_file
         FOREIGN KEY (source_file_id)
-            REFERENCES demo_file(id)
+            REFERENCES file(id)
 );
 
 -- stores the actual value of the attributes
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS text(
     source_file_id int,
     CONSTRAINT fk_source_file
         FOREIGN KEY(source_file_id)
-            REFERENCES source_file(id),
+            REFERENCES file(id),
 
     code_id int,
     CONSTRAINT fk_code
