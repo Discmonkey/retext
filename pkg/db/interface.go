@@ -34,6 +34,7 @@ type Code struct {
 	Name  string         `json:"name"`
 	Texts []DocumentText `json:"texts"`
 }
+
 type CodeContainer struct {
 	Main  CodeID `json:"main"`
 	Codes []Code `json:"subcodes"`
