@@ -5,7 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/db/postgres"
+	"github.com/discmonkey/retext/pkg/db/credentials"
 	_ "github.com/lib/pq"
 	"io/ioutil"
 	"log"
@@ -47,8 +47,8 @@ func main() {
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		postgres.GetHost(), postgres.GetPort(),
-		postgres.GetUser(), postgres.GetPass(), postgres.GetDB())
+		credentials.GetHost(), credentials.GetPort(),
+		credentials.GetUser(), credentials.GetPass(), credentials.GetDB())
 
 	db, err := sql.Open("postgres", psqlInfo)
 	fatalLogIf(err, "could not open database connection")

@@ -1,4 +1,4 @@
-package postgres
+package credentials
 
 func GetDB() string {
 	return "postgres"
