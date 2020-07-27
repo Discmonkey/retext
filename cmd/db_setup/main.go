@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
 func fatalLogIf(err error, message string) {
@@ -40,6 +41,8 @@ func getSetupQueryLocation() (string, error) {
 func main() {
 
 	schemaLocation, err := getSetupQueryLocation()
+	timeoutTries := 10
+
 	fatalLogIf(err, "")
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
@@ -50,7 +53,16 @@ func main() {
 	db, err := sql.Open("postgres", psqlInfo)
 	fatalLogIf(err, "could not open database connection")
 
-	err = db.Ping()
+	for ; timeoutTries > 0; timeoutTries-- {
+		err = db.Ping()
+
+		if err == nil {
+			break
+		}
+		log.Println("sleeping for 1 second while database starts up")
+		time.Sleep(time.Second)
+	}
+
 	fatalLogIf(err, "could not ping database")
 
 	tx, err := db.Begin()

@@ -14,3 +14,9 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
     - 5432:5432
+
+  db_loader:
+    image: retext_db_loader
+    network_mode: host
+    depends_on:
+      - db
