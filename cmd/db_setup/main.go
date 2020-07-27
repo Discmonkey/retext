@@ -19,7 +19,7 @@ func fatalLogIf(err error, message string) {
 	}
 }
 
-func initQuery(filepath string) (string, error) {
+func sqlFileToString(filepath string) (string, error) {
 	content, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return "", err
@@ -68,7 +68,7 @@ func main() {
 	tx, err := db.Begin()
 	fatalLogIf(err, "could not start transaction")
 
-	query, err := initQuery(schemaLocation)
+	query, err := sqlFileToString(schemaLocation)
 	fatalLogIf(err, "could not load schema from file")
 
 	_, err = tx.Exec(query)
