@@ -4,7 +4,9 @@
     <div class="doc-nav">
         <div class="row">
             <div class="col-md-9">
-                <h5> {{documentName}}</h5>
+                <h5 class="doc-name" v-bind:title="documentNameNoExtension">
+                    {{documentNameNoExtension}}
+                </h5>
             </div>
 
             <div class="col-3">
@@ -21,6 +23,11 @@
     export default {
         name: "ToDocument",
         props: ["documentName", "documentId", "path", "buttonText"],
+        computed: {
+            documentNameNoExtension: function() {
+                return this.documentName.split('.').slice(0, -1).join('.');
+            }
+        },
         methods: {
             goto() {
                 this.$router.push(`${this.path}/${this.documentId}`)
@@ -31,12 +38,14 @@
 
 <style scoped>
     .doc-nav {
-        border: 2px solid lightblue;
+        border: 2px solid var(--primary);
         border-radius: 5px;
         padding: 10px;
     }
-    h5 {
+    .doc-name {
         font-weight: bolder;
         color: gray;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>

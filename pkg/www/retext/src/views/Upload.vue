@@ -3,13 +3,13 @@
 
         <div class="row">
             <div class="col-12 text-center">
-                <h3>Uploaded So Far</h3>
+                <h3>Uploads</h3>
             </div>
         </div>
         <div class="row">
 
             <div class="col-6">
-                <h5>Source Files </h5>
+                <h4 class="upload-header">Source Files </h4>
 
                 <div class="source-file" v-for="file in uploadedSourceFiles" v-bind:key="file">
                     <div class="mb-3">
@@ -24,7 +24,7 @@
 
 
             <div class="col-6">
-                <h5> Demographic Information </h5>
+                <h4 class="upload-header"> Demographic Information </h4>
                 <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file">
                     <div class="mb-3">
                         <ToDocument :document-id="file" :document-name="file" button-text="Modify" path="/demo"></ToDocument>
@@ -99,4 +99,7 @@ h3, h4, h5 {
     font-weight: bold;
 }
 
+.upload-header {
+    padding-bottom: 10px;
+}
 </style>
