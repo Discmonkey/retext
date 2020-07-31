@@ -3,6 +3,7 @@ package file
 import (
 	"encoding/json"
 	"github.com/discmonkey/retext/pkg/db"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,37 +20,41 @@ func AddUploadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.R
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
-
-		file, handle, err := r.FormFile("file")
+		err := r.ParseMultipartForm(endpoints.MaxUploadSize)
 		if err != nil {
-			log.Println(err)
-			return
+			log.Fatal("failed while parsing form")
 		}
+		form := r.MultipartForm
+		fileType := r.FormValue("fileType")
+		files := form.File["file"]
 
-		defer func() {
-			err := file.Close()
+		response := make([]AddResponse, 0, len(files))
+		for _, handle := range files {
+			file, err := handle.Open()
 			if err != nil {
 				log.Println(err)
+				return
 			}
-		}()
 
-		data, err := ioutil.ReadAll(file)
-		if err != nil {
-			log.Println(err)
-			return
+			data, err := ioutil.ReadAll(file)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			_ = file.Close()
+
+			key, err := store.UploadFile(handle.Filename, data)
+
+			response = append(response, AddResponse{
+				Key:  key,
+				Type: fileType,
+			})
 		}
 
-		key, err := store.UploadFile(handle.Filename, data)
-
-		err = json.NewEncoder(w).Encode(AddResponse{
-			Key:  key,
-			Type: "source",
-		})
-
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			log.Println(err)
 		}
-
 	}
 
 	return t

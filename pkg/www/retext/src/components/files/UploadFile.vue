@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <input type="file" ref="form" v-on:change="upload()" :accept="acceptedFiles">
+    <div title="Max total upload size: 2MB">
+        <input type="file" :multiple="multiple" ref="form" v-on:change="upload()" :accept="acceptedFiles">
         <button class="btn btn-primary" @click="clickFile()">
             Upload {{fileType}}
         </button>
@@ -10,7 +10,14 @@
 <script>
     export default {
         name: "UploadFile",
-        props: ["fileType", "acceptedFiles"],
+        props: {
+            fileType: {type: String},
+            acceptedFiles: {type: String},
+            multiple: {
+                type: Boolean,
+                default: false
+            }
+        },
         data: function() {
             return {
                 file: null,
@@ -25,9 +32,10 @@
                 }
 
                 let formData = new FormData();
-                let file = this.$refs.form.files[0];
-
-                formData.append("file", file);
+                formData.append("fileType", this.fileType);
+                this.$refs.form.files.forEach((file) => {
+                    formData.append("file", file);
+                });
 
                 this.axios.post("/file/upload",
                     formData,

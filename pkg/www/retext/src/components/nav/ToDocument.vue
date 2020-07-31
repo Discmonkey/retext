@@ -4,7 +4,7 @@
     <div class="doc-nav">
         <div class="row">
             <div class="col-md-9">
-                <h5 class="doc-name" v-bind:title="documentNameNoExtension">
+                <h5 class="doc-name" :title="documentNameNoExtension">
                     {{documentNameNoExtension}}
                 </h5>
             </div>

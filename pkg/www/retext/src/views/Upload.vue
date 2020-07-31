@@ -18,7 +18,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Source" v-on:success="addSource($event)" accepted-files=".docx,.txt,.text"></UploadFile>
+                    <UploadFile file-type="Source" v-on:success="addSource($event)" accepted-files=".docx,.txt,.text" :multiple=true></UploadFile>
                 </div>
             </div>
 
@@ -74,12 +74,16 @@ export default {
     },
 
     methods: {
-        addSource(item) {
-            this.uploadedSourceFiles.push(item.Key);
+        addSource(items) {
+            items.forEach((item) => {
+                this.uploadedSourceFiles.push(item.Key);
+            });
         },
 
-        addDemo(item) {
-            this.uploadedDemoFiles.push(item.Key);
+        addDemo(items) {
+            items.forEach((item) => {
+                this.uploadedDemoFiles.push(item.Key);
+            });
         }
     }
 }
