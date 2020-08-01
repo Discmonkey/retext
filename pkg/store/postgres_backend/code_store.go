@@ -1,62 +1,29 @@
 package postgres_backend
 
-import (
-	"crypto/sha1"
-	"encoding/hex"
-	"github.com/discmonkey/retext/pkg/store"
-	"github.com/discmonkey/retext/pkg/store/file_backend"
-)
+import "github.com/discmonkey/retext/pkg/store"
 
 type CodeStore struct {
-	fileSys *file_backend.DevFileBackend
-	db      connection
+	db connection
 }
 
-func NewStore(writeLocation string) (*CodeStore, error) {
-	fStore := file_backend.DevFileBackend{}
-
-	err := fStore.Init(writeLocation)
-	if err != nil {
-		return nil, err
-	}
-
-	c := CodeStore{}
-
-	con, err := getConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	c.db = con
-
-	return &c, nil
-}
-
-func hash(filename string) string {
-	h := sha1.New()
-	h.Write([]byte(filename))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-func (c CodeStore) UploadFile(filename string, contents []byte) (store.FileID, error) {
-	filenameHash := hash(filename)
-
-	checkExistsQuery := ``
-	insertQuery := ``
-
-	path, err := c.fileSys.UploadFile(filenameHash, contents)
-	if err != nil {
-		return "", err
-	}
-
-}
-
-func (c CodeStore) GetFile(id store.FileID) ([]byte, error) {
+func (c CodeStore) CreateCode(name string, ParentCodeID store.CodeID) (store.CodeID, error) {
 	panic("implement me")
 }
 
-func (c CodeStore) Files() ([]store.File, error) {
+func (c CodeStore) CodifyText(codeID store.CodeID, documentID store.FileID, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
 	panic("implement me")
 }
 
-var _ store.FileStore = CodeStore{}
+func (c CodeStore) GetCode(codeID store.CodeID) (store.Code, error) {
+	panic("implement me")
+}
+
+func (c CodeStore) GetCodeContainer(codeID store.CodeID) (store.CodeContainer, error) {
+	panic("implement me")
+}
+
+func (c CodeStore) Codes() ([]store.CodeID, error) {
+	panic("implement me")
+}
+
+var _ store.CodeStore = CodeStore{}

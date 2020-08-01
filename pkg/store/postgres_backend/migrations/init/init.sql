@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS file(
     id SERIAL UNIQUE PRIMARY KEY,
     project_id int,
     name text,
-    uploaded time,
+    uploaded timestamp with time zone,
 
     CONSTRAINT fk_project
         FOREIGN KEY (project_id)

@@ -6,21 +6,14 @@ import (
 	"testing"
 )
 
-func createTestDir() string {
+func CreateTestDir() string {
 	testDirName, _ := ioutil.TempDir("", "retext")
+
 	return testDirName
 }
 
 // TestFSBackend covers all the file interface methods
-func TestFileStore(t *testing.T) {
-	testDirName := createTestDir()
-
-	fileBackend := &DevFileBackend{}
-
-	err := fileBackend.Init(testDirName)
-	if err != nil {
-		t.Fatal(err)
-	}
+func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 
 	if info, err := os.Stat(testDirName + "/uploadLocation"); err != nil || !info.IsDir() {
 		if err != nil {
@@ -73,11 +66,7 @@ func TestFileStore(t *testing.T) {
 	_ = os.Remove(testDirName)
 }
 
-func TestCodeStore(t *testing.T) {
-	testDirName := createTestDir()
-
-	codeBackend := &DevCodeBackend{}
-	err := codeBackend.Init(testDirName)
+func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 
 	testCodeName := "test"
 	firstCodeID, err := codeBackend.CreateCode(testCodeName, 0)
@@ -137,10 +126,5 @@ func TestCodeStore(t *testing.T) {
 	_ = os.Remove("/tmp/filetest")
 
 	// second start-up tests "cache path"
-	err = codeBackend.Init(testDirName)
-	if err != nil {
-		t.Fatalf("failed to load cached codes: %s", err)
-	}
 
-	_ = os.Remove(testDirName)
 }
