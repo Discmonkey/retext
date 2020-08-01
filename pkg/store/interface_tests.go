@@ -28,9 +28,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 		t.Fatal(err)
 	}
 
-	if len(files) != 0 {
-		t.Fatal("incorrect number of files returned")
-	}
+	initialLength := len(files)
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
@@ -44,12 +42,8 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 		t.Fatal(err)
 	}
 
-	if len(files) != 1 {
+	if len(files) != initialLength+1 {
 		t.Fatal("incorrect number of files returned")
-	}
-
-	if key != files[0].ID {
-		t.Fatal("key does not match files scan")
 	}
 
 	f, err := fileBackend.GetFile(key)
@@ -62,8 +56,6 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 			t.Fatal("file contents do not match")
 		}
 	}
-
-	_ = os.Remove(testDirName)
 }
 
 func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {

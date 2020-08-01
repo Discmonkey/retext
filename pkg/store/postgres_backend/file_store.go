@@ -39,8 +39,8 @@ func (c FileStore) UploadFile(filename string, contents []byte) (store.FileID, e
 		if err != nil {
 			return "", err
 		}
-
-		location = path.Join(c.writeDir, filename)
+		// TODO stop using the file store at some point
+		location = path.Join(c.writeDir, "uploadLocation", filename)
 	}
 
 	return logFileToDb(c.db, filename, location, hash)
@@ -107,14 +107,14 @@ func checkExists(con connection, fileContentsHash string) (bool, error) {
 
 func getLocationFromHash(con connection, fileContentsHash string) (string, error) {
 
-	query := `SELECT location FROM qode.file WHERE file_hash = ?`
+	query := `SELECT location FROM qode.file WHERE file_hash = $1`
 
 	row := con.db().QueryRow(query, fileContentsHash)
 
-	var id int
-	err := row.Scan(&id)
+	var location string
+	err := row.Scan(&location)
 
-	return fmt.Sprintf("%d", id), err
+	return location, err
 }
 
 func getLocationFromID(con connection, id store.FileID) (string, error) {
@@ -125,7 +125,7 @@ func getLocationFromID(con connection, id store.FileID) (string, error) {
 	var location string
 	err := row.Scan(&location)
 
-	return fmt.Sprintf("%s", id), err
+	return fmt.Sprintf("%s", location), err
 }
 
 func logFileToDb(con connection, filename, location, hash string) (store.FileID, error) {
