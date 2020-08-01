@@ -4,20 +4,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
+	"github.com/discmonkey/retext/pkg/store"
 	"net/http"
 )
 
 type associateRequest struct {
-	CodeID     db.CodeID         `json:"codeID"`
-	DocumentID db.FileID         `json:"key"`
-	Text       string            `json:"text"`
-	FirstWord  db.WordCoordinate `json:"anchor"`
-	LastWord   db.WordCoordinate `json:"last"`
+	CodeID     store.CodeID         `json:"codeID"`
+	DocumentID store.FileID         `json:"key"`
+	Text       string               `json:"text"`
+	FirstWord  store.WordCoordinate `json:"anchor"`
+	LastWord   store.WordCoordinate `json:"last"`
 }
 
-func AssociateEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func AssociateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

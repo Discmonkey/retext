@@ -1,4 +1,4 @@
-package db
+package store
 
 type FileID = string
 type FileType = string

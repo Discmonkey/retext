@@ -17,6 +17,8 @@ services:
 
   db_loader:
     image: retext_db_loader
+    volumes:
+      - ./pkg/store/migrations:/pkg/store/migrations
     network_mode: host
     depends_on:
       - db

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
+	"github.com/discmonkey/retext/pkg/store/file_backend"
 	"log"
 	"net/http"
 	"os"
@@ -26,10 +26,10 @@ func main() {
 
 	retextLocation := path.Join(os.TempDir(), "retext")
 
-	fileBackend := &db.DevFileBackend{}
+	fileBackend := &file_backend.DevFileBackend{}
 	FailIfError(fileBackend.Init(retextLocation))
 
-	codeBackend := &db.DevCodeBackend{}
+	codeBackend := &file_backend.DevCodeBackend{}
 	FailIfError(codeBackend.Init(retextLocation))
 
 	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))

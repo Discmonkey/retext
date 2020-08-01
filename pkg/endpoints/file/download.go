@@ -3,14 +3,14 @@ package file
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/parser"
+	"github.com/discmonkey/retext/pkg/store"
 	"log"
 	"net/http"
 	"strings"
 )
 
-func DownloadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

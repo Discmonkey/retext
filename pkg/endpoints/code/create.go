@@ -3,17 +3,17 @@ package code
 import (
 	"encoding/json"
 	"errors"
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
+	"github.com/discmonkey/retext/pkg/store"
 	"net/http"
 )
 
 type createRequest struct {
-	CodeName     string    `json:"code"`
-	ParentCodeID db.CodeID `json:"parentCodeID"`
+	CodeName     string       `json:"code"`
+	ParentCodeID store.CodeID `json:"parentCodeID"`
 }
 
-func CreateEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func CreateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

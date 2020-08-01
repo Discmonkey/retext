@@ -1,9 +1,10 @@
-package db
+package file_backend
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/discmonkey/retext/pkg/store"
 	"io/ioutil"
 	"os"
 	"path"
@@ -12,8 +13,8 @@ import (
 )
 
 type CodeCache struct {
-	Flat      CodeMap
-	ParentMap CodeParentIDMap
+	Flat      store.CodeMap
+	ParentMap store.CodeParentIDMap
 }
 type DevFileBackend struct {
 	dirLocation string
@@ -59,8 +60,8 @@ func (F *DevCodeBackend) Init(pathToDir string) error {
 	F.codeFileLoc = path.Join(pathToDir, "codes.json")
 	if _, err := os.Stat(F.codeFileLoc); os.IsNotExist(err) {
 		F.cache = CodeCache{
-			Flat:      CodeMap{},
-			ParentMap: CodeParentIDMap{},
+			Flat:      store.CodeMap{},
+			ParentMap: store.CodeParentIDMap{},
 		}
 		err = jsonToFile(F.codeFileLoc, F.cache)
 		if err != nil {
@@ -78,7 +79,7 @@ func (F *DevCodeBackend) Init(pathToDir string) error {
 	return nil
 }
 
-func (F *DevFileBackend) UploadFile(filename string, contents []byte) (FileID, error) {
+func (F *DevFileBackend) UploadFile(filename string, contents []byte) (store.FileID, error) {
 	filepath := path.Join(F.dirLocation, filename)
 	err := ioutil.WriteFile(filepath, contents, 0644)
 
@@ -89,28 +90,28 @@ func (F *DevFileBackend) UploadFile(filename string, contents []byte) (FileID, e
 	return filename, nil
 }
 
-func (F *DevFileBackend) GetFile(id FileID) ([]byte, error) {
+func (F *DevFileBackend) GetFile(id store.FileID) ([]byte, error) {
 	// shit's hacky ha
 	filepath := path.Join(F.dirLocation, id)
 
 	return ioutil.ReadFile(filepath)
 }
 
-func (F *DevFileBackend) Files() ([]File, error) {
+func (F *DevFileBackend) Files() ([]store.File, error) {
 	osFiles, err := ioutil.ReadDir(F.dirLocation)
 	if err != nil {
 		return nil, err
 	}
 
-	files := make([]File, len(osFiles))
+	files := make([]store.File, len(osFiles))
 
 	for i, f := range osFiles {
-		fType := SourceFile
+		fType := store.SourceFile
 		if strings.HasSuffix(f.Name(), "xlsx") {
-			fType = DemoFile
+			fType = store.DemoFile
 		}
 
-		files[i] = File{
+		files[i] = store.File{
 			ID:   f.Name(),
 			Type: fType,
 		}
@@ -154,17 +155,17 @@ func (F *DevCodeBackend) writeCodesToFile(cache CodeCache) error {
 	return err
 }
 
-func (F *DevCodeBackend) CreateCode(name string, parentCodeID CodeID) (CodeID, error) {
+func (F *DevCodeBackend) CreateCode(name string, parentCodeID store.CodeID) (store.CodeID, error) {
 	// todo: code names should be unique (per project, probably?)
 	F.codeMutex.Lock()
 	defer F.codeMutex.Unlock()
 
 	newID := len(F.cache.Flat) + 1
 
-	newCode := Code{Name: name, ID: newID, Texts: []DocumentText{}}
+	newCode := store.Code{Name: name, ID: newID, Texts: []store.DocumentText{}}
 
 	if parentCodeID == 0 {
-		F.cache.ParentMap[newID] = []CodeID{newID}
+		F.cache.ParentMap[newID] = []store.CodeID{newID}
 	} else {
 		if subCodes, ok := F.cache.ParentMap[parentCodeID]; ok {
 			F.cache.ParentMap[parentCodeID] = append(subCodes, newID)
@@ -183,7 +184,7 @@ func (F *DevCodeBackend) CreateCode(name string, parentCodeID CodeID) (CodeID, e
 	return newCode.ID, nil
 }
 
-func (F *DevCodeBackend) CodifyText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error {
+func (F *DevCodeBackend) CodifyText(codeID store.CodeID, documentID store.FileID, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
 	F.codeMutex.Lock()
 	defer F.codeMutex.Unlock()
 
@@ -197,7 +198,7 @@ func (F *DevCodeBackend) CodifyText(codeID CodeID, documentID FileID, text strin
 	}
 
 	var code = cache.Flat[codeID]
-	code.Texts = append(code.Texts, DocumentText{
+	code.Texts = append(code.Texts, store.DocumentText{
 		DocumentID: documentID,
 		Text:       text,
 		FirstWord:  firstWord,
@@ -211,24 +212,24 @@ func (F *DevCodeBackend) CodifyText(codeID CodeID, documentID FileID, text strin
 	return err
 }
 
-func (F *DevCodeBackend) GetCode(codeID CodeID) (Code, error) {
+func (F *DevCodeBackend) GetCode(codeID store.CodeID) (store.Code, error) {
 	F.codeMutex.RLock()
 	defer F.codeMutex.RUnlock()
 
 	if code, ok := F.cache.Flat[codeID]; ok {
 		return code, nil
 	}
-	return Code{}, errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
+	return store.Code{}, errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
 }
 
-func (F *DevCodeBackend) GetCodeContainer(codeID CodeID) (CodeContainer, error) {
+func (F *DevCodeBackend) GetCodeContainer(codeID store.CodeID) (store.CodeContainer, error) {
 	F.codeMutex.RLock()
 	defer F.codeMutex.RUnlock()
 
 	if code, ok := F.cache.Flat[codeID]; ok {
-		codeContainer := CodeContainer{
+		codeContainer := store.CodeContainer{
 			Main:  code.ID,
-			Codes: make([]Code, len(F.cache.ParentMap[code.ID])),
+			Codes: make([]store.Code, len(F.cache.ParentMap[code.ID])),
 		}
 		for i, subCodeID := range F.cache.ParentMap[code.ID] {
 			codeContainer.Codes[i] = F.cache.Flat[subCodeID]
@@ -236,10 +237,10 @@ func (F *DevCodeBackend) GetCodeContainer(codeID CodeID) (CodeContainer, error) 
 		return codeContainer, nil
 	}
 
-	return CodeContainer{}, errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
+	return store.CodeContainer{}, errors.New(fmt.Sprintf("No code found with ID: %d", codeID))
 }
 
-func (F *DevCodeBackend) Codes() ([]CodeID, error) {
+func (F *DevCodeBackend) Codes() ([]store.CodeID, error) {
 	F.codeMutex.RLock()
 	defer F.codeMutex.RUnlock()
 	cache, err := F.getCodesFromFile()
@@ -248,7 +249,7 @@ func (F *DevCodeBackend) Codes() ([]CodeID, error) {
 		return nil, err
 	}
 
-	codeList := make([]CodeID, len(cache.ParentMap))
+	codeList := make([]store.CodeID, len(cache.ParentMap))
 	i := 0
 	for mainID := range cache.ParentMap {
 		codeList[i] = mainID

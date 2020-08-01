@@ -5,7 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/db/credentials"
+	"github.com/discmonkey/retext/pkg/store/credentials"
 	_ "github.com/lib/pq"
 	"io/ioutil"
 	"log"
