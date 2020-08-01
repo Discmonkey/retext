@@ -16,9 +16,9 @@ services:
     - 5432:5432
 
   db_loader:
-    image: retext_db_loader
+    image: qode_db_loader
     volumes:
-      - ./pkg/store/migrations:/pkg/store/migrations
+      - ../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
     network_mode: host
     depends_on:
       - db

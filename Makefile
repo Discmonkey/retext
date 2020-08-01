@@ -13,7 +13,7 @@ docker_server:
 
 .PHONY: docker_db_loader
 docker_db_loader:
-	docker build . -f deployment/db_loader.Dockerfile -t retext_db_loader
+	docker build . -f deployment/db_loader.Dockerfile -t qode_db_loader
 
 .PHONY: devserve
 devserve:

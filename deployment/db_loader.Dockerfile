@@ -14,4 +14,4 @@ COPY pkg/store/credentials/credentials.go ./pkg/store/credentials/credentials.go
 
 RUN go build -o main ./cmd/db_setup/main.go
 
-CMD ["./main", "-init_sql=pkg/db/migrations/init/init.sql"]
+CMD ["./main", "-migration_dir=/pkg/store/postgres_backend/migrations"]
