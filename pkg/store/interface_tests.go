@@ -61,15 +61,22 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 
 	testCodeName := "test"
-	firstCodeID, err := codeBackend.CreateCode(testCodeName, 0)
+
+	containerID, err := codeBackend.CreateContainer()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	firstCodeID, err := codeBackend.CreateCode(testCodeName, containerID)
 	if err != nil {
 		t.Fatalf("failed to save code: %s", err)
 	}
 
-	firstCodeMain, err := codeBackend.GetCodeContainer(firstCodeID)
+	firstCodeMain, err := codeBackend.GetContainer(containerID)
 	if err != nil {
 		t.Fatalf("failed to get code: %s", err)
 	}
+
 	if firstCodeMain.Codes[0].Name != testCodeName {
 		t.Fatalf("code came back with unexpected name: %s", err)
 	}
@@ -105,14 +112,14 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 		t.Fatalf("failed to codify text: %s", err)
 	}
 
-	codes, err := codeBackend.Codes()
+	containers, err := codeBackend.GetContainers()
 	if err != nil {
 		t.Fatalf("failed to get list of codes: %s", err)
 	}
 	//TODO: update the # used in this len() comparison if you change the number
 	// of created codes
-	if len(codes) != 1 {
-		numCodes := len(codes)
+	if len(containers) != 1 {
+		numCodes := len(containers)
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 	_ = os.Remove("/tmp/filetest")

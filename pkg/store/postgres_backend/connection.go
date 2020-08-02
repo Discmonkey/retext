@@ -7,33 +7,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Connection is a simple utility wrapper around sql.DB
-type connection struct {
-	db_ *sql.DB
-}
+type connection = *sql.DB
 
-func getDb() (*sql.DB, error) {
+func GetConnection() (*sql.DB, error) {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		credentials.GetHost(), credentials.GetPort(),
 		credentials.GetUser(), credentials.GetPass(), credentials.GetDB())
 
 	return sql.Open("postgres", psqlInfo)
-}
-
-func getConnection() (connection, error) {
-	c := connection{}
-
-	db, err := getDb()
-	if err != nil {
-		return c, err
-	}
-
-	c.db_ = db
-
-	return c, nil
-}
-
-func (c connection) db() *sql.DB {
-	return c.db_
 }

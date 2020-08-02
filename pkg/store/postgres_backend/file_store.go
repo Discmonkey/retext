@@ -2,6 +2,7 @@ package postgres_backend
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
@@ -13,7 +14,7 @@ import (
 
 type FileStore struct {
 	fileSys  *file_backend.DevFileBackend
-	db       connection
+	db       *sql.DB
 	writeDir string
 }
 
@@ -60,7 +61,7 @@ func (c FileStore) Files() ([]store.File, error) {
 	return listFiles(c.db)
 }
 
-func NewStore(writeLocation string) (*FileStore, error) {
+func NewFileStore(writeLocation string) (*FileStore, error) {
 	fStore := file_backend.DevFileBackend{}
 
 	err := fStore.Init(writeLocation)
@@ -73,7 +74,7 @@ func NewStore(writeLocation string) (*FileStore, error) {
 		fileSys:  &fStore,
 	}
 
-	con, err := getConnection()
+	con, err := GetConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func hashContents(contents []byte) string {
 func checkExists(con connection, fileContentsHash string) (bool, error) {
 	query := `SELECT count(*) FROM qode.file WHERE file_hash = $1`
 
-	row := con.db().QueryRow(query, fileContentsHash)
+	row := con.QueryRow(query, fileContentsHash)
 
 	var num int
 	err := row.Scan(&num)
@@ -109,7 +110,7 @@ func getLocationFromHash(con connection, fileContentsHash string) (string, error
 
 	query := `SELECT location FROM qode.file WHERE file_hash = $1`
 
-	row := con.db().QueryRow(query, fileContentsHash)
+	row := con.QueryRow(query, fileContentsHash)
 
 	var location string
 	err := row.Scan(&location)
@@ -120,7 +121,7 @@ func getLocationFromHash(con connection, fileContentsHash string) (string, error
 func getLocationFromID(con connection, id store.FileID) (string, error) {
 	query := `SELECT location FROM qode.file WHERE id = $1`
 
-	row := con.db().QueryRow(query, id)
+	row := con.QueryRow(query, id)
 
 	var location string
 	err := row.Scan(&location)
@@ -137,7 +138,7 @@ func logFileToDb(con connection, filename, location, hash string) (store.FileID,
 
 	var id int
 
-	row := con.db().QueryRow(insert, filename, location, hash)
+	row := con.QueryRow(insert, filename, location, hash)
 
 	err := row.Scan(&id)
 
@@ -151,7 +152,7 @@ func listFiles(con connection) ([]store.File, error) {
 
 	res := make([]store.File, 0, 0)
 
-	rows, err := con.db().Query(query)
+	rows, err := con.Query(query)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,9 @@ package store
 type FileID = string
 type FileType = string
 
+type CodeID = int
+type ContainerID = int
+
 const (
 	SourceFile FileType = "SourceFile"
 	DemoFile   FileType = "DemoFile"
@@ -13,8 +16,6 @@ type File struct {
 	Type FileType
 }
 
-type CodeID = int
-
 type WordCoordinate struct {
 	Paragraph int `json:"paragraph"`
 	Sentence  int `json:"sentence"`
@@ -22,11 +23,10 @@ type WordCoordinate struct {
 }
 
 type DocumentText struct {
-	DocumentID FileID `json:"documentID"`
-	// TODO: don't store text (since the WordCoordinate's are already stored)
-	Text      string         `json:"text"`
-	FirstWord WordCoordinate `json:"anchor"`
-	LastWord  WordCoordinate `json:"last"`
+	DocumentID FileID         `json:"documentID"`
+	Text       string         `json:"text"`
+	FirstWord  WordCoordinate `json:"anchor"`
+	LastWord   WordCoordinate `json:"last"`
 }
 
 type Code struct {
@@ -50,9 +50,10 @@ type FileStore interface {
 }
 
 type CodeStore interface {
-	CreateCode(name string, ParentCodeID CodeID) (CodeID, error)
+	CreateContainer() (ContainerID, error)
+	CreateCode(name string, containerID ContainerID) (CodeID, error)
 	CodifyText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
 	GetCode(codeID CodeID) (Code, error)
-	GetCodeContainer(codeID CodeID) (CodeContainer, error)
-	Codes() ([]CodeID, error)
+	GetContainer(codeID ContainerID) (CodeContainer, error)
+	GetContainers() ([]CodeContainer, error)
 }

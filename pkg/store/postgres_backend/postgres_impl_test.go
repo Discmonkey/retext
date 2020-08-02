@@ -8,7 +8,7 @@ import (
 func TestFileStorePostgresBackend(t *testing.T) {
 	testDirName := store.CreateTestDir()
 
-	fileBackend, err := NewStore(testDirName)
+	fileBackend, err := NewFileStore(testDirName)
 
 	if err != nil {
 		t.Fatal(err)
