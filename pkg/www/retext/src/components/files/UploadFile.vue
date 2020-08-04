@@ -1,8 +1,9 @@
 <template>
-    <div title="Max total upload size: 2MB">
+    <div>
         <input type="file" :multiple="multiple" ref="form" v-on:change="upload()" :accept="acceptedFiles">
-        <button class="btn btn-primary" @click="clickFile()">
-            Upload {{fileType}}
+        <button class="btn btn-primary" @click="clickFile()"
+            v-b-tooltip="(tooltip ? tooltip + ' | ' : '') +  ' Max total upload size: 2MB'">
+            Upload {{fileType}} <i class="fa fa-question-circle"></i>
         </button>
     </div>
 </template>
@@ -12,6 +13,7 @@
         name: "UploadFile",
         props: {
             fileType: {type: String},
+            tooltip: {type: String, default: ""},
             acceptedFiles: {type: String},
             multiple: {
                 type: Boolean,

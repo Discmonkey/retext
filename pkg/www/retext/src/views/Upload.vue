@@ -22,7 +22,6 @@
                 </div>
             </div>
 
-
             <div class="col-6">
                 <h4 class="upload-header"> Demographic Information </h4>
                 <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file">
@@ -32,7 +31,9 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)" accepted-files=".xlsx"></UploadFile>
+                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)"
+                                tooltip="For demographic information, please upload a .xlsx file in which each participant is a different row"
+                                accepted-files=".xlsx"></UploadFile>
                 </div>
             </div>
         </div>
