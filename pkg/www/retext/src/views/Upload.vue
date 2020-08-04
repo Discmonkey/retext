@@ -18,7 +18,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Source" v-on:success="addSource($event)" accepted-files=".docx,.txt,.text" :multiple=true></UploadFile>
+                    <UploadFile file-type="Source" v-on:success="addSource($event)" accepted-files=".docx,.txt,.text" :multiple=true tooltip="You can upload multiple Source files at once."></UploadFile>
                 </div>
             </div>
 
@@ -32,8 +32,8 @@
 
                 <div>
                     <UploadFile file-type="Demographics" v-on:success="addDemo($event)"
-                                tooltip="For demographic information, please upload a .xlsx file in which each participant is a different row"
-                                accepted-files=".xlsx"></UploadFile>
+                                tooltip="For demographic information, please upload a .xlsx or .csv file in which each participant is a different row (a header row is required)."
+                                accepted-files=".xlsx,.csv"></UploadFile>
                 </div>
             </div>
         </div>

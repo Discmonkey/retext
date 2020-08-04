@@ -8,6 +8,7 @@ const (
 	Text DocumentType = iota
 	DocX
 	Xlsx
+	Csv
 )
 
 type Word struct {
@@ -49,6 +50,8 @@ func GetParser(t DocumentType) (Parser, error) {
 		return DocXParser{}, nil
 	case Xlsx:
 		return XlsxParser{}, nil
+	case Csv:
+		return CsvParser{}, nil
 	default:
 		return nil, errors.New("could not find registered parser for doc type")
 	}

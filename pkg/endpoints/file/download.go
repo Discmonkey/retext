@@ -39,6 +39,8 @@ func DownloadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.Re
 				filetype = parser.DocX
 			} else if strings.HasSuffix(keys[0], ".xlsx") {
 				filetype = parser.Xlsx
+			} else if strings.HasSuffix(keys[0], ".csv") {
+				filetype = parser.Csv
 			}
 
 			converted, err := parser.Convert(contents, filetype)

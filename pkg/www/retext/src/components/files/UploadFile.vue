@@ -2,7 +2,7 @@
     <div>
         <input type="file" :multiple="multiple" ref="form" v-on:change="upload()" :accept="acceptedFiles">
         <button class="btn btn-primary" @click="clickFile()"
-            v-b-tooltip="(tooltip ? tooltip + ' | ' : '') +  ' Max total upload size: 2MB'">
+            v-b-tooltip.bottom="(tooltip ? tooltip + ' | ' : '') +  ' Max total upload size: 2MB'">
             Upload {{fileType}} <i class="fa fa-question-circle"></i>
         </button>
     </div>
