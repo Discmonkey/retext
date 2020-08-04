@@ -106,7 +106,7 @@ func (F *DevFileBackend) Files() ([]File, error) {
 
 	for i, f := range osFiles {
 		fType := SourceFile
-		if strings.HasSuffix(f.Name(), "xlsx") {
+		if strings.HasSuffix(f.Name(), "xlsx") || strings.HasSuffix(f.Name(), "csv") {
 			fType = DemoFile
 		}
 
