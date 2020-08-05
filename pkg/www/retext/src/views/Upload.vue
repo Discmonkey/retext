@@ -11,7 +11,12 @@
             <div class="col-6">
                 <h4 class="upload-header">Source Files </h4>
 
-                <div class="source-file" v-for="file in uploadedSourceFiles" v-bind:key="file">
+                <div>
+                    <b-pagination v-model="currentPage"
+                                  :total-rows="uploadedSourceFiles.length"
+                                  :per-page="perPage"></b-pagination>
+                </div>
+                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file">
                     <div class="mb-3">
                         <ToDocument :document-id="file" :document-name="file" button-text="Code" path="/code"></ToDocument>
                     </div>
@@ -59,6 +64,17 @@ export default {
         return {
             uploadedSourceFiles: [],
             uploadedDemoFiles: [],
+            currentPage: 1,
+            perPage: 4,
+        }
+    },
+
+    computed: {
+        slicedSourceFiles() {
+            return this.uploadedSourceFiles.slice(
+                (this.currentPage - 1) * this.perPage,
+                this.currentPage * this.perPage
+            );
         }
     },
 
@@ -85,7 +101,8 @@ export default {
             items.forEach((item) => {
                 this.uploadedDemoFiles.push(item.Key);
             });
-        }
+        },
+
     }
 }
 </script>
