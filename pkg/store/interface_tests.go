@@ -62,6 +62,13 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 
 	testCodeName := "test"
 
+	initial, err := codeBackend.GetContainers()
+	if err != nil {
+		t.Fatalf("could not query for containers")
+	}
+
+	initialLength := len(initial)
+
 	containerID, err := codeBackend.CreateContainer()
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -118,7 +125,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 	}
 	//TODO: update the # used in this len() comparison if you change the number
 	// of created codes
-	if len(containers) != 1 {
+	if len(containers)-initialLength != 1 {
 		numCodes := len(containers)
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}

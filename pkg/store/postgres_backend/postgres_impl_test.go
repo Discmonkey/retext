@@ -17,7 +17,7 @@ func TestFileStorePostgresBackend(t *testing.T) {
 	store.StubTestStore(t, fileBackend, testDirName)
 }
 
-func TestCodeStoreFileBackend(t *testing.T) {
+func TestCodeStorePostgresBackend(t *testing.T) {
 
 	codeBackend, err := NewCodeStore()
 	if err != nil {

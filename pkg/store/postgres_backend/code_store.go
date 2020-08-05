@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
+	"github.com/discmonkey/retext/pkg/version"
 	"math"
 )
 
@@ -59,10 +60,12 @@ func (c CodeStore) CodifyText(codeID store.CodeID, documentID store.FileID, text
 	// TODO grab parser id from environment variable (or something similar)
 	_, err := c.db.Exec(`
 		INSERT INTO qode.text (start, stop, value, parser_id, code_id, source_file_id) VALUES 
-		(ROW($1, $2, $3), ROW($4, $5, $6), $7, 0, $8, $9) 
+		(ROW($1, $2, $3), ROW($4, $5, $6), $7, (
+		    SELECT id from qode.parser WHERE version = $10
+		), $8, $9) 
 	`, firstWord.Paragraph, firstWord.Sentence, firstWord.Word,
 		lastWord.Paragraph, lastWord.Sentence, lastWord.Word,
-		text, codeID, documentID)
+		text, codeID, documentID, version.Version)
 
 	return err
 }
