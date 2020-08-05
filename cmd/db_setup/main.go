@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store/credentials"
+	packageVersion "github.com/discmonkey/retext/pkg/version"
 	_ "github.com/lib/pq"
 	"io/ioutil"
 	"log"
@@ -89,6 +90,24 @@ func getMigrations(migrationDir string) ([]string, error) {
 	return sqlFiles, nil
 }
 
+func version(tx *sql.Tx) error {
+	row := tx.QueryRow("SELECT count(*) from qode.parser WHERE parser.version=$1", packageVersion.Version)
+	res := 0
+
+	err := row.Scan(&res)
+	if err != nil {
+		return err
+	}
+
+	if res == 0 {
+		_, err = tx.Exec("INSERT INTO qode.parser (version) VALUES ($1)", packageVersion.Version)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 func main() {
 
 	migrationDir, err := getMigrationDir()
@@ -137,6 +156,11 @@ func main() {
 			_ = tx.Rollback()
 			fatalLogIf(err, fmt.Sprintf("failed to execute migration: %s", migration))
 		}
+	}
+
+	err = version(tx)
+	if err != nil {
+		fatalLogIf(err, "failed to determine correct version")
 	}
 
 	err = tx.Commit()

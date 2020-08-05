@@ -11,6 +11,7 @@ RUN go mod download
 
 COPY cmd/db_setup/main.go ./cmd/db_setup/main.go
 COPY pkg/store/credentials/credentials.go ./pkg/store/credentials/credentials.go
+COPY pkg/version/version.go ./pkg/version/version.go
 
 RUN go build -o main ./cmd/db_setup/main.go
 

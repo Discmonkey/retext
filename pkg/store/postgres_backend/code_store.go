@@ -1,8 +1,10 @@
 package postgres_backend
 
 import (
+	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
+	"math"
 )
 
 type CodeStore struct {
@@ -29,6 +31,10 @@ func (c CodeStore) CreateContainer() (store.ContainerID, error) {
 	err := row.Scan(&id)
 
 	return id, err
+}
+
+func IdDoesNotExistError(objectName string, id int) error {
+	return errors.New(fmt.Sprintf("%s with id: <%d> does not exist", objectName, id))
 }
 
 func (c CodeStore) CreateCode(name string, containerID store.ContainerID) (store.CodeID, error) {
@@ -61,72 +67,197 @@ func (c CodeStore) CodifyText(codeID store.CodeID, documentID store.FileID, text
 	return err
 }
 
-func (c CodeStore) GetCode(codeID store.CodeID) (store.Code, error) {
-	code := store.Code{
-		ID:    codeID,
-		Name:  "",
-		Texts: make([]store.DocumentText, 0, 0),
+type codeRow struct {
+	Name string
+
+	P1 int
+	S1 int
+	w1 int
+
+	P2 int
+	S2 int
+	W2 int
+
+	Text     string
+	SourceID int
+}
+
+type CodeBuilder struct {
+	code store.Code
+}
+
+func (c *CodeBuilder) SetID(id int) {
+	c.code.ID = id
+}
+
+func (c *CodeBuilder) Push(row codeRow) {
+	if c.code.Name == "" {
+		c.code.Name = row.Name
 	}
 
+	if len(row.Text) > 0 {
+		c.code.Texts = append(c.code.Texts, store.DocumentText{
+			DocumentID: fmt.Sprintf("%d", row.SourceID), Text: row.Text, FirstWord: store.WordCoordinate{
+				Paragraph: row.P1, Sentence: row.S1, Word: row.w1}, LastWord: store.WordCoordinate{
+				Paragraph: row.P2,
+				Sentence:  row.S2,
+				Word:      row.W2,
+			},
+		})
+	}
+}
+
+type ContainerBuilder struct {
+	container      store.CodeContainer
+	currentDisplay int
+	codeBuilder    *CodeBuilder
+}
+
+func NewContainerBuilder() ContainerBuilder {
+	return ContainerBuilder{
+		container:      store.CodeContainer{},
+		currentDisplay: math.MaxInt64,
+	}
+}
+
+func (c *ContainerBuilder) Push(row codeRow, codeDisplayOrder int, codeID int) {
+	if codeDisplayOrder != c.currentDisplay {
+		if codeDisplayOrder < c.currentDisplay {
+			c.container.Main = codeID
+		}
+
+		c.currentDisplay = codeDisplayOrder
+
+		c.Finish()
+
+		c.codeBuilder = &CodeBuilder{}
+		c.codeBuilder.SetID(codeID)
+	}
+
+	c.codeBuilder.Push(row)
+}
+
+func (c *ContainerBuilder) Finish() {
+	if c.codeBuilder != nil {
+		c.container.Codes = append(c.container.Codes, c.codeBuilder.code)
+	}
+}
+
+func (c CodeStore) GetCode(codeID store.CodeID) (store.Code, error) {
+	builder := CodeBuilder{}
+	builder.SetID(codeID)
+
 	rows, err := c.db.Query(`
-		SELECT c.name, t.start.paragraph, t.start.sentence, t.start.word, 
-		       t.stop.paragraph, t.stop.sentence, t.stop.word, t.value, t.source_file_id FROM qode.code c
-		LEFT JOIN qode.text t on c.id = t.code_id
-		WHERE c.id = $1 
+		SELECT code.name, (text.start).paragraph, (text.start).sentence, (text.start).word, 
+		       (text.stop).paragraph, (text.stop).sentence, (text.stop).word, text.value, text.source_file_id FROM qode.code code
+		LEFT JOIN qode.text text on code.id = text.code_id
+		WHERE code.id = $1 
 	`, codeID)
 
 	if err != nil {
-		return code, err
+		return builder.code, err
 	}
 
-	var fileID int
-	var name string
-	var text string
-
+	row := codeRow{}
+	empty := true
 	for rows.Next() {
-		coord1 := store.WordCoordinate{}
-		coord2 := store.WordCoordinate{}
-
-		err = rows.Scan(&name, coord1.Paragraph, coord1.Sentence, coord1.Word,
-			coord2.Paragraph, coord2.Sentence, coord2.Word, &text, &fileID)
+		empty = false
+		err = rows.Scan(&row.Name, &row.P1, &row.S1, &row.w1,
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
 
 		if err != nil {
-			return code, err
+			return builder.code, err
 		}
 
-		d := store.DocumentText{
-			DocumentID: fmt.Sprintf("%d", fileID),
-			Text:       text,
-			FirstWord:  coord1,
-			LastWord:   coord2,
-		}
-
+		builder.Push(row)
 	}
 
-	code.Name = name
+	if empty {
+		return builder.code, IdDoesNotExistError("code", codeID)
+	}
 
-	return code, nil
+	return builder.code, nil
 }
 
 func (c CodeStore) GetContainer(containerID store.ContainerID) (store.CodeContainer, error) {
-	rows, err := c.db.Query(`
-		with temp as (SELECT n.id, n.display_order
-		into #temp
-		FROM qode.code_container n
-		WHERE n.id = $1),
-	
-		SELECT * FROM #temp;
-	
-		SELECT c.name, t.start, t.stop, t.value, c.display_order
-		FROM qode.code c
-		INNER JOIN #temp t on c.code_container_id = t.id
-		LEFT JOIN qode.text t on c.id = t.code_id
+	container := store.CodeContainer{
+		Main: 0,
+	}
 
+	rows, err := c.db.Query(`
+		SELECT c.name, c.display_order, c.id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
+		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id FROM qode.code c
+		LEFT JOIN qode.text t on c.id = t.code_id
+		WHERE c.code_container_id = $1
+		ORDER BY c.display_order
 	`, containerID)
+
+	if err != nil {
+		return container, err
+	}
+
+	builder := NewContainerBuilder()
+
+	var displayOrder int
+	var codeId int
+	row := codeRow{}
+
+	for rows.Next() {
+		err = rows.Scan(&row.Name, &displayOrder, &codeId, &row.P1, &row.S1, &row.w1,
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
+
+		builder.Push(row, displayOrder, codeId)
+	}
+
+	builder.Finish()
+
+	return builder.container, nil
 }
 
 func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
+	containers := make([]store.CodeContainer, 0, 0)
 
+	rows, err := c.db.Query(`
+		SELECT c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
+		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id FROM qode.code c
+		LEFT JOIN qode.text t on c.id = t.code_id
+		ORDER BY c.code_container_id, c.display_order
+	`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	builder := NewContainerBuilder()
+	currentContainer := -1
+	containerId := -1
+	codeId := -1
+	displayOrder := 0
+	row := codeRow{}
+
+	for rows.Next() {
+		err = rows.Scan(&row.Name, &displayOrder, &codeId, &containerId, &row.P1, &row.S1, &row.w1,
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
+
+		if currentContainer != containerId {
+			if currentContainer != -1 {
+				containers = append(containers, builder.container)
+				builder = NewContainerBuilder()
+			}
+
+			currentContainer = containerId
+
+			builder.Push(row, displayOrder, codeId)
+		}
+
+	}
+
+	if currentContainer != -1 {
+		builder.Finish()
+		containers = append(containers, builder.container)
+	}
+
+	return containers, nil
 }
 
 var _ store.CodeStore = CodeStore{}

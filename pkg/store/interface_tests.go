@@ -86,7 +86,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 	}
 	// test creating a subcode
 	testSubCodeName := "subcode 1 1"
-	_, err = codeBackend.CreateCode(testSubCodeName, firstCodeMain.Main)
+	_, err = codeBackend.CreateCode(testSubCodeName, containerID)
 	if err != nil {
 		t.Fatalf("unable to create a subcode: %s", err)
 	}
@@ -102,7 +102,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 		Sentence:  1,
 		Word:      3,
 	}
-	testFileName := "test1.txt"
+	testFileName := "1"
 	err = codeBackend.CodifyText(firstCodeID, testFileName, testText, anchor, lastWord)
 	if err != nil {
 		t.Fatalf("failed to codify text: %s", err)

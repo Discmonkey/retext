@@ -19,3 +19,7 @@ docker_db_loader:
 devserve:
 	cd pkg/www/retext && npm run serve
 
+.PHONY: tag
+tag:
+	git tag $(version)
+	echo "package version\n\nconst Version string = \"$(version)\"" > pkg/version/version.go
