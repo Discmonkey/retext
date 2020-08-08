@@ -1,7 +1,5 @@
 <template>
   <div id="app" class="container-fluid">
-    <div id="nav">
-    </div>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
       <a class="navbar-brand" href="#">
         <img id="logo" src="./assets/qode.svg" alt="qode">
@@ -40,10 +38,19 @@
         </form>
       </div>
     </nav>
+      <nav>
+          <breadcrumbs></breadcrumbs>
+      </nav>
     <router-view/>
   </div>
 </template>
 
+<script>
+import Breadcrumbs from "@/components/nav/Breadcrumbs";
+export default {
+    components: {Breadcrumbs},
+}
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
