@@ -30,9 +30,10 @@ type DocumentText struct {
 }
 
 type Code struct {
-	ID    CodeID         `json:"id"`
-	Name  string         `json:"name"`
-	Texts []DocumentText `json:"texts"`
+	ID        CodeID         `json:"id"`
+	Name      string         `json:"name"`
+	Texts     []DocumentText `json:"texts"`
+	Container ContainerID    `json:"container"`
 }
 
 type CodeContainer struct {

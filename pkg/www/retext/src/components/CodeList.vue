@@ -110,7 +110,7 @@
                 };
 
                 if (parentCode.main.id === 0) {
-                    this.createCode(this.codes, null).then(
+                    this.createCode(this.codes, 0).then(
                         associate
                     )
                 } else if (!code) {
