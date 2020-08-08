@@ -26,3 +26,9 @@
         }
     }
 </script>
+
+<style scoped>
+.breadcrumb {
+    background-color: transparent;
+}
+</style>
