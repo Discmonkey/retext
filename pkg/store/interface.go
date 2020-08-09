@@ -39,7 +39,6 @@ type Code struct {
 }
 
 type CodeContainer struct {
-	Main  CodeId      `json:"main"`
 	Id    ContainerId `json:"containerId"`
 	Order int
 	Codes []Code `json:"subcodes"`

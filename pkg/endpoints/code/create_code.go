@@ -31,14 +31,14 @@ func CreateCode(store store.CodeStore) func(w http.ResponseWriter, r *http.Reque
 
 		w.Header().Set("Content-Type", "application/json")
 
-		codeId, err := store.CreateCode(req.CodeName, req.ContainerId)
+		_, err = store.CreateCode(req.CodeName, req.ContainerId)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new code.", err) {
 			return
 		}
 
 		encoder := json.NewEncoder(w)
-		newCode, err := store.GetCode(codeId)
+		newCode, err := store.GetContainer(req.ContainerId)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new code.", err) {
 			return

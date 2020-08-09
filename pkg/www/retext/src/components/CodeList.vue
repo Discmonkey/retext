@@ -149,8 +149,12 @@
 
                 const code = prepareCode(res.data);
 
-                if (!(code.containerId in ))
-                    codes.splice(0, 0, newCode);
+                if (!(code.containerId in this.containersToCodes)) {
+                    this.containersToCodes[code.containerId] = code;
+                    this.codes.splice(0, 0, code);
+                } else {
+                    this.containersToCodes[code.containerId].subcodes.push(code);
+                }
             },
 
             _actuallyAssociate: function (code, words, callback) {
@@ -167,6 +171,9 @@
                 });
             },
             getTextsLength(code) {
+                if (code.main.texts == null) {
+                    return 0;
+                }
                 let length = code.main.texts.length;
 
                 if (code.subcodes) {
