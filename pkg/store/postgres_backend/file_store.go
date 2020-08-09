@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
-	"github.com/discmonkey/retext/pkg/store/file_backend"
 	"io/ioutil"
 	"log"
 	"path"
@@ -56,7 +55,7 @@ func (c FileStore) UploadFile(filename string, contents []byte) (store.File, err
 			return store.File{}, err
 		}
 	} else {
-		location := path.Join(c.writeDir, filename)
+		location = path.Join(c.writeDir, filename)
 		err = c.fileSys.Store(location, contents)
 		if err != nil {
 			return store.File{}, err
@@ -80,14 +79,19 @@ func (c FileStore) UploadFile(filename string, contents []byte) (store.File, err
 	}, nil
 }
 
-func (c FileStore) GetFile(id store.FileID) ([]byte, error) {
-	location, err := getLocationFromID(c.db, id)
+func (c FileStore) GetFile(id store.FileID) ([]byte, store.File, error) {
+	query := `SELECT id, name, location as string FROM qode.file WHERE id = $1`
+	var location string
+	row := c.db.QueryRow(query, id)
+
+	file, err := parseFileRow(row, &location)
 	if err != nil {
-		return nil, err
+		return nil, store.File{}, err
 	}
 
-	return ioutil.ReadFile(location)
+	contents, err := c.fileSys.Fetch(location)
 
+	return contents, file, err
 }
 
 func (c FileStore) Files() ([]store.File, error) {
@@ -95,13 +99,6 @@ func (c FileStore) Files() ([]store.File, error) {
 }
 
 func NewFileStore(writeLocation string) (*FileStore, error) {
-	fStore := file_backend.DevFileBackend{}
-
-	err := fStore.Init(writeLocation)
-	if err != nil {
-		return nil, err
-	}
-
 	c := FileStore{
 		writeDir: writeLocation,
 		fileSys:  DefaultFileSys{},
@@ -210,32 +207,50 @@ func listFiles(con connection) ([]store.File, error) {
 	}
 
 	defer func() { _ = rows.Close() }()
-
-	var id int
-	var filename string
-
+	// not used for now
+	var location string
 	for rows.Next() {
-		err = rows.Scan(&id, &filename)
-		if err != nil {
-			return nil, err
-		}
 
-		name, ext, err := getNameAndExtension(filename)
+		file, err := parseFileRow(rows, &location)
 
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		f := store.File{}
-		f.ID = id
-		f.Name = name
-		f.Type = assignTypeFromExtension(ext)
-
-		res = append(res, f)
+		res = append(res, file)
 	}
 
 	return res, nil
+}
+
+type rowLike interface {
+	Scan(dest ...interface{}) error
+}
+
+func parseFileRow(row rowLike, location *string) (store.File, error) {
+	var filename string
+	var id int
+
+	err := row.Scan(&id, &filename, location)
+
+	if err != nil {
+		return store.File{}, err
+	}
+
+	name, ext, err := getNameAndExtension(filename)
+
+	if err != nil {
+		return store.File{}, err
+	}
+
+	f := store.File{}
+	f.ID = id
+	f.Name = name
+	f.Type = assignTypeFromExtension(ext)
+	f.Ext = ext
+
+	return f, nil
 }
 
 var _ store.FileStore = FileStore{}

@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
@@ -32,16 +31,16 @@ func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http
 
 		w.Header().Set("Content-Type", "application/json")
 
-		contents, err := store.GetFile(int(id))
+		contents, fileSpec, err := store.GetFile(int(id))
 
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(400)
 		} else {
 			filetype := parser.Text
-			if strings.HasSuffix(keys[0], ".docx") {
+			if fileSpec.Ext == "docx" {
 				filetype = parser.DocX
-			} else if strings.HasSuffix(keys[0], ".xlsx") {
+			} else if fileSpec.Ext == "xlsx" {
 				filetype = parser.Xlsx
 			}
 

@@ -46,7 +46,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 		t.Fatal("incorrect number of files returned")
 	}
 
-	f, err := fileBackend.GetFile(file.ID)
+	f, _, err := fileBackend.GetFile(file.ID)
 	if err != nil {
 		t.Fatal(err)
 	}

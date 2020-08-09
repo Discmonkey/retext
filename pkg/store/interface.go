@@ -15,6 +15,7 @@ type File struct {
 	ID   FileID
 	Type FileType
 	Name string
+	Ext  string
 }
 
 type WordCoordinate struct {
@@ -48,7 +49,7 @@ type CodeMap = map[CodeID]Code
 
 type FileStore interface {
 	UploadFile(filename string, contents []byte) (File, error)
-	GetFile(id FileID) ([]byte, error)
+	GetFile(id FileID) ([]byte, File, error)
 	Files() ([]File, error)
 }
 
