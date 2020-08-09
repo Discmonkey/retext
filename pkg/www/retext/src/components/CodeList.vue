@@ -4,31 +4,31 @@
             <div class="col-12 text-right">
                 <button class="btn btn-primary bold add-height" id="add-button"
                         @text-drop="textDrop(defaultNewCode, $event.detail, $event)"
-                        @click="createCode(codes, null)">
+                        @click="createCode(false)">
                     Add a New Code
                 </button>
             </div>
         </div>
 
-        <draggable v-model="codes" group="people" @start="drag=true" @end="drag=false">
-            <div v-for="code in codes" :key="code.main.id" @text-drop="textDrop(code, $event.detail, $event)">
+        <draggable v-model="containers" group="people" @start="drag=true" @end="drag=false">
+            <div v-for="container in containers" :key="container.containerId" @text-drop="textDrop(container.main, $event.detail, $event)">
                 <div class="spacer">
-                    <div :style="style(code.main.id)">
-                        <code-drop-zone :code="code.main">
+                    <div :style="style(container.containerId)">
+                        <code-drop-zone :code="container.main">
                             <div class="top-container margined">
-                                <h5 class="code-title">{{code.main.name}}</h5>
+                                <h5 class="code-title">{{container.main.name}}</h5>
 
                                 <div class="btn btn-primary float-right no-events just-number self-right">
-                                    {{getTextsLength(code)}}
+                                    {{getTextsLength(container)}}
                                 </div>
 
-                                <button class="btn btn-primary float-right" @click="createCode(code.subcodes, code.main.id)">
+                                <button class="btn btn-primary float-right" @click="createCode(container.containerId)">
                                     <i class="fa fa-plus"></i>
                                 </button>
                             </div>
                         </code-drop-zone>
 
-                        <div v-for="subCode in code.subcodes" v-bind:key="subCode.id" class="subcode margin-top">
+                        <div v-for="subCode in container.subcodes" v-bind:key="subCode.id" class="subcode margin-top">
                             <code-drop-zone :code="subCode">
                                 <div class="row item">
                                     <div class="col-10 center-text pad-3 rborder">
@@ -36,7 +36,7 @@
                                     </div>
 
                                     <div class="col-2 center-text pad-3">
-                                        {{subCode.texts.length}}
+                                        {{subCode.texts == null ? 0 : subCode.texts.length}}
                                     </div>
                                 </div>
                             </code-drop-zone>
@@ -64,22 +64,21 @@
             }]
         }]
     }
-    function prepareCode(mainCode) {
-        for(let i = 0; i <= mainCode.subcodes.length; ++i) {
-            if(mainCode.subcodes[i].id === mainCode.main) {
-                mainCode.main = mainCode.subcodes.splice(i, 1)[0];
-                break;
-            }
+    function prepareContainer(backendCodeContainer) {
+        const main =  backendCodeContainer.subcodes.shift();
+        return {
+            containerId: backendCodeContainer.containerId,
+            main,
+            subcodes: backendCodeContainer.subcodes
         }
-        return mainCode;
     }
     export default {
         name: 'codeList',
         components: {Draggable, CodeDropZone},
         data: () => {
             return {
-                codes: [],
-                containersToCodes: {},
+                containers: [],
+                idToContainer: {},
             }
         },
         mounted() {
@@ -87,48 +86,30 @@
                 const categories = res.data
 
                 for(const c of categories) {
-                    const code = prepareCode(c);
+                    const code = prepareContainer(c);
 
-                    this.codes.push(code);
-                    this.containersToCodes[code.containerId] = code;
+                    this.containers.push(code);
+                    this.idToContainer[code.containerId] = code;
                 }
             });
         },
         methods: {
-            textDrop: async function (parentCode, packet, e) {
-                e.stopPropagation(); // stop the even
-
-                let code = packet.data.code;
+            textDrop: async function (code, packet, e) {
+                e.stopPropagation(); // stop the event
 
                 // unless an error happens, this function will get called
                 let associate = (code) => {
                     if (typeof code === "boolean" || !code)
                         return;
-                    let c = code;
-                    if (parentCode.main.id === 0) {
-                        c = code.main;
-                    }
-                    this._actuallyAssociate(c, packet.data.words, packet.callback);
+
+                    this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
                 };
 
-                if (parentCode.main.id === 0) {
-                    this.createCode(this.codes, 0).then(
-                        associate
-                    )
-                } else if (!code) {
-                    // dropped on the code-wrapper but not in a designated drop-zone.
-                    // TODO: make the whole code-wrapper a drop zone? (see template above)
-                    return false;
-                } else if (code.id === 0) {
-                    this.createCode(parentCode.subcodes, parentCode.main.id).then(
-                        associate
-                    )
-                } else {
-                    associate(code);
-                }
+
+                associate(code);
             },
 
-            createCode: async function (codes, containerId) {
+            createCode: async function (containerId) {
                 let name = prompt("Name of new code?");
                 if (name === null) {
                     // prompt was cancelled
@@ -137,32 +118,44 @@
                     });
                 }
 
+                let code;
                 if (!containerId) {
                     const res = await this.axios.post("/code/container/create");
-
                     containerId = res.data.ContainerId;
-                }
 
-                const res = await this.axios.post("/code/create", {
-                    code: name, containerId: containerId
-                })
+                    code = (await this.axios.post("/code/create", {
+                        code: name,
+                        containerId
+                    })).data;
 
-                const code = prepareCode(res.data);
+                    const newContainer = {
+                        containerId: containerId,
+                        main: code,
+                        subcodes: [],
+                    }
 
-                if (!(code.containerId in this.containersToCodes)) {
-                    this.containersToCodes[code.containerId] = code;
-                    this.codes.splice(0, 0, code);
+                    this.containers.push(newContainer);
+                    this.idToContainer[containerId] = newContainer;
                 } else {
-                    this.containersToCodes[code.containerId].subcodes.push(code);
+                    const targetContainer = this.idToContainer[containerId]
+                    code = (await this.axios.post("/code/create", {
+                        code: name,
+                        containerId
+                    })).data;
+
+                    targetContainer.subcodes.push(code);
                 }
+
+                return code;
             },
 
             _actuallyAssociate: function (code, words, callback) {
                 this.axios.post("/code/associate", {
-                    key: words.documentId,
+                    key: parseInt(words.documentId),
                     codeId: code.id,
                     text: words.text
                 }).then(() => {
+                    code.texts = code.texts || [];
                     code.texts.push(words);
                     callback();
                     // todo: "success" toast or something
@@ -178,7 +171,9 @@
 
                 if (code.subcodes) {
                     for (let subCode of code.subcodes) {
-                        length += subCode.texts.length;
+                        if (subCode.texts != null) {
+                            length += subCode.texts.length;
+                        }
                     }
                 }
 
