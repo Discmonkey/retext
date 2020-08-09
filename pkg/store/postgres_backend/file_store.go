@@ -196,7 +196,7 @@ func assignTypeFromExtension(ext string) store.FileType {
 
 func listFiles(con connection) ([]store.File, error) {
 	query := `
-		SELECT id, name as string FROM qode.file 
+		SELECT id, name, location as string FROM qode.file 
 	`
 
 	res := make([]store.File, 0, 0)

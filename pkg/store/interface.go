@@ -35,11 +35,12 @@ type Code struct {
 	ID        CodeID         `json:"id"`
 	Name      string         `json:"name"`
 	Texts     []DocumentText `json:"texts"`
-	Container ContainerID    `json:"container"`
+	Container ContainerID    `json:"containerID"`
 }
 
 type CodeContainer struct {
-	Main  CodeID `json:"main"`
+	Main  CodeID      `json:"main"`
+	ID    ContainerID `json:"containerID"`
 	Order int
 	Codes []Code `json:"subcodes"`
 }

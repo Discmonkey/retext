@@ -77,10 +77,9 @@
         name: 'codeList',
         components: {Draggable, CodeDropZone},
         data: () => {
-            let newCode = {main: {name: "New", id: 0, texts: []}, subcodes: {}};
             return {
                 codes: [],
-                defaultNewCode: newCode,
+                containersToCodes: {},
             }
         },
         mounted() {
@@ -126,7 +125,7 @@
                 }
             },
 
-            createCode: function (codes, parentCodeID) {
+            createCode: async function (codes, containerId) {
                 let name = prompt("Name of new code?");
                 if (name === null) {
                     // prompt was cancelled
@@ -135,9 +134,15 @@
                     });
                 }
 
+                if (!containerId) {
+                    const res = await this.axios.post("/code/container/create");
+
+                    containerId = res.data.ContainerID;
+                }
+
                 return this.axios.post("/code/create", {
                     code: name,
-                    parentCodeID: parentCodeID
+                    containerID: containerId,
                 }).then(function (res) {
                     let newCode = res.data
                     if (!parentCodeID) {
@@ -150,6 +155,7 @@
                     return false;
                 });
             },
+
             _actuallyAssociate: function (code, words, callback) {
                 this.axios.post("/code/associate", {
                     key: words.documentID,

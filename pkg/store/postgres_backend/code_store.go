@@ -214,6 +214,8 @@ func (c CodeStore) GetContainer(containerID store.ContainerID) (store.CodeContai
 
 	builder.Finish()
 
+	builder.container.ID = containerID
+
 	return builder.container, nil
 }
 
@@ -221,7 +223,8 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 	containers := make([]store.CodeContainer, 0, 0)
 
 	rows, err := c.db.Query(`
-		SELECT container.display_order as container_display_order, c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
+		SELECT container.display_order as container_display_order,
+		       c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
 		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id 
 		FROM qode.code_container container  
 	    LEFT JOIN qode.code c on c.code_container_id = container.id
@@ -256,7 +259,7 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 
 		builder.Push(row, displayOrder, codeId)
 		builder.container.Order = containerDisplayOrder
-
+		builder.container.ID = containerId
 	}
 
 	if currentContainer != -1 {
