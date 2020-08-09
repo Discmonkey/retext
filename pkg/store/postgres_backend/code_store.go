@@ -21,7 +21,7 @@ func NewCodeStore() (*CodeStore, error) {
 	return &CodeStore{db: con}, nil
 }
 
-func (c CodeStore) CreateContainer() (store.ContainerID, error) {
+func (c CodeStore) CreateContainer() (store.ContainerId, error) {
 	row := c.db.QueryRow(`
 		INSERT INTO qode.code_container (display_order) VALUES (0)
 		RETURNING id  
@@ -38,7 +38,7 @@ func IdDoesNotExistError(objectName string, id int) error {
 	return errors.New(fmt.Sprintf("%s with id: <%d> does not exist", objectName, id))
 }
 
-func (c CodeStore) CreateCode(name string, containerID store.ContainerID) (store.CodeID, error) {
+func (c CodeStore) CreateCode(name string, containerId store.ContainerId) (store.CodeId, error) {
 	row := c.db.QueryRow(`
 		
 		INSERT INTO qode.code (display_order, name, code_container_id) VALUES (
@@ -46,7 +46,7 @@ func (c CodeStore) CreateCode(name string, containerID store.ContainerID) (store
 		)  
 		
 		RETURNING id;
-	`, containerID, name)
+	`, containerId, name)
 
 	var id int
 
@@ -55,7 +55,7 @@ func (c CodeStore) CreateCode(name string, containerID store.ContainerID) (store
 	return id, err
 }
 
-func (c CodeStore) CodifyText(codeID store.CodeID, documentID store.FileID, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
+func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
 
 	// TODO grab parser id from environment variable (or something similar)
 	_, err := c.db.Exec(`
@@ -65,7 +65,7 @@ func (c CodeStore) CodifyText(codeID store.CodeID, documentID store.FileID, text
 		), $8, $9) 
 	`, firstWord.Paragraph, firstWord.Sentence, firstWord.Word,
 		lastWord.Paragraph, lastWord.Sentence, lastWord.Word,
-		text, codeID, documentID, version.Version)
+		text, codeId, documentId, version.Version)
 
 	return err
 }
@@ -82,15 +82,15 @@ type codeRow struct {
 	W2 int
 
 	Text     string
-	SourceID int
+	SourceId int
 }
 
 type CodeBuilder struct {
 	code store.Code
 }
 
-func (c *CodeBuilder) SetID(id int) {
-	c.code.ID = id
+func (c *CodeBuilder) SetId(id int) {
+	c.code.Id = id
 }
 
 func (c *CodeBuilder) Push(row codeRow) {
@@ -100,7 +100,7 @@ func (c *CodeBuilder) Push(row codeRow) {
 
 	if len(row.Text) > 0 {
 		c.code.Texts = append(c.code.Texts, store.DocumentText{
-			DocumentID: row.SourceID, Text: row.Text, FirstWord: store.WordCoordinate{
+			DocumentId: row.SourceId, Text: row.Text, FirstWord: store.WordCoordinate{
 				Paragraph: row.P1, Sentence: row.S1, Word: row.w1}, LastWord: store.WordCoordinate{
 				Paragraph: row.P2,
 				Sentence:  row.S2,
@@ -123,10 +123,10 @@ func NewContainerBuilder() ContainerBuilder {
 	}
 }
 
-func (c *ContainerBuilder) Push(row codeRow, codeDisplayOrder int, codeID int) {
+func (c *ContainerBuilder) Push(row codeRow, codeDisplayOrder int, codeId int) {
 	if codeDisplayOrder != c.currentDisplay {
 		if codeDisplayOrder < c.currentDisplay {
-			c.container.Main = codeID
+			c.container.Main = codeId
 		}
 
 		c.currentDisplay = codeDisplayOrder
@@ -134,7 +134,7 @@ func (c *ContainerBuilder) Push(row codeRow, codeDisplayOrder int, codeID int) {
 		c.Finish()
 
 		c.codeBuilder = &CodeBuilder{}
-		c.codeBuilder.SetID(codeID)
+		c.codeBuilder.SetId(codeId)
 	}
 
 	c.codeBuilder.Push(row)
@@ -146,16 +146,16 @@ func (c *ContainerBuilder) Finish() {
 	}
 }
 
-func (c CodeStore) GetCode(codeID store.CodeID) (store.Code, error) {
+func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 	builder := CodeBuilder{}
-	builder.SetID(codeID)
+	builder.SetId(codeId)
 
 	rows, err := c.db.Query(`
 		SELECT code.name, (text.start).paragraph, (text.start).sentence, (text.start).word, 
 		       (text.stop).paragraph, (text.stop).sentence, (text.stop).word, text.value, text.source_file_id FROM qode.code code
 		LEFT JOIN qode.text text on code.id = text.code_id
 		WHERE code.id = $1 
-	`, codeID)
+	`, codeId)
 
 	if err != nil {
 		return builder.code, err
@@ -166,7 +166,7 @@ func (c CodeStore) GetCode(codeID store.CodeID) (store.Code, error) {
 	for rows.Next() {
 		empty = false
 		err = rows.Scan(&row.Name, &row.P1, &row.S1, &row.w1,
-			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceId)
 
 		if err != nil {
 			return builder.code, err
@@ -176,13 +176,13 @@ func (c CodeStore) GetCode(codeID store.CodeID) (store.Code, error) {
 	}
 
 	if empty {
-		return builder.code, IdDoesNotExistError("code", codeID)
+		return builder.code, IdDoesNotExistError("code", codeId)
 	}
 
 	return builder.code, nil
 }
 
-func (c CodeStore) GetContainer(containerID store.ContainerID) (store.CodeContainer, error) {
+func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContainer, error) {
 	container := store.CodeContainer{
 		Main: 0,
 	}
@@ -193,7 +193,7 @@ func (c CodeStore) GetContainer(containerID store.ContainerID) (store.CodeContai
 		LEFT JOIN qode.text t on c.id = t.code_id
 		WHERE c.code_container_id = $1
 		ORDER BY c.display_order
-	`, containerID)
+	`, containerId)
 
 	if err != nil {
 		return container, err
@@ -207,14 +207,14 @@ func (c CodeStore) GetContainer(containerID store.ContainerID) (store.CodeContai
 
 	for rows.Next() {
 		err = rows.Scan(&row.Name, &displayOrder, &codeId, &row.P1, &row.S1, &row.w1,
-			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceId)
 
 		builder.Push(row, displayOrder, codeId)
 	}
 
 	builder.Finish()
 
-	builder.container.ID = containerID
+	builder.container.Id = containerId
 
 	return builder.container, nil
 }
@@ -246,7 +246,7 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 
 	for rows.Next() {
 		err = rows.Scan(&containerDisplayOrder, &row.Name, &displayOrder, &codeId, &containerId, &row.P1, &row.S1, &row.w1,
-			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceId)
 
 		if currentContainer != containerId {
 			if currentContainer != -1 {
@@ -259,7 +259,7 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 
 		builder.Push(row, displayOrder, codeId)
 		builder.container.Order = containerDisplayOrder
-		builder.container.ID = containerId
+		builder.container.Id = containerId
 	}
 
 	if currentContainer != -1 {

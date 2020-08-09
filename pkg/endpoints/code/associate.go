@@ -10,8 +10,8 @@ import (
 )
 
 type associateRequest struct {
-	CodeID     store.CodeID         `json:"codeID"`
-	DocumentID store.FileID         `json:"key"`
+	CodeId     store.CodeId         `json:"codeId"`
+	DocumentId store.FileId         `json:"key"`
 	Text       string               `json:"text"`
 	FirstWord  store.WordCoordinate `json:"anchor"`
 	LastWord   store.WordCoordinate `json:"last"`
@@ -31,12 +31,12 @@ func AssociateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-		if req.CodeID == 0 {
+		if req.CodeId == 0 {
 			err = errors.New("code parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		if req.DocumentID <= 0 {
+		if req.DocumentId <= 0 {
 			err = errors.New("key parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
@@ -46,7 +46,7 @@ func AssociateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *htt
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		err = store.CodifyText(req.CodeID, req.DocumentID, req.Text, req.FirstWord, req.LastWord)
+		err = store.CodifyText(req.CodeId, req.DocumentId, req.Text, req.FirstWord, req.LastWord)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to save the selected text.", err) {
 			return

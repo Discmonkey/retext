@@ -11,7 +11,7 @@ import (
 func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, _ *http.Request) {
-		containerID, err := store.CreateContainer()
+		containerId, err := store.CreateContainer()
 		if endpoints.HttpNotOk(500, w, "could not create code", err) {
 			return
 		}
@@ -21,8 +21,8 @@ func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.
 		w.Header().Set("Content-Type", "application/json")
 
 		err = encoder.Encode(struct {
-			ContainerID int
-		}{ContainerID: containerID})
+			ContainerId int
+		}{ContainerId: containerId})
 
 		if err != nil {
 			log.Println(err)

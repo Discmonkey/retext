@@ -29,7 +29,7 @@
         },
 
         mounted() {
-            this.loadDocument(this.$route.params.documentID);
+            this.loadDocument(this.$route.params.documentId);
         },
 
         methods: {

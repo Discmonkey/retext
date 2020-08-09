@@ -69,7 +69,7 @@
 
     export default {
         name: "TextRenderer",
-        props: {text: TextType, documentID: String},
+        props: {text: TextType, documentId: String},
         data: function() {
             return {
                 path: [],
@@ -166,7 +166,7 @@
                     document.removeEventListener("mousemove", move);
 
                     let words = JSON.parse(JSON.stringify(this.dragTool));
-                    words.documentID = this.documentID;
+                    words.documentId = this.documentId;
                     words.text = selectedWords.join(" ");
 
                     let textDropEvent = new CustomEvent("text-drop", {

@@ -1,10 +1,10 @@
 package store
 
-type FileID = int
+type FileId = int
 type FileType = string
 
-type CodeID = int
-type ContainerID = int
+type CodeId = int
+type ContainerId = int
 
 const (
 	SourceFile FileType = "SourceFile"
@@ -12,7 +12,7 @@ const (
 )
 
 type File struct {
-	ID   FileID
+	Id   FileId
 	Type FileType
 	Name string
 	Ext  string
@@ -25,40 +25,40 @@ type WordCoordinate struct {
 }
 
 type DocumentText struct {
-	DocumentID FileID         `json:"documentID"`
+	DocumentId FileId         `json:"documentId"`
 	Text       string         `json:"text"`
 	FirstWord  WordCoordinate `json:"anchor"`
 	LastWord   WordCoordinate `json:"last"`
 }
 
 type Code struct {
-	ID        CodeID         `json:"id"`
+	Id        CodeId         `json:"id"`
 	Name      string         `json:"name"`
 	Texts     []DocumentText `json:"texts"`
-	Container ContainerID    `json:"containerID"`
+	Container ContainerId    `json:"containerId"`
 }
 
 type CodeContainer struct {
-	Main  CodeID      `json:"main"`
-	ID    ContainerID `json:"containerID"`
+	Main  CodeId      `json:"main"`
+	Id    ContainerId `json:"containerId"`
 	Order int
 	Codes []Code `json:"subcodes"`
 }
 
-type CodeParentIDMap = map[CodeID][]CodeID
-type CodeMap = map[CodeID]Code
+type CodeParentIdMap = map[CodeId][]CodeId
+type CodeMap = map[CodeId]Code
 
 type FileStore interface {
 	UploadFile(filename string, contents []byte) (File, error)
-	GetFile(id FileID) ([]byte, File, error)
+	GetFile(id FileId) ([]byte, File, error)
 	Files() ([]File, error)
 }
 
 type CodeStore interface {
-	CreateContainer() (ContainerID, error)
-	CreateCode(name string, containerID ContainerID) (CodeID, error)
-	CodifyText(codeID CodeID, documentID FileID, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
-	GetCode(codeID CodeID) (Code, error)
-	GetContainer(codeID ContainerID) (CodeContainer, error)
+	CreateContainer() (ContainerId, error)
+	CreateCode(name string, containerId ContainerId) (CodeId, error)
+	CodifyText(codeId CodeId, documentId FileId, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
+	GetCode(codeId CodeId) (Code, error)
+	GetContainer(codeId ContainerId) (CodeContainer, error)
 	GetContainers() ([]CodeContainer, error)
 }

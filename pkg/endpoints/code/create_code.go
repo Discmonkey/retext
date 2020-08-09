@@ -10,7 +10,7 @@ import (
 
 type createRequest struct {
 	CodeName    string            `json:"code"`
-	ContainerID store.ContainerID `json:"containerID"`
+	ContainerId store.ContainerId `json:"containerId"`
 }
 
 func CreateCode(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
@@ -31,14 +31,14 @@ func CreateCode(store store.CodeStore) func(w http.ResponseWriter, r *http.Reque
 
 		w.Header().Set("Content-Type", "application/json")
 
-		codeID, err := store.CreateCode(req.CodeName, req.ContainerID)
+		codeId, err := store.CreateCode(req.CodeName, req.ContainerId)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new code.", err) {
 			return
 		}
 
 		encoder := json.NewEncoder(w)
-		newCode, err := store.GetCode(codeID)
+		newCode, err := store.GetCode(codeId)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new code.", err) {
 			return

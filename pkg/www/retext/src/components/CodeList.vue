@@ -59,7 +59,7 @@
             id: 0,
             name: "",
             texts: [{
-                documentID: "",
+                documentId: "",
                 text: ""
             }]
         }]
@@ -84,15 +84,18 @@
         },
         mounted() {
             this.axios.get("/code/list").then((res) => {
-                let categories = res.data
+                const categories = res.data
 
-                for(let c of categories) {
-                    this.codes.push(prepareCode(c));
+                for(const c of categories) {
+                    const code = prepareCode(c);
+
+                    this.codes.push(code);
+                    this.containersToCodes[code.containerId] = code;
                 }
             });
         },
         methods: {
-            textDrop: function (parentCode, packet, e) {
+            textDrop: async function (parentCode, packet, e) {
                 e.stopPropagation(); // stop the even
 
                 let code = packet.data.code;
@@ -137,29 +140,23 @@
                 if (!containerId) {
                     const res = await this.axios.post("/code/container/create");
 
-                    containerId = res.data.ContainerID;
+                    containerId = res.data.ContainerId;
                 }
 
-                return this.axios.post("/code/create", {
-                    code: name,
-                    containerID: containerId,
-                }).then(function (res) {
-                    let newCode = res.data
-                    if (!parentCodeID) {
-                        newCode = prepareCode(newCode);
-                    }
+                const res = await this.axios.post("/code/create", {
+                    code: name, containerId: containerId
+                })
+
+                const code = prepareCode(res.data);
+
+                if (!(code.containerId in ))
                     codes.splice(0, 0, newCode);
-                    return newCode;
-                }, function () {
-                    // todo: alert the user of failure
-                    return false;
-                });
             },
 
             _actuallyAssociate: function (code, words, callback) {
                 this.axios.post("/code/associate", {
-                    key: words.documentID,
-                    codeID: code.id,
+                    key: words.documentId,
+                    codeId: code.id,
                     text: words.text
                 }).then(() => {
                     code.texts.push(words);

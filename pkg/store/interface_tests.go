@@ -46,7 +46,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 		t.Fatal("incorrect number of files returned")
 	}
 
-	f, _, err := fileBackend.GetFile(file.ID)
+	f, _, err := fileBackend.GetFile(file.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,17 +74,17 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 
 	initialLength := len(initial)
 
-	containerID, err := codeBackend.CreateContainer()
+	containerId, err := codeBackend.CreateContainer()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
-	firstCodeID, err := codeBackend.CreateCode(testCodeName, containerID)
+	firstCodeId, err := codeBackend.CreateCode(testCodeName, containerId)
 	if err != nil {
 		t.Fatalf("failed to save code: %s", err)
 	}
 
-	firstCodeMain, err := codeBackend.GetContainer(containerID)
+	firstCodeMain, err := codeBackend.GetContainer(containerId)
 	if err != nil {
 		t.Fatalf("failed to get code: %s", err)
 	}
@@ -98,7 +98,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 	}
 	// test creating a subcode
 	testSubCodeName := "subcode 1 1"
-	_, err = codeBackend.CreateCode(testSubCodeName, containerID)
+	_, err = codeBackend.CreateCode(testSubCodeName, containerId)
 	if err != nil {
 		t.Fatalf("unable to create a subcode: %s", err)
 	}
@@ -115,11 +115,11 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		Word:      3,
 	}
 
-	err = codeBackend.CodifyText(firstCodeID, testFile.ID, testText, anchor, lastWord)
+	err = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
 	if err != nil {
 		t.Fatalf("failed to codify text: %s", err)
 	}
-	firstCode, err := codeBackend.GetCode(firstCodeID)
+	firstCode, err := codeBackend.GetCode(firstCodeId)
 	if err != nil || len(firstCode.Texts) == 0 {
 		t.Fatalf("failed to codify text: %s", err)
 	}

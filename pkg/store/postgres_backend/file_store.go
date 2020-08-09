@@ -73,13 +73,13 @@ func (c FileStore) UploadFile(filename string, contents []byte) (store.File, err
 	}
 
 	return store.File{
-		ID:   id,
+		Id:   id,
 		Type: assignTypeFromExtension(ext),
 		Name: name,
 	}, nil
 }
 
-func (c FileStore) GetFile(id store.FileID) ([]byte, store.File, error) {
+func (c FileStore) GetFile(id store.FileId) ([]byte, store.File, error) {
 	query := `SELECT id, name, location as string FROM qode.file WHERE id = $1`
 	var location string
 	row := c.db.QueryRow(query, id)
@@ -148,7 +148,7 @@ func getLocationFromHash(con connection, fileContentsHash string) (string, error
 	return location, err
 }
 
-func getLocationFromID(con connection, id store.FileID) (string, error) {
+func getLocationFromId(con connection, id store.FileId) (string, error) {
 	query := `SELECT location FROM qode.file WHERE id = $1`
 
 	row := con.QueryRow(query, id)
@@ -159,7 +159,7 @@ func getLocationFromID(con connection, id store.FileID) (string, error) {
 	return fmt.Sprintf("%s", location), err
 }
 
-func logFileToDb(con connection, filename, location, hash string) (store.FileID, error) {
+func logFileToDb(con connection, filename, location, hash string) (store.FileId, error) {
 	insert := `
 		INSERT INTO qode.file (name, uploaded, location, file_hash) 
 		VALUES ($1, NOW(), $2, $3)
@@ -245,7 +245,7 @@ func parseFileRow(row rowLike, location *string) (store.File, error) {
 	}
 
 	f := store.File{}
-	f.ID = id
+	f.Id = id
 	f.Name = name
 	f.Type = assignTypeFromExtension(ext)
 	f.Ext = ext

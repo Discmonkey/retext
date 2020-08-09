@@ -11,9 +11,9 @@
             <div class="col-6">
                 <h5>Source Files </h5>
 
-                <div class="source-file" v-for="file in uploadedSourceFiles" v-bind:key="file.ID">
+                <div class="source-file" v-for="file in uploadedSourceFiles" v-bind:key="file.Id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.ID" :document-name="file.Name" button-text="Code" path="/code"></ToDocument>
+                        <ToDocument :document-id="file.Id" :document-name="file.Name" button-text="Code" path="/code"></ToDocument>
                     </div>
                 </div>
 
@@ -25,9 +25,9 @@
 
             <div class="col-6">
                 <h5> Demographic Information </h5>
-                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.ID">
+                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.Id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.ID" :document-name="file.Name" button-text="Modify" path="/demo"></ToDocument>
+                        <ToDocument :document-id="file.Id" :document-name="file.Name" button-text="Modify" path="/demo"></ToDocument>
                     </div>
                 </div>
 
