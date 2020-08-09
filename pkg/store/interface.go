@@ -1,6 +1,6 @@
 package store
 
-type FileID = string
+type FileID = int
 type FileType = string
 
 type CodeID = int
@@ -14,6 +14,7 @@ const (
 type File struct {
 	ID   FileID
 	Type FileType
+	Name string
 }
 
 type WordCoordinate struct {
@@ -38,6 +39,7 @@ type Code struct {
 
 type CodeContainer struct {
 	Main  CodeID `json:"main"`
+	Order int
 	Codes []Code `json:"subcodes"`
 }
 
@@ -45,7 +47,7 @@ type CodeParentIDMap = map[CodeID][]CodeID
 type CodeMap = map[CodeID]Code
 
 type FileStore interface {
-	UploadFile(filename string, contents []byte) (FileID, error)
+	UploadFile(filename string, contents []byte) (File, error)
 	GetFile(id FileID) ([]byte, error)
 	Files() ([]File, error)
 }

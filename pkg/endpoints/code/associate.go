@@ -36,7 +36,7 @@ func AssociateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *htt
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		if len(req.DocumentID) == 0 {
+		if req.DocumentID <= 0 {
 			err = errors.New("key parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return

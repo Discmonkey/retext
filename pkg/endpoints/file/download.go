@@ -2,11 +2,12 @@ package file
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/parser"
 	"github.com/discmonkey/retext/pkg/store"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -24,11 +25,14 @@ func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http
 			log.Println("key parameter required for file download request")
 		}
 
-		fmt.Println(keys)
+		id, err := strconv.ParseInt(keys[0], 10, 64)
+		if endpoints.HttpNotOk(400, w, "invalid document id", err) {
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 
-		contents, err := store.GetFile(keys[0])
+		contents, err := store.GetFile(int(id))
 
 		if err != nil {
 			log.Println(err)

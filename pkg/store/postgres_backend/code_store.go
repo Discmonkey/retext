@@ -100,7 +100,7 @@ func (c *CodeBuilder) Push(row codeRow) {
 
 	if len(row.Text) > 0 {
 		c.code.Texts = append(c.code.Texts, store.DocumentText{
-			DocumentID: fmt.Sprintf("%d", row.SourceID), Text: row.Text, FirstWord: store.WordCoordinate{
+			DocumentID: row.SourceID, Text: row.Text, FirstWord: store.WordCoordinate{
 				Paragraph: row.P1, Sentence: row.S1, Word: row.w1}, LastWord: store.WordCoordinate{
 				Paragraph: row.P2,
 				Sentence:  row.S2,
@@ -221,8 +221,10 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 	containers := make([]store.CodeContainer, 0, 0)
 
 	rows, err := c.db.Query(`
-		SELECT c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
-		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id FROM qode.code c
+		SELECT container.display_order as container_display_order, c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
+		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id 
+		FROM qode.code_container container  
+	    LEFT JOIN qode.code c on c.code_container_id = container.id
 		LEFT JOIN qode.text t on c.id = t.code_id
 		ORDER BY c.code_container_id, c.display_order
 	`)
@@ -236,10 +238,11 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 	containerId := -1
 	codeId := -1
 	displayOrder := 0
+	containerDisplayOrder := 0
 	row := codeRow{}
 
 	for rows.Next() {
-		err = rows.Scan(&row.Name, &displayOrder, &codeId, &containerId, &row.P1, &row.S1, &row.w1,
+		err = rows.Scan(&containerDisplayOrder, &row.Name, &displayOrder, &codeId, &containerId, &row.P1, &row.S1, &row.w1,
 			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceID)
 
 		if currentContainer != containerId {
@@ -249,9 +252,10 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 			}
 
 			currentContainer = containerId
-
-			builder.Push(row, displayOrder, codeId)
 		}
+
+		builder.Push(row, displayOrder, codeId)
+		builder.container.Order = containerDisplayOrder
 
 	}
 

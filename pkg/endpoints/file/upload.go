@@ -9,7 +9,7 @@ import (
 )
 
 type AddResponse struct {
-	Key  string
+	File store.File
 	Type string
 }
 
@@ -39,10 +39,10 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-		key, err := store.UploadFile(handle.Filename, data)
+		uploadedFile, err := store.UploadFile(handle.Filename, data)
 
 		err = json.NewEncoder(w).Encode(AddResponse{
-			Key:  key,
+			File: uploadedFile,
 			Type: "source",
 		})
 

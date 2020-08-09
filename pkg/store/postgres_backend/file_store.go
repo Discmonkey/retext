@@ -4,28 +4,48 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/file_backend"
 	"io/ioutil"
+	"log"
 	"path"
 	"strings"
 )
 
+type FileSys interface {
+	Store(filepath string, contents []byte) error
+	Fetch(filepath string) ([]byte, error)
+}
+
+type DefaultFileSys struct {
+}
+
+func (d DefaultFileSys) Store(filepath string, contents []byte) error {
+	return ioutil.WriteFile(filepath, contents, 0666)
+}
+
+func (d DefaultFileSys) Fetch(filepath string) ([]byte, error) {
+	return ioutil.ReadFile(filepath)
+}
+
+var _ FileSys = DefaultFileSys{}
+
 type FileStore struct {
-	fileSys  *file_backend.DevFileBackend
+	fileSys  FileSys
 	db       *sql.DB
 	writeDir string
 }
 
-func (c FileStore) UploadFile(filename string, contents []byte) (store.FileID, error) {
+func (c FileStore) UploadFile(filename string, contents []byte) (store.File, error) {
 
 	// generate has for file contents
 	hash := hashContents(contents)
 
 	exists, err := checkExists(c.db, hash)
 	if err != nil {
-		return "", err
+		return store.File{}, err
 	}
 
 	var location string
@@ -33,18 +53,31 @@ func (c FileStore) UploadFile(filename string, contents []byte) (store.FileID, e
 	if exists {
 		location, err = getLocationFromHash(c.db, hash)
 		if err != nil {
-			return "", err
+			return store.File{}, err
 		}
 	} else {
-		_, err = c.fileSys.UploadFile(filename, contents)
+		location := path.Join(c.writeDir, filename)
+		err = c.fileSys.Store(location, contents)
 		if err != nil {
-			return "", err
+			return store.File{}, err
 		}
-		// TODO stop using the file store at some point
-		location = path.Join(c.writeDir, "uploadLocation", filename)
 	}
 
-	return logFileToDb(c.db, filename, location, hash)
+	id, err := logFileToDb(c.db, filename, location, hash)
+	if err != nil {
+		return store.File{}, err
+	}
+
+	name, ext, err := getNameAndExtension(filename)
+	if err != nil {
+		return store.File{}, err
+	}
+
+	return store.File{
+		ID:   id,
+		Type: assignTypeFromExtension(ext),
+		Name: name,
+	}, nil
 }
 
 func (c FileStore) GetFile(id store.FileID) ([]byte, error) {
@@ -71,7 +104,7 @@ func NewFileStore(writeLocation string) (*FileStore, error) {
 
 	c := FileStore{
 		writeDir: writeLocation,
-		fileSys:  &fStore,
+		fileSys:  DefaultFileSys{},
 	}
 
 	con, err := GetConnection()
@@ -142,7 +175,26 @@ func logFileToDb(con connection, filename, location, hash string) (store.FileID,
 
 	err := row.Scan(&id)
 
-	return fmt.Sprintf("%d", id), err
+	return id, err
+}
+
+func getNameAndExtension(filename string) (string, string, error) {
+	nameAndExtension := strings.Split(filename, ".")
+
+	if len(nameAndExtension) != 2 {
+		return "", "", errors.New(fmt.Sprintf("file %s cannot be parsed into name and extension", filename))
+	}
+
+	return nameAndExtension[0], nameAndExtension[1], nil
+}
+
+func assignTypeFromExtension(ext string) store.FileType {
+	type_ := store.SourceFile
+	if ext == "xlsx" {
+		type_ = store.DemoFile
+	}
+
+	return type_
 }
 
 func listFiles(con connection) ([]store.File, error) {
@@ -168,13 +220,17 @@ func listFiles(con connection) ([]store.File, error) {
 			return nil, err
 		}
 
-		f := store.File{}
-		f.ID = fmt.Sprintf("%d", id)
+		name, ext, err := getNameAndExtension(filename)
 
-		f.Type = store.SourceFile
-		if strings.HasSuffix(filename, "xlsx") {
-			f.Type = store.DemoFile
+		if err != nil {
+			log.Println(err)
+			continue
 		}
+
+		f := store.File{}
+		f.ID = id
+		f.Name = name
+		f.Type = assignTypeFromExtension(ext)
 
 		res = append(res, f)
 	}

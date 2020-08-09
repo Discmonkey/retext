@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
-	"github.com/discmonkey/retext/pkg/store/file_backend"
+	"github.com/discmonkey/retext/pkg/store/postgres_backend"
 	"log"
 	"net/http"
 	"os"
@@ -26,30 +26,21 @@ func main() {
 
 	retextLocation := path.Join(os.TempDir(), "retext")
 
-	fileBackend := &file_backend.DevFileBackend{}
-	FailIfError(fileBackend.Init(retextLocation))
+	fileBackend, err := postgres_backend.NewFileStore(retextLocation)
+	FailIfError(err)
 
-	codeBackend := &file_backend.DevCodeBackend{}
-	FailIfError(codeBackend.Init(retextLocation))
+	codeBackend, err := postgres_backend.NewCodeStore()
+	FailIfError(err)
 
 	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
-
 	http.HandleFunc("/file/list", file.ListEndpoint(fileBackend))
-
 	http.HandleFunc("/file/load", file.DownloadEndpoint(fileBackend))
 
-	http.HandleFunc("/code/create", func(writer http.ResponseWriter, request *http.Request) {
-		code.CreateEndpoint(codeBackend)(writer, request)
-	})
-	http.HandleFunc("/code/get", func(writer http.ResponseWriter, request *http.Request) {
-		code.GetEndpoint(codeBackend)(writer, request)
-	})
-	http.HandleFunc("/code/list", func(writer http.ResponseWriter, request *http.Request) {
-		code.ListEndpoint(codeBackend)(writer, request)
-	})
-	http.HandleFunc("/code/associate", func(writer http.ResponseWriter, request *http.Request) {
-		code.AssociateEndpoint(codeBackend)(writer, request)
-	})
+	http.HandleFunc("/code/container/create", code.CreateContainer(codeBackend))
+	http.HandleFunc("/code/create", code.CreateCode(codeBackend))
+	http.HandleFunc("/code/get", code.GetEndpoint(codeBackend))
+	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
+	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
 
 	log.Println("Listening on :3000...")
 	FailIfError(http.ListenAndServe(":3000", nil))

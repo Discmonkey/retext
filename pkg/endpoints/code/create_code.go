@@ -9,11 +9,11 @@ import (
 )
 
 type createRequest struct {
-	CodeName     string       `json:"code"`
-	ParentCodeID store.CodeID `json:"parentCodeID"`
+	CodeName    string            `json:"code"`
+	ContainerID store.ContainerID `json:"containerID"`
 }
 
-func CreateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func CreateCode(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -31,28 +31,19 @@ func CreateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.R
 
 		w.Header().Set("Content-Type", "application/json")
 
-		codeID, err := store.CreateCode(req.CodeName, req.ParentCodeID)
+		codeID, err := store.CreateCode(req.CodeName, req.ContainerID)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new code.", err) {
 			return
 		}
 
 		encoder := json.NewEncoder(w)
-		if req.ParentCodeID > 0 {
-			newCode, err := store.GetCode(codeID)
+		newCode, err := store.GetCode(codeID)
 
-			if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new code.", err) {
-				return
-			}
-			_ = encoder.Encode(newCode)
-		} else {
-			newCode, err := store.GetCodeContainer(codeID)
-
-			if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new code.", err) {
-				return
-			}
-			_ = encoder.Encode(newCode)
+		if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new code.", err) {
+			return
 		}
+		_ = encoder.Encode(newCode)
 	}
 
 	return t

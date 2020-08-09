@@ -79,20 +79,20 @@ func (F *DevCodeBackend) Init(pathToDir string) error {
 	return nil
 }
 
-func (F *DevFileBackend) UploadFile(filename string, contents []byte) (store.FileID, error) {
+func (F *DevFileBackend) UploadFile(filename string, contents []byte) (store.File, error) {
 	filepath := path.Join(F.dirLocation, filename)
 	err := ioutil.WriteFile(filepath, contents, 0644)
 
 	if err != nil {
-		return "", err
+		return store.File{}, err
 	}
 
-	return filename, nil
+	return store.File{ID: -1, Type: store.SourceFile, Name: filename}, nil
 }
 
 func (F *DevFileBackend) GetFile(id store.FileID) ([]byte, error) {
 	// shit's hacky ha
-	filepath := path.Join(F.dirLocation, id)
+	filepath := path.Join(F.dirLocation, fmt.Sprintf("%d", id))
 
 	return ioutil.ReadFile(filepath)
 }
@@ -112,7 +112,7 @@ func (F *DevFileBackend) Files() ([]store.File, error) {
 		}
 
 		files[i] = store.File{
-			ID:   f.Name(),
+			ID:   i,
 			Type: fType,
 		}
 	}

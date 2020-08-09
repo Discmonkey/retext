@@ -32,7 +32,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	key, err := fileBackend.UploadFile(testFileName, contents)
+	file, err := fileBackend.UploadFile(testFileName, contents)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 		t.Fatal("incorrect number of files returned")
 	}
 
-	f, err := fileBackend.GetFile(key)
+	f, err := fileBackend.GetFile(file.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,9 +58,14 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 	}
 }
 
-func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
+func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStore) {
 
 	testCodeName := "test"
+	someBytes := []byte("hello")
+	testFile, err := fileBackend.UploadFile("temp", someBytes)
+	if err != nil {
+		t.Fatalf("failed to upload file")
+	}
 
 	initial, err := codeBackend.GetContainers()
 	if err != nil {
@@ -109,8 +114,8 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore) {
 		Sentence:  1,
 		Word:      3,
 	}
-	testFileName := "1"
-	err = codeBackend.CodifyText(firstCodeID, testFileName, testText, anchor, lastWord)
+
+	err = codeBackend.CodifyText(firstCodeID, testFile.ID, testText, anchor, lastWord)
 	if err != nil {
 		t.Fatalf("failed to codify text: %s", err)
 	}
