@@ -49,7 +49,9 @@ input {
 
 textarea {
     padding: 10px;
-    border-radius: 5px
+    border-radius: 5px;
+    border-width: 2px;
+    border-style: inset;
 }
 
 .mr-4 {
