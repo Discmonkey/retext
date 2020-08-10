@@ -4,12 +4,13 @@ import Code from '@/views/Code'
 import Upload from "@/views/Upload";
 import Demo from "@/views/Demo";
 import Home from "@/Home";
+import Project from "@/views/Project";
 
 Vue.use(VueRouter);
 
 // Set the landing page by changing homePath below.
 // homePath gets "injected" into `routes` below programmatically.
-const homePath = '/upload';
+const homePath = '/project';
 
 const routes = [
     {
@@ -40,6 +41,11 @@ const routes = [
                 // this generates a separate chunk (about.[hash].js) for this route
                 // which is lazy-loaded when the route is visited.
                 component: () => import(/* webpackChunkName: "about" */ '@/views/About.vue')
+            },
+            {
+                path: '/project',
+                name: 'Projects',
+                component: Project
             }
         ],
     },
