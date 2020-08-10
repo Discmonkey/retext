@@ -2,6 +2,7 @@ package store
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 )
@@ -14,15 +15,6 @@ func CreateTestDir() string {
 
 // TestFSBackend covers all the file interface methods
 func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
-
-	if info, err := os.Stat(testDirName + "/uploadLocation"); err != nil || !info.IsDir() {
-		if err != nil {
-			t.Fatal(err)
-		} else {
-			t.Fatal("directory not created properly")
-		}
-	}
-
 	files, err := fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
@@ -62,8 +54,9 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 
 	testCodeName := "test"
 	someBytes := []byte("hello")
-	testFile, err := fileBackend.UploadFile("temp", someBytes)
+	testFile, err := fileBackend.UploadFile("temp.txt", someBytes)
 	if err != nil {
+		log.Println(err)
 		t.Fatalf("failed to upload file")
 	}
 
