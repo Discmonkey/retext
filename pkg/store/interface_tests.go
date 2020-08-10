@@ -2,6 +2,7 @@ package store
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 )
@@ -53,8 +54,9 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 
 	testCodeName := "test"
 	someBytes := []byte("hello")
-	testFile, err := fileBackend.UploadFile("temp", someBytes)
+	testFile, err := fileBackend.UploadFile("temp.txt", someBytes)
 	if err != nil {
+		log.Println(err)
 		t.Fatalf("failed to upload file")
 	}
 
