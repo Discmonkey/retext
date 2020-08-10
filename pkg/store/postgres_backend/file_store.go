@@ -37,7 +37,7 @@ type FileStore struct {
 	writeDir string
 }
 
-func (c FileStore) UploadFile(filename string, contents []byte) (store.File, error) {
+func (c FileStore) UploadFile(filename string, contents []byte, projectId store.ProjectId) (store.File, error) {
 
 	// generate has for file contents
 	hash := hashContents(contents)
@@ -94,7 +94,7 @@ func (c FileStore) GetFile(id store.FileId) ([]byte, store.File, error) {
 	return contents, file, err
 }
 
-func (c FileStore) Files() ([]store.File, error) {
+func (c FileStore) GetFiles(id store.ProjectId) ([]store.File, error) {
 	return listFiles(c.db)
 }
 
