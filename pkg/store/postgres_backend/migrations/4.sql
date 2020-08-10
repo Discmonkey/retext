@@ -1,0 +1,1 @@
+ALTER TABLE qode.project

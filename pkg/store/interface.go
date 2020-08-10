@@ -59,9 +59,9 @@ type CodeParentIdMap = map[CodeId][]CodeId
 type CodeMap = map[CodeId]Code
 
 type ProjectStore interface {
-	CreateProject(name, description string, month, year int) ProjectId
-	GetProject(id ProjectId) Project
-	GetProjects() []Project
+	CreateProject(name, description string, month, year int) (ProjectId, error)
+	GetProject(id ProjectId) (Project, error)
+	GetProjects() ([]Project, error)
 }
 
 type FileStore interface {
