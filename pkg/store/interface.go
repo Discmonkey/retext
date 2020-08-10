@@ -1,5 +1,9 @@
 package store
 
+import "time"
+
+type ProjectId = int
+
 type FileId = int
 type FileType = string
 
@@ -10,6 +14,13 @@ const (
 	SourceFile FileType = "SourceFile"
 	DemoFile   FileType = "DemoFile"
 )
+
+type Project struct {
+	Id          ProjectId
+	TimeTag     time.Time
+	Name        string
+	Description string
+}
 
 type File struct {
 	Id   FileId
@@ -54,10 +65,10 @@ type FileStore interface {
 }
 
 type CodeStore interface {
-	CreateContainer() (ContainerId, error)
+	CreateContainer(id ProjectId) (ContainerId, error)
 	CreateCode(name string, containerId ContainerId) (CodeId, error)
 	CodifyText(codeId CodeId, documentId FileId, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
 	GetCode(codeId CodeId) (Code, error)
 	GetContainer(codeId ContainerId) (CodeContainer, error)
-	GetContainers() ([]CodeContainer, error)
+	GetContainers(id ProjectId) ([]CodeContainer, error)
 }
