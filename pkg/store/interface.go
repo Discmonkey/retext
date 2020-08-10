@@ -58,10 +58,16 @@ type CodeContainer struct {
 type CodeParentIdMap = map[CodeId][]CodeId
 type CodeMap = map[CodeId]Code
 
+type ProjectStore interface {
+	CreateProject(name, description string, month, year int) ProjectId
+	GetProject(id ProjectId) Project
+	GetProjects() []Project
+}
+
 type FileStore interface {
-	UploadFile(filename string, contents []byte) (File, error)
+	UploadFile(filename string, contents []byte, id ProjectId) (File, error)
 	GetFile(id FileId) ([]byte, File, error)
-	Files() ([]File, error)
+	GetFiles(id ProjectId) ([]File, error)
 }
 
 type CodeStore interface {
