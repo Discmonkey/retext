@@ -1,47 +1,30 @@
-package db
+package store
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 )
 
-func createTestDir() string {
+func CreateTestDir() string {
 	testDirName, _ := ioutil.TempDir("", "retext")
+
 	return testDirName
 }
 
 // TestFSBackend covers all the file interface methods
-func TestFileStore(t *testing.T) {
-	testDirName := createTestDir()
-
-	fileBackend := &DevFileBackend{}
-
-	err := fileBackend.Init(testDirName)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if info, err := os.Stat(testDirName + "/uploadLocation"); err != nil || !info.IsDir() {
-		if err != nil {
-			t.Fatal(err)
-		} else {
-			t.Fatal("directory not created properly")
-		}
-	}
-
+func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 	files, err := fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(files) != 0 {
-		t.Fatal("incorrect number of files returned")
-	}
+	initialLength := len(files)
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	key, err := fileBackend.UploadFile(testFileName, contents)
+	file, err := fileBackend.UploadFile(testFileName, contents)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,15 +34,11 @@ func TestFileStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(files) != 1 {
+	if len(files) != initialLength+1 {
 		t.Fatal("incorrect number of files returned")
 	}
 
-	if key != files[0].ID {
-		t.Fatal("key does not match files scan")
-	}
-
-	f, err := fileBackend.GetFile(key)
+	f, _, err := fileBackend.GetFile(file.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,26 +48,40 @@ func TestFileStore(t *testing.T) {
 			t.Fatal("file contents do not match")
 		}
 	}
-
-	_ = os.Remove(testDirName)
 }
 
-func TestCodeStore(t *testing.T) {
-	testDirName := createTestDir()
-
-	codeBackend := &DevCodeBackend{}
-	err := codeBackend.Init(testDirName)
+func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStore) {
 
 	testCodeName := "test"
-	firstCodeID, err := codeBackend.CreateCode(testCodeName, 0)
+	someBytes := []byte("hello")
+	testFile, err := fileBackend.UploadFile("temp.txt", someBytes)
+	if err != nil {
+		log.Println(err)
+		t.Fatalf("failed to upload file")
+	}
+
+	initial, err := codeBackend.GetContainers()
+	if err != nil {
+		t.Fatalf("could not query for containers")
+	}
+
+	initialLength := len(initial)
+
+	containerId, err := codeBackend.CreateContainer()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	firstCodeId, err := codeBackend.CreateCode(testCodeName, containerId)
 	if err != nil {
 		t.Fatalf("failed to save code: %s", err)
 	}
 
-	firstCodeMain, err := codeBackend.GetCodeContainer(firstCodeID)
+	firstCodeMain, err := codeBackend.GetContainer(containerId)
 	if err != nil {
 		t.Fatalf("failed to get code: %s", err)
 	}
+
 	if firstCodeMain.Codes[0].Name != testCodeName {
 		t.Fatalf("code came back with unexpected name: %s", err)
 	}
@@ -98,7 +91,7 @@ func TestCodeStore(t *testing.T) {
 	}
 	// test creating a subcode
 	testSubCodeName := "subcode 1 1"
-	_, err = codeBackend.CreateCode(testSubCodeName, firstCodeMain.Main)
+	_, err = codeBackend.CreateCode(testSubCodeName, containerId)
 	if err != nil {
 		t.Fatalf("unable to create a subcode: %s", err)
 	}
@@ -114,33 +107,28 @@ func TestCodeStore(t *testing.T) {
 		Sentence:  1,
 		Word:      3,
 	}
-	testFileName := "test1.txt"
-	err = codeBackend.CodifyText(firstCodeID, testFileName, testText, anchor, lastWord)
+
+	err = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
 	if err != nil {
 		t.Fatalf("failed to codify text: %s", err)
 	}
-	firstCode, err := codeBackend.GetCode(firstCodeID)
+	firstCode, err := codeBackend.GetCode(firstCodeId)
 	if err != nil || len(firstCode.Texts) == 0 {
 		t.Fatalf("failed to codify text: %s", err)
 	}
 
-	codes, err := codeBackend.Codes()
+	containers, err := codeBackend.GetContainers()
 	if err != nil {
 		t.Fatalf("failed to get list of codes: %s", err)
 	}
 	//TODO: update the # used in this len() comparison if you change the number
 	// of created codes
-	if len(codes) != 1 {
-		numCodes := len(codes)
+	if len(containers)-initialLength != 1 {
+		numCodes := len(containers)
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 	_ = os.Remove("/tmp/filetest")
 
 	// second start-up tests "cache path"
-	err = codeBackend.Init(testDirName)
-	if err != nil {
-		t.Fatalf("failed to load cached codes: %s", err)
-	}
 
-	_ = os.Remove(testDirName)
 }

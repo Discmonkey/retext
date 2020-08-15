@@ -2,7 +2,7 @@
     <div class="container">
     <div class="row">
         <div class="col-12 text-center">
-            <DemoDisplay :filename="$route.params.documentID"></DemoDisplay>
+            <DemoDisplay :filename="$route.params.documentId"></DemoDisplay>
         </div>
     </div>
     </div>

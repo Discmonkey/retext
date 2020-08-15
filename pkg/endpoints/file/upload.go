@@ -2,18 +2,18 @@ package file
 
 import (
 	"encoding/json"
-	"github.com/discmonkey/retext/pkg/db"
+	"github.com/discmonkey/retext/pkg/store"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
 
 type AddResponse struct {
-	Key  string
+	File store.File
 	Type string
 }
 
-func AddUploadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -39,10 +39,10 @@ func AddUploadEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		key, err := store.UploadFile(handle.Filename, data)
+		uploadedFile, err := store.UploadFile(handle.Filename, data)
 
 		err = json.NewEncoder(w).Encode(AddResponse{
-			Key:  key,
+			File: uploadedFile,
 			Type: "source",
 		})
 

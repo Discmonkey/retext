@@ -4,20 +4,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
+	"github.com/discmonkey/retext/pkg/store"
 	"net/http"
 )
 
 type associateRequest struct {
-	CodeID     db.CodeID         `json:"codeID"`
-	DocumentID db.FileID         `json:"key"`
-	Text       string            `json:"text"`
-	FirstWord  db.WordCoordinate `json:"anchor"`
-	LastWord   db.WordCoordinate `json:"last"`
+	CodeId     store.CodeId         `json:"codeId"`
+	DocumentId store.FileId         `json:"key"`
+	Text       string               `json:"text"`
+	FirstWord  store.WordCoordinate `json:"anchor"`
+	LastWord   store.WordCoordinate `json:"last"`
 }
 
-func AssociateEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func AssociateEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -31,12 +31,12 @@ func AssociateEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		if req.CodeID == 0 {
+		if req.CodeId == 0 {
 			err = errors.New("code parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		if len(req.DocumentID) == 0 {
+		if req.DocumentId <= 0 {
 			err = errors.New("key parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
@@ -46,7 +46,7 @@ func AssociateEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.R
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
-		err = store.CodifyText(req.CodeID, req.DocumentID, req.Text, req.FirstWord, req.LastWord)
+		err = store.CodifyText(req.CodeId, req.DocumentId, req.Text, req.FirstWord, req.LastWord)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to save the selected text.", err) {
 			return

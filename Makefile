@@ -13,9 +13,13 @@ docker_server:
 
 .PHONY: docker_db_loader
 docker_db_loader:
-	docker build . -f deployment/db_loader.Dockerfile -t retext_db_loader
+	docker build . -f deployment/db_loader.Dockerfile -t qode_db_loader
 
 .PHONY: devserve
 devserve:
 	cd pkg/www/retext && npm run serve
 
+.PHONY: tag
+tag:
+	git tag $(version)
+	echo "package version\n\nconst Version string = \"$(version)\"" > pkg/version/version.go

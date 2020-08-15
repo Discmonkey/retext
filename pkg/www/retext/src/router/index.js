@@ -19,12 +19,12 @@ const routes = [
         redirect: homePath,
         children: [
             {
-                path: '/code/:documentID',
+                path: '/code/:documentId',
                 name: 'Code',
                 component: Code
             },
             {
-                path: '/demo/:documentID',
+                path: '/demo/:documentId',
                 name: 'Demo',
                 component: Demo
             },

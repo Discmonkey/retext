@@ -2,16 +2,16 @@ package file
 
 import (
 	"encoding/json"
-	"github.com/discmonkey/retext/pkg/db"
+	"github.com/discmonkey/retext/pkg/store"
 	"log"
 	"net/http"
 )
 
 type ListResponse struct {
-	Files []db.File
+	Files []store.File
 }
 
-func ListEndpoint(store db.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func ListEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
