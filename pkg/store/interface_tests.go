@@ -3,7 +3,6 @@ package store
 import (
 	"io/ioutil"
 	"log"
-	"os"
 	"testing"
 )
 
@@ -14,8 +13,8 @@ func CreateTestDir() string {
 }
 
 // TestFSBackend covers all the file interface methods
-func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
-	files, err := fileBackend.Files()
+func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string, projectId ProjectId) {
+	files, err := fileBackend.GetFiles(projectId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,12 +23,12 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	file, err := fileBackend.UploadFile(testFileName, contents)
+	file, err := fileBackend.UploadFile(testFileName, contents, projectId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	files, err = fileBackend.Files()
+	files, err = fileBackend.GetFiles(projectId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,24 +49,24 @@ func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
 	}
 }
 
-func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStore) {
+func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStore, projectId ProjectId) {
 
 	testCodeName := "test"
 	someBytes := []byte("hello")
-	testFile, err := fileBackend.UploadFile("temp.txt", someBytes)
+	testFile, err := fileBackend.UploadFile("temp.txt", someBytes, projectId)
 	if err != nil {
 		log.Println(err)
 		t.Fatalf("failed to upload file")
 	}
 
-	initial, err := codeBackend.GetContainers()
+	initial, err := codeBackend.GetContainers(projectId)
 	if err != nil {
 		t.Fatalf("could not query for containers")
 	}
 
 	initialLength := len(initial)
 
-	containerId, err := codeBackend.CreateContainer()
+	containerId, err := codeBackend.CreateContainer(projectId)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -117,7 +116,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		t.Fatalf("failed to codify text: %s", err)
 	}
 
-	containers, err := codeBackend.GetContainers()
+	containers, err := codeBackend.GetContainers(projectId)
 	if err != nil {
 		t.Fatalf("failed to get list of codes: %s", err)
 	}
@@ -127,8 +126,4 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		numCodes := len(containers)
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
-	_ = os.Remove("/tmp/filetest")
-
-	// second start-up tests "cache path"
-
 }

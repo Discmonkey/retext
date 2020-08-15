@@ -27,9 +27,6 @@
                 <button class="btn btn-primary d-inline-block"> Create Project </button>
                 </div>
 
-
-
-
             </div>
         </div>
     </div>
