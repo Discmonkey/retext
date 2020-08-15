@@ -10,6 +10,17 @@ import (
 	"strconv"
 )
 
+func fileExtToType(ext string) parser.DocumentType {
+	filetype := parser.Text
+	if ext == "docx" {
+		filetype = parser.DocX
+	} else if ext == "xlsx" {
+		filetype = parser.Xlsx
+	}
+
+	return filetype
+}
+
 func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -37,12 +48,8 @@ func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http
 			log.Println(err)
 			w.WriteHeader(400)
 		} else {
-			filetype := parser.Text
-			if fileSpec.Ext == "docx" {
-				filetype = parser.DocX
-			} else if fileSpec.Ext == "xlsx" {
-				filetype = parser.Xlsx
-			}
+
+			filetype := fileExtToType(fileSpec.Ext)
 
 			converted, err := parser.Convert(contents, filetype)
 
