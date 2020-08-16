@@ -21,17 +21,17 @@ func NewCodeStore() (*CodeStore, error) {
 	return &CodeStore{db: con}, nil
 }
 
-func (c CodeStore) CreateContainer() (store.ContainerId, error) {
+func (c CodeStore) CreateContainer(id store.ProjectId) (store.ContainerId, error) {
 	row := c.db.QueryRow(`
-		INSERT INTO qode.code_container (display_order) VALUES (0)
+		INSERT INTO qode.code_container (display_order, project_id) VALUES (0, $1)
 		RETURNING id  
-	`)
+	`, id)
 
-	var id int
+	var containerId int
 
-	err := row.Scan(&id)
+	err := row.Scan(&containerId)
 
-	return id, err
+	return containerId, err
 }
 
 func IdDoesNotExistError(objectName string, id int) error {
@@ -135,7 +135,7 @@ func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContai
 	return builder.Finish(), nil
 }
 
-func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
+func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, error) {
 
 	rows, err := c.db.Query(`
 		SELECT container.display_order as container_display_order,
@@ -144,8 +144,9 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 		FROM qode.code_container container  
 	    LEFT JOIN qode.code c on c.code_container_id = container.id
 		LEFT JOIN qode.text t on c.id = t.code_id
+		WHERE container.project_id = $1 
 		ORDER BY c.code_container_id, c.display_order
-	`)
+	`, id)
 
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/store"
 	"io/ioutil"
 	"log"
@@ -17,6 +18,11 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		projectId, ok := endpoints.ProjectIdOk(r, w, "projectId required to upload files")
+		if !ok {
 			return
 		}
 
@@ -39,7 +45,7 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-		uploadedFile, err := store.UploadFile(handle.Filename, data)
+		uploadedFile, err := store.UploadFile(handle.Filename, data, projectId)
 
 		err = json.NewEncoder(w).Encode(AddResponse{
 			File: uploadedFile,

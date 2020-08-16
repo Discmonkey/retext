@@ -28,7 +28,6 @@
                 let file = this.$refs.form.files[0];
 
                 formData.append("file", file);
-
                 this.axios.post("/file/upload",
                     formData,
                     {
