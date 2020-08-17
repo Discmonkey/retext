@@ -25,6 +25,13 @@ func main() {
 	http.Handle("/", fs)
 
 	retextLocation := path.Join(os.TempDir(), "retext")
+	if _, err := os.Stat(retextLocation); os.IsNotExist(err) {
+		err = os.Mkdir(retextLocation, 0766)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	fileBackend, err := postgres_backend.NewFileStore(retextLocation)
 	FailIfError(err)
