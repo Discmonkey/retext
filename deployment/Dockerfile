@@ -18,7 +18,7 @@ WORKDIR /retext
 
 COPY pkg ./pkg
 COPY cmd ./cmd
-COPY makefile ./makefile
+COPY Makefile ./Makefile
 
 ENV PATH=$PATH:/usr/local/bin
 RUN cd /retext/pkg/www/retext && npm install
