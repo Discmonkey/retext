@@ -3,28 +3,29 @@
         <div class="row">
             <div class="col-5">
                 <h3 class="text-center font-weight-bold mb-4">Existing Projects</h3>
-                <p>Current projects</p>
+
+                <ToProject :project-date="new Date()" project-description="test description" project-name="test name"></ToProject>
             </div>
 
             <div class="col-7">
-                <h3 class="text-center font-weight-bold mb-4">Start a new Project</h3>
+                <div class="form-group">
+                    <h3 class="text-center font-weight-bold mb-4">Start a new Project</h3>
 
-                <input type="text" placeholder="Project Name" class="mb-4 w-100 d-inline-block">
+                    <input type="text" placeholder="Project Name" class="mb-4 w-100 d-inline-block form-control">
 
-                <input class="mb-4 w-48 d-inline-block mr-4" placeholder="Month">
+                    <input type="month" class="mb-4 d-inline-block form-control">
 
-                <input class="mb-4 w-48 d-inline-block" placeholder="Year">
+                    <textarea class="mb-4 w-100 form-control" placeholder="Project Description">
 
-                <textarea class="mb-4 w-100" placeholder="Project Description">
+                    </textarea>
 
-                </textarea>
+                    <textarea class="mb-4 w-100 form-control" placeholder="Initial Codes for Project (separated by ;)">
 
-                <textarea class="mb-4 w-100" placeholder="Initial Codes for Project (separated by ';')">
+                    </textarea>
 
-                </textarea>
-
-                <div class="w-100 text-center">
-                <button class="btn btn-primary d-inline-block"> Create Project </button>
+                    <div class="w-100 text-center">
+                    <button class="btn btn-primary d-inline-block"> Create Project </button>
+                    </div>
                 </div>
 
             </div>
@@ -33,8 +34,10 @@
 </template>
 
 <script>
+import ToProject from "@/components/nav/ToProject";
 export default {
-    name: "Project"
+    name: "Project",
+    components: {ToProject}
 }
 </script>
 
@@ -44,12 +47,6 @@ input {
     border-radius: 5px;
 }
 
-textarea {
-    padding: 10px;
-    border-radius: 5px;
-    border-width: 2px;
-    border-style: inset;
-}
 
 .mr-4 {
     margin-right: 4%;
