@@ -34,7 +34,6 @@
                 }
 
                 let formData = new FormData();
-                formData.append("fileType", this.fileType);
                 this.$refs.form.files.forEach((file) => {
                     formData.append("file", file);
                 });

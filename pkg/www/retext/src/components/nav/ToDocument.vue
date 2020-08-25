@@ -4,8 +4,8 @@
     <div class="doc-nav">
         <div class="row">
             <div class="col-md-9">
-                <h5 class="doc-name" :title="documentNameNoExtension">
-                    {{documentNameNoExtension}}
+                <h5 class="doc-name" :title="documentName">
+                    {{documentName}}
                 </h5>
             </div>
 
@@ -23,11 +23,6 @@
     export default {
         name: "ToDocument",
         props: ["documentName", "documentId", "path", "buttonText"],
-        computed: {
-            documentNameNoExtension: function() {
-                return this.documentName.split('.').slice(0, -1).join('.');
-            }
-        },
         methods: {
             goto() {
                 this.$router.push(`${this.path}/${this.documentId}`)
