@@ -2,47 +2,33 @@ package code
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
+	"github.com/discmonkey/retext/pkg/store"
 	"net/http"
 	"sort"
 )
 
-type CodesResponse = []db.CodeContainer
+type CodesResponse = []store.CodeContainer
 
-func ListEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func ListEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
+		containers, err := store.GetContainers()
 
-		codeIDs, err := store.Codes()
-
-		if endpoints.HttpNotOk(400, w, "An error occurred while pulling all codeIDs.", err) {
+		if endpoints.HttpNotOk(400, w, "could not fetch containers", err) {
 			return
 		}
 
-		l := make(CodesResponse, len(codeIDs))
-
-		for i, codeID := range codeIDs {
-			main, err := store.GetCodeContainer(codeID)
-			if err != nil {
-				endpoints.HttpNotOk(500, w, fmt.Sprintf("Unable to get a code|ID: %d", codeID), err)
-				return
-			}
-
-			l[i] = main
-		}
-		// TODO: user-defined sorting instead of this
-		sort.Slice(l, func(i int, j int) bool {
-			return l[i].Main < l[j].Main
+		w.Header().Set("Content-Type", "application/json")
+		sort.Slice(containers, func(i int, j int) bool {
+			return containers[i].Order < containers[j].Order
 		})
 
-		_ = json.NewEncoder(w).Encode(l)
+		_ = json.NewEncoder(w).Encode(containers)
 	}
 
 	return t

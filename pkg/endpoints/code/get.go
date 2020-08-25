@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/db"
 	"github.com/discmonkey/retext/pkg/endpoints"
+	"github.com/discmonkey/retext/pkg/store"
 	"net/http"
 	"strconv"
 )
 
-func GetEndpoint(store db.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func GetEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

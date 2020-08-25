@@ -16,27 +16,27 @@
                                   :total-rows="uploadedSourceFiles.length"
                                   :per-page="perPage"></b-pagination>
                 </div>
-                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file">
+                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.Id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file" :document-name="file" button-text="Code" path="/code"></ToDocument>
+                        <ToDocument :document-id="file.Id" :document-name="file.Name" button-text="Code" path="/code"></ToDocument>
                     </div>
                 </div>
 
                 <div>
-                    <UploadFile file-type="Source" v-on:success="addSource($event)" accepted-files=".docx,.txt,.text" :multiple=true tooltip="You can upload multiple Source files at once.">Upload New Sources</UploadFile>
+                    <UploadFile file-type="Source" v-on:success="addSource($event.File)" accepted-files=".docx,.txt,.text" :multiple=true tooltip="You can upload multiple Source files at once.">Upload New Sources</UploadFile>
                 </div>
             </div>
 
             <div class="col-6">
                 <h4 class="upload-header"> Demographic Information </h4>
-                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file">
+                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.Id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file" :document-name="file" button-text="Modify" path="/demo"></ToDocument>
+                        <ToDocument :document-id="file.Id" :document-name="file.Name" button-text="Modify" path="/demo"></ToDocument>
                     </div>
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)"
+                    <UploadFile file-type="Demographics" v-on:success="addDemo($event.File)"
                                 tooltip="For demographic information, please upload a .xlsx or .csv file in which each participant is a different row (a header row is required)."
                                 accepted-files=".xlsx,.csv">Upload New Demographics</UploadFile>
                 </div>
@@ -82,9 +82,9 @@ export default {
         this.axios.get("/file/list").then((res) => {
             for (let f of res.data.Files) {
                 if (f.Type === "SourceFile") {
-                    this.uploadedSourceFiles.push(f.ID)
+                    this.uploadedSourceFiles.push(f)
                 } else if (f.Type === "DemoFile") {
-                    this.uploadedDemoFiles.push(f.ID)
+                    this.uploadedDemoFiles.push(f)
                 }
             }
         })
@@ -93,13 +93,13 @@ export default {
     methods: {
         addSource(items) {
             items.forEach((item) => {
-                this.uploadedSourceFiles.push(item.Key);
+                this.uploadedSourceFiles.push(item);
             });
         },
 
         addDemo(items) {
             items.forEach((item) => {
-                this.uploadedDemoFiles.push(item.Key);
+                this.uploadedDemoFiles.push(item);
             });
         },
 

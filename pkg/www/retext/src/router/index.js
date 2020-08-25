@@ -1,37 +1,54 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Code from '../views/Code'
-import Upload from "../views/Upload";
-import Demo from "../views/Demo";
+import Code from '@/views/Code'
+import Upload from "@/views/Upload";
+import Demo from "@/views/Demo";
+import Home from "@/Home";
 
 Vue.use(VueRouter);
 
+// Set the landing page by changing homePath below.
+// homePath gets "injected" into `routes` below programmatically.
+const homePath = '/upload';
+
 const routes = [
     {
-        path: '/code/:documentID',
-        name: 'Code',
-        component: Code
+        path: '/',
+        name: 'Home',
+        component: Home,
+        redirect: homePath,
+        children: [
+            {
+                path: '/code/:documentId',
+                name: 'Code',
+                component: Code
+            },
+            {
+                path: '/demo/:documentId',
+                name: 'Demo',
+                component: Demo
+            },
+            {
+                path: '/upload',
+                name: 'Upload',
+                component: Upload,
+            },
+            {
+                path: '/about',
+                name: 'About',
+                // route level code-splitting
+                // this generates a separate chunk (about.[hash].js) for this route
+                // which is lazy-loaded when the route is visited.
+                component: () => import(/* webpackChunkName: "about" */ '@/views/About.vue')
+            }
+        ],
     },
-    {
-        path: '/demo/:documentID',
-        name: 'Demo',
-        component: Demo
-    },
-    {
-        path: '/upload',
-        name: 'Upload',
-        component: Upload,
-        alias: "/"
-    },
-    {
-        path: '/about',
-        name: 'About',
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
-        component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-    }
 ];
+routes[0].children.forEach(child => {
+    if(child.path === homePath) {
+        child.alias = '/';
+    }
+});
 
 const router = new VueRouter({
     mode: 'history',

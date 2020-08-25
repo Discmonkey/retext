@@ -5,7 +5,7 @@
 
         <div class="row">
             <div class="col-md-12 document-display">
-                <TextRenderer :text="currentText" :document-i-d="selected"></TextRenderer>
+                <TextRenderer :text="currentText" :document-id="selected"></TextRenderer>
             </div>
         </div>
     </div>
@@ -29,7 +29,7 @@
         },
 
         mounted() {
-            this.loadDocument(this.$route.params.documentID);
+            this.loadDocument(this.$route.params.documentId);
         },
 
         methods: {

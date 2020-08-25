@@ -48,7 +48,7 @@
                     }
                 )
                 .then(
-                    (received) => this.$emit("success", received.data)
+                    received => this.$emit("success", received.data)
                 )
                 .catch(
                     (error) => console.error(error)
