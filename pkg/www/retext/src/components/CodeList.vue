@@ -50,10 +50,11 @@
 </template>
 
 <script>
-    import Draggable from 'vuedraggable';
-    import CodeDropZone from "@/components/CodeDropZone";
-    import {getColor} from "@/core/Colors";
-    // eslint-disable-next-line no-unused-vars
+import Draggable from 'vuedraggable';
+import CodeDropZone from "@/components/CodeDropZone";
+import {getColor} from "@/core/Colors";
+import {mapGetters} from "vuex";
+// eslint-disable-next-line no-unused-vars
     let codeTypes = {
         codes: [{
             id: 0,
@@ -64,34 +65,14 @@
             }]
         }]
     }
-    function prepareContainer(backendCodeContainer) {
-        const main =  backendCodeContainer.subcodes.shift();
-        return {
-            containerId: backendCodeContainer.containerId,
-            main,
-            subcodes: backendCodeContainer.subcodes
-        }
-    }
     export default {
         name: 'codeList',
         components: {Draggable, CodeDropZone},
-        data: () => {
-            return {
-                containers: [],
-                idToContainer: {},
-            }
+        computed: {
+            ...mapGetters(["containers", "idToContainer"])
         },
         mounted() {
-            this.axios.get("/code/list").then((res) => {
-                const categories = res.data
-
-                for(const c of categories) {
-                    const code = prepareContainer(c);
-
-                    this.containers.push(code);
-                    this.idToContainer[code.containerId] = code;
-                }
-            });
+            this.$store.dispatch("initContainers")
         },
         methods: {
             textDrop: async function (code, packet, e) {
@@ -118,35 +99,11 @@
                     });
                 }
 
-                let code;
                 if (!containerId) {
-                    const res = await this.axios.post("/code/container/create");
-                    containerId = res.data.ContainerId;
-
-                    code = (await this.axios.post("/code/create", {
-                        code: name,
-                        containerId
-                    })).data;
-
-                    const newContainer = {
-                        containerId: containerId,
-                        main: code,
-                        subcodes: [],
-                    }
-
-                    this.containers.push(newContainer);
-                    this.idToContainer[containerId] = newContainer;
+                    this.$store.dispatch("createContainer", {name}).then(() => {});
                 } else {
-                    const targetContainer = this.idToContainer[containerId]
-                    code = (await this.axios.post("/code/create", {
-                        code: name,
-                        containerId
-                    })).data;
-
-                    targetContainer.subcodes.push(code);
+                    this.$store.dispatch("createCode", {containerId, name}).then(() => {});
                 }
-
-                return code;
             },
 
             _actuallyAssociate: function (code, words, callback) {
