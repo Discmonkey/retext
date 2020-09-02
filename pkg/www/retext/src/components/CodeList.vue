@@ -53,6 +53,7 @@
 import Draggable from 'vuedraggable';
 import CodeDropZone from "@/components/CodeDropZone";
 import {getColor} from "@/core/Colors";
+import {actions, getters} from "@/store"
 import {mapGetters} from "vuex";
 // eslint-disable-next-line no-unused-vars
     let codeTypes = {
@@ -69,10 +70,10 @@ import {mapGetters} from "vuex";
         name: 'codeList',
         components: {Draggable, CodeDropZone},
         computed: {
-            ...mapGetters(["containers", "idToContainer"])
+            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER])
         },
         mounted() {
-            this.$store.dispatch("initContainers")
+            this.$store.dispatch(actions.INIT_CONTAINERS)
         },
         methods: {
             textDrop: async function (code, packet, e) {
@@ -85,7 +86,6 @@ import {mapGetters} from "vuex";
 
                     this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
                 };
-
 
                 associate(code);
             },
@@ -100,9 +100,9 @@ import {mapGetters} from "vuex";
                 }
 
                 if (!containerId) {
-                    this.$store.dispatch("createContainer", {name}).then(() => {});
+                    this.$store.dispatch(actions.CREATE_CONTAINER, {name}).then(() => {});
                 } else {
-                    this.$store.dispatch("createCode", {containerId, name}).then(() => {});
+                    this.$store.dispatch(actions.CREATE_CODE, {containerId, name}).then(() => {});
                 }
             },
 

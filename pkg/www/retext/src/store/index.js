@@ -3,6 +3,21 @@ import Vuex from "vuex";
 
 Vue.use(Vuex)
 
+export const getters = {
+    CONTAINERS: "containers",
+    ID_TO_CONTAINER: "idToContainer",
+}
+
+export const mutations = {
+    ADD_CONTAINER: "addContainer",
+    ADD_CODE: "addCode",
+}
+export const actions = {
+    CREATE_CONTAINER: "createContainer",
+    CREATE_CODE: "createCode",
+    INIT_CONTAINERS: "initContainers",
+}
+
 function prepareContainer(backendCodeContainer) {
     const main = backendCodeContainer.subcodes.shift();
     return {
@@ -24,26 +39,26 @@ export const store = new Vuex.Store({
         idToContainer: {}
     },
     getters: {
-        containers(state) {
+        [getters.CONTAINERS]: function(state) {
             return state.containers
         },
-        idToContainer(state) {
+        [getters.ID_TO_CONTAINER]: function(state) {
             return state.idToContainer;
         }
     },
     mutations: {
-        addContainer(state, container) {
+        [mutations.ADD_CONTAINER]: function(state, container) {
             const codeContainer = prepareContainer(container);
 
             state.containers.push(codeContainer);
             state.idToContainer[codeContainer.containerId] = codeContainer;
         },
-        addCode(state, {containerId, code}) {
+        [mutations.ADD_CODE]: function(state, {containerId, code}) {
             state.idToContainer[containerId].subcodes.push(code);
         }
     },
     actions: {
-        async createContainer(context, {name}) {
+        [actions.CREATE_CONTAINER]: async function(context, {name}) {
             const res = await Vue.axios.post("/code/container/create");
             const containerId = res.data.ContainerId;
 
@@ -59,14 +74,14 @@ export const store = new Vuex.Store({
 
             return code;
         },
-        async createCode(context, {containerId, name}) {
+        [actions.CREATE_CODE]: async function(context, {containerId, name}) {
             const code = await createCode(containerId, name);
 
             context.commit("addCode", {containerId, code});
 
             return code;
         },
-        initContainers: (context) => {
+        [actions.INIT_CONTAINERS]: async function(context) {
             Vue.axios.get("/code/list").then((res) => {
                 const containers = res.data;
 
@@ -74,6 +89,6 @@ export const store = new Vuex.Store({
                     context.commit("addContainer", c);
                 }
             })
-        }
+        },
     }
 })
