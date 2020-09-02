@@ -7,21 +7,22 @@ import (
 )
 
 func TestConvertCsv(t *testing.T) {
-
 	b, err := ioutil.ReadFile("test_documents/comma.csv")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	parser := CsvParser{}
+	t.Run("all good", func(t *testing.T) {
+		parser := CsvParser{}
 
-	document, err := parser.Convert(b)
+		document, err := parser.Convert(b)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	for col, values := range document.Attributes.Values {
-		fmt.Println(col, values)
-	}
+		for col, values := range document.Attributes.Values {
+			fmt.Println(col, values)
+		}
+	})
 }
