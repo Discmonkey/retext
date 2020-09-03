@@ -121,10 +121,7 @@ import {mapGetters} from "vuex";
                 });
             },
             getTextsLength(code) {
-                if (code.main.texts == null) {
-                    return 0;
-                }
-                let length = code.main.texts.length;
+                let length = code.main.texts == null ? 0 : code.main.texts.length;
 
                 if (code.subcodes) {
                     for (let subCode of code.subcodes) {
