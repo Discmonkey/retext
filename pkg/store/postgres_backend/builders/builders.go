@@ -38,7 +38,7 @@ type CodeBuilder struct {
 }
 
 func NewCodeBuilder() CodeBuilder {
-	return CodeBuilder{code: &store.Code{}}
+	return CodeBuilder{code: &store.Code{Texts: make([]store.DocumentText, 0)}}
 }
 
 func (c *CodeBuilder) SetCodeId(id int) *CodeBuilder {
@@ -87,7 +87,8 @@ type ContainerBuilder struct {
 func NewContainerBuilder(containerId int) ContainerBuilder {
 	return ContainerBuilder{
 		container: &store.CodeContainer{
-			Id: containerId,
+			Id:    containerId,
+			Codes: make([]store.Code, 0),
 		},
 		currentDisplay: math.MaxInt64,
 	}

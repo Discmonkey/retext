@@ -19,7 +19,7 @@
                                 <h5 class="code-title">{{container.main.name}}</h5>
 
                                 <div class="btn btn-primary float-right no-events just-number self-right">
-                                    {{getTextsLength(container)}}
+                                    {{getContainerTextsLength(container)}}
                                 </div>
 
                                 <button class="btn btn-primary float-right" @click="createCode(container.containerId)">
@@ -107,31 +107,18 @@ import {mapGetters} from "vuex";
             },
 
             _actuallyAssociate: function (code, words, callback) {
-                this.axios.post("/code/associate", {
-                    key: parseInt(words.documentId),
-                    codeId: code.id,
-                    text: words.text
-                }).then(() => {
-                    code.texts = code.texts || [];
-                    code.texts.push(words);
+                this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId: code.id, words}).then(() => {
                     callback();
                     // todo: "success" toast or something
                 }, () => {
                     // todo: "an error occurred" toast or something
                 });
             },
-            getTextsLength(code) {
-                let length = code.main.texts == null ? 0 : code.main.texts.length;
-
-                if (code.subcodes) {
-                    for (let subCode of code.subcodes) {
-                        if (subCode.texts != null) {
-                            length += subCode.texts.length;
-                        }
-                    }
-                }
-
-                return length;
+            getCode(codeId) {
+                return this.$store.getters[getters.GET_CODE](codeId)
+            },
+            getContainerTextsLength(container) {
+                return this.$store.getters[getters.GET_TEXTS_LENGTH](container.containerId)
             },
 
 
