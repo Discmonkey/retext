@@ -1,0 +1,7 @@
+Participant ID,Stakeholder,Disease,Age,Gender,Race,Diagnosis,Treatment History
+061201,Patient,Kidney Cancer,18-33,Female,Caucasian,1-2 years ago,No Treatment
+061202,Patient,Kidney Cancer,34-43,Female,Caucasian,6 months ago,Currently Receiving Treatment
+061301,Patient,Kidney Cancer,44-53,Male,African American,2-4 years ago,Previously Received Treatment
+061401,Caregiver,Kidney Cancer,34-43,Male,Pacific Islander,5+ years ago,Currently Receiving Treatment
+061402,Caregiver,Kidney Cancer,34-43,Female,African American,1-2 years ago,Previously Received Treatment
+061403,Caregiver,Kidney Cancer,75+ years old,Female,Caucasian,6 months ago,Previously Received Treatment

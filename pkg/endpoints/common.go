@@ -14,3 +14,5 @@ func HttpNotOk(statusCode int, w http.ResponseWriter, frontendErr string, err er
 		return false
 	}
 }
+
+const MaxUploadSize = 2 * 1024 * 1024

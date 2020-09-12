@@ -3,7 +3,6 @@
         <div class="row">
             <div class="col-12 text-right">
                 <button class="btn btn-primary bold add-height" id="add-button"
-                        @text-drop="textDrop(defaultNewCode, $event.detail, $event)"
                         @click="createCode(false)">
                     Add a New Code
                 </button>
@@ -19,7 +18,7 @@
                                 <h5 class="code-title">{{container.main.name}}</h5>
 
                                 <div class="btn btn-primary float-right no-events just-number self-right">
-                                    {{getTextsLength(container)}}
+                                    {{getContainerTextsLength(container)}}
                                 </div>
 
                                 <button class="btn btn-primary float-right" @click="createCode(container.containerId)">
@@ -50,10 +49,12 @@
 </template>
 
 <script>
-    import Draggable from 'vuedraggable';
-    import CodeDropZone from "@/components/CodeDropZone";
-    import {getColor} from "@/core/Colors";
-    // eslint-disable-next-line no-unused-vars
+import Draggable from 'vuedraggable';
+import CodeDropZone from "@/components/CodeDropZone";
+import {getColor} from "@/core/Colors";
+import {actions, getters, mutations} from "@/store"
+import {mapGetters} from "vuex";
+// eslint-disable-next-line no-unused-vars
     let codeTypes = {
         codes: [{
             id: 0,
@@ -64,34 +65,22 @@
             }]
         }]
     }
-    function prepareContainer(backendCodeContainer) {
-        const main =  backendCodeContainer.subcodes.shift();
-        return {
-            containerId: backendCodeContainer.containerId,
-            main,
-            subcodes: backendCodeContainer.subcodes
-        }
-    }
     export default {
         name: 'codeList',
         components: {Draggable, CodeDropZone},
-        data: () => {
-            return {
-                containers: [],
-                idToContainer: {},
-            }
+        computed: {
+            [getters.CONTAINERS]: {
+                get() {
+                    return this.$store.getters[getters.CONTAINERS];
+                },
+                set(c) {
+                    this.$store.commit(mutations.SET_CONTAINERS, c)
+                },
+            },
+            ...mapGetters([getters.ID_TO_CONTAINER])
         },
         mounted() {
-            this.axios.get("/code/list").then((res) => {
-                const categories = res.data
-
-                for(const c of categories) {
-                    const code = prepareContainer(c);
-
-                    this.containers.push(code);
-                    this.idToContainer[code.containerId] = code;
-                }
-            });
+            this.$store.dispatch(actions.INIT_CONTAINERS)
         },
         methods: {
             textDrop: async function (code, packet, e) {
@@ -105,7 +94,6 @@
                     this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
                 };
 
-
                 associate(code);
             },
 
@@ -118,66 +106,26 @@
                     });
                 }
 
-                let code;
                 if (!containerId) {
-                    const res = await this.axios.post("/code/container/create");
-                    containerId = res.data.ContainerId;
-
-                    code = (await this.axios.post("/code/create", {
-                        code: name,
-                        containerId
-                    })).data;
-
-                    const newContainer = {
-                        containerId: containerId,
-                        main: code,
-                        subcodes: [],
-                    }
-
-                    this.containers.push(newContainer);
-                    this.idToContainer[containerId] = newContainer;
+                    this.$store.dispatch(actions.CREATE_CONTAINER, {name}).then(() => {});
                 } else {
-                    const targetContainer = this.idToContainer[containerId]
-                    code = (await this.axios.post("/code/create", {
-                        code: name,
-                        containerId
-                    })).data;
-
-                    targetContainer.subcodes.push(code);
+                    this.$store.dispatch(actions.CREATE_CODE, {containerId, name}).then(() => {});
                 }
-
-                return code;
             },
 
             _actuallyAssociate: function (code, words, callback) {
-                this.axios.post("/code/associate", {
-                    key: parseInt(words.documentId),
-                    codeId: code.id,
-                    text: words.text
-                }).then(() => {
-                    code.texts = code.texts || [];
-                    code.texts.push(words);
+                this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId: code.id, words}).then(() => {
                     callback();
                     // todo: "success" toast or something
                 }, () => {
                     // todo: "an error occurred" toast or something
                 });
             },
-            getTextsLength(code) {
-                if (code.main.texts == null) {
-                    return 0;
-                }
-                let length = code.main.texts.length;
-
-                if (code.subcodes) {
-                    for (let subCode of code.subcodes) {
-                        if (subCode.texts != null) {
-                            length += subCode.texts.length;
-                        }
-                    }
-                }
-
-                return length;
+            getCode(codeId) {
+                return this.$store.getters[getters.GET_CODE](codeId)
+            },
+            getContainerTextsLength(container) {
+                return this.$store.getters[getters.GET_TEXTS_LENGTH](container.containerId)
             },
 
 

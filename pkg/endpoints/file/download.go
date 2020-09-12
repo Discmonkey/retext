@@ -16,6 +16,8 @@ func fileExtToType(ext string) parser.DocumentType {
 		filetype = parser.DocX
 	} else if ext == "xlsx" {
 		filetype = parser.Xlsx
+	} else if ext == "csv" {
+		filetype = parser.Csv
 	}
 
 	return filetype
