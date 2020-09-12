@@ -66,7 +66,7 @@ func getCsvRows(rc io.Reader) chan CsvRow {
 		defer close(ch)
 		for {
 			rec, err := r.Read()
-			if err != nil && err == io.EOF {
+			if err == io.EOF {
 				break
 			}
 
@@ -76,6 +76,10 @@ func getCsvRows(rc io.Reader) chan CsvRow {
 			}
 
 			ch <- r
+
+			if err != nil {
+				break
+			}
 		}
 	}()
 	return ch

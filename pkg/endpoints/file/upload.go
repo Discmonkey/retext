@@ -21,7 +21,8 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 		r.Body = http.MaxBytesReader(w, r.Body, endpoints.MaxUploadSize)
 		err := r.ParseMultipartForm(endpoints.MaxUploadSize)
 		if err != nil {
-			log.Fatal("failed while parsing form")
+			log.Println("failed while parsing form")
+			return
 		}
 
 		form := r.MultipartForm
