@@ -14,8 +14,8 @@ type CsvRow struct {
 type CsvParser struct {
 }
 
-func (x CsvParser) Convert(unprocessed []byte) (doc Document, err error) {
-	doc = Document{
+func (x CsvParser) Convert(unprocessed []byte) (Document, error) {
+	doc := Document{
 		Attributes: Attributes{
 			Columns: make([]string, 0, 0),
 			Values:  make(map[string][]string),
@@ -55,7 +55,7 @@ func (x CsvParser) Convert(unprocessed []byte) (doc Document, err error) {
 
 	doc.Attributes = a
 
-	return doc, err
+	return doc, nil
 }
 
 // mostly https://stackoverflow.com/questions/32027590/efficient-read-and-write-csv-in-go
