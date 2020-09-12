@@ -20,11 +20,21 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
+func getTempFileDir() string {
+	retextLocation := path.Join(os.TempDir(), "retext")
+
+	if _, err := os.Stat(retextLocation); os.IsNotExist(err) {
+		_ = os.Mkdir(retextLocation, 0775)
+	}
+
+	return retextLocation
+}
+
 func main() {
 	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
 	http.Handle("/", fs)
 
-	retextLocation := path.Join(os.TempDir(), "retext")
+	retextLocation := getTempFileDir()
 	log.Printf("file store dir: %s", retextLocation)
 	fileBackend, err := postgres_backend.NewFileStore(retextLocation)
 	FailIfError(err)
