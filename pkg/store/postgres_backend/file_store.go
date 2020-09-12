@@ -187,7 +187,7 @@ func getNameAndExtension(filename string) (string, string, error) {
 
 func assignTypeFromExtension(ext string) store.FileType {
 	type_ := store.SourceFile
-	if ext == "xlsx" {
+	if ext == "xlsx" || ext == "csv" {
 		type_ = store.DemoFile
 	}
 

@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-type AddResponse struct {
+type AddResponse []struct {
 	File store.File
 	Type string
 }
@@ -27,35 +27,40 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 		}
 
 		file, handle, err := r.FormFile("file")
+		r.Body = http.MaxBytesReader(w, r.Body, endpoints.MaxUploadSize)
+		err := r.ParseMultipartForm(endpoints.MaxUploadSize)
 		if err != nil {
-			log.Println(err)
+			log.Println("failed while parsing form")
 			return
 		}
 
-		defer func() {
-			err := file.Close()
+		form := r.MultipartForm
+		files := form.File["file"]
+
+		response := make(AddResponse, 0, len(files))
+		for _, handle := range files {
+			file, err := handle.Open()
 			if err != nil {
 				log.Println(err)
+				return
 			}
-		}()
 
-		data, err := ioutil.ReadAll(file)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+			data, err := ioutil.ReadAll(file)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			_ = file.Close()
 
 		uploadedFile, err := store.UploadFile(handle.Filename, data, projectId)
 
-		err = json.NewEncoder(w).Encode(AddResponse{
-			File: uploadedFile,
-			Type: "source",
-		})
+			response = append(response, uploadedFile)
+		}
 
+		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			log.Println(err)
 		}
-
 	}
 
 	return t

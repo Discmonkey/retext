@@ -18,6 +18,8 @@ func HttpNotOk(statusCode int, w http.ResponseWriter, frontendErr string, err er
 	}
 }
 
+const MaxUploadSize = 2 * 1024 * 1024
+
 func GetInt(r *http.Request, key string) (int, bool) {
 	var i int64 = 0
 	value, ok := r.URL.Query()[key]
