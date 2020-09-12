@@ -3,7 +3,6 @@
         <div class="row">
             <div class="col-12 text-right">
                 <button class="btn btn-primary bold add-height" id="add-button"
-                        @text-drop="textDrop(defaultNewCode, $event.detail, $event)"
                         @click="createCode(false)">
                     Add a New Code
                 </button>
@@ -53,7 +52,7 @@
 import Draggable from 'vuedraggable';
 import CodeDropZone from "@/components/CodeDropZone";
 import {getColor} from "@/core/Colors";
-import {actions, getters} from "@/store"
+import {actions, getters, mutations} from "@/store"
 import {mapGetters} from "vuex";
 // eslint-disable-next-line no-unused-vars
     let codeTypes = {
@@ -70,7 +69,15 @@ import {mapGetters} from "vuex";
         name: 'codeList',
         components: {Draggable, CodeDropZone},
         computed: {
-            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER])
+            [getters.CONTAINERS]: {
+                get() {
+                    return this.$store.getters[getters.CONTAINERS];
+                },
+                set(c) {
+                    this.$store.commit(mutations.SET_CONTAINERS, c)
+                },
+            },
+            ...mapGetters([getters.ID_TO_CONTAINER])
         },
         mounted() {
             this.$store.dispatch(actions.INIT_CONTAINERS)

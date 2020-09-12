@@ -12,6 +12,7 @@ export const getters = {
 }
 
 export const mutations = {
+    SET_CONTAINERS: "setContainers",
     ADD_CONTAINER: "addContainer",
     ADD_CODE: "addCode",
     ADD_TEXT: "addText",
@@ -48,16 +49,16 @@ export const store = new Vuex.Store({
         idToCode: {},
     },
     getters: {
-        [getters.CONTAINERS]: function(state) {
+        [getters.CONTAINERS](state) {
             return state.containers
         },
-        [getters.ID_TO_CONTAINER]: function(state) {
+        [getters.ID_TO_CONTAINER](state) {
             return state.idToContainer;
         },
-        [getters.ID_TO_CODE]: function(state) {
+        [getters.ID_TO_CODE](state) {
             return state.idToCode;
         },
-        [getters.GET_TEXTS_LENGTH]: function (state) {
+        [getters.GET_TEXTS_LENGTH] (state) {
             return (containerId) => {
                 if (!(containerId in state.idToContainer)) {
                     return;
@@ -79,7 +80,7 @@ export const store = new Vuex.Store({
         }
     },
     mutations: {
-        [mutations.ADD_CONTAINER]: function(state, container) {
+        [mutations.ADD_CONTAINER](state, container) {
             if(!(container.containerId in state.idToContainer)) {
                 state.containers.push(container);
             } else {
@@ -99,16 +100,19 @@ export const store = new Vuex.Store({
                 state.idToCode[code.id] = code;
             }
         },
-        [mutations.ADD_CODE]: function(state, {containerId, code}) {
+        [mutations.SET_CONTAINERS] (state, containers) {
+            Vue.set(state, "containers", containers);
+        },
+        [mutations.ADD_CODE](state, {containerId, code}) {
             state.idToContainer[containerId].subcodes.push(code);
             state.idToCode[code.id] = code;
         },
-        [mutations.ADD_TEXT]: function(state, {codeId, text}) {
+        [mutations.ADD_TEXT](state, {codeId, text}) {
             state.idToCode[codeId].texts.push(text);
         },
     },
     actions: {
-        [actions.CREATE_CONTAINER]: async function(context, {name}) {
+        async [actions.CREATE_CONTAINER](context, {name}) {
             const res = await Vue.axios.post("/code/container/create");
             const containerId = res.data.ContainerId;
 
@@ -124,7 +128,7 @@ export const store = new Vuex.Store({
 
             return code;
         },
-        [actions.CREATE_CODE]: async function(context, {containerId, name}) {
+        async [actions.CREATE_CODE](context, {containerId, name}) {
             const code = await createCode(containerId, name);
             code.texts = [];
 
@@ -132,7 +136,7 @@ export const store = new Vuex.Store({
 
             return code;
         },
-        [actions.ASSOCIATE_TEXT]: async function(context, {codeId, words}) {
+        async [actions.ASSOCIATE_TEXT](context, {codeId, words}) {
             return Vue.axios.post("/code/associate", {
                 key: parseInt(words.documentId),
                 codeId: codeId,
@@ -141,7 +145,7 @@ export const store = new Vuex.Store({
                 context.commit(mutations.ADD_TEXT, {codeId, text: words.text})
             });
         },
-        [actions.INIT_CONTAINERS]: async function(context) {
+        async [actions.INIT_CONTAINERS](context) {
             Vue.axios.get("/code/list").then((res) => {
                 const containers = res.data;
 
