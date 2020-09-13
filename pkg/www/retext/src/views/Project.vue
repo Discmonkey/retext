@@ -4,7 +4,7 @@
             <div class="col-5">
                 <h3 class="text-center font-weight-bold mb-4">Existing Projects</h3>
 
-                <ToProject :project-date="new Date()" project-description="test description" project-name="test name"></ToProject>
+                <ToProject v-for="project " :project-date="new Date()" project-description="test description" project-name="test name"></ToProject>
             </div>
 
             <div class="col-7">
@@ -37,6 +37,9 @@
 import ToProject from "@/components/nav/ToProject";
 export default {
     name: "Project",
+    data() {
+
+    },
     components: {ToProject}
 }
 </script>

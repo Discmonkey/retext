@@ -34,11 +34,42 @@ func (p ProjectStore) CreateProject(name, description string, month, year int) (
 }
 
 func (p ProjectStore) GetProject(id store.ProjectId) (store.Project, error) {
-	panic("implement me")
+	query := `
+		SELECT id, name, description, time_tag FROM qode.project WHERE id = $1;
+	`
+
+	row := p.con.QueryRow(query, id)
+
+	var project store.Project
+	err := row.Scan(project.Id, project.Name, project.Description, project.TimeTag)
+
+	return project, err
 }
 
 func (p ProjectStore) GetProjects() ([]store.Project, error) {
-	panic("implement me")
+	query := `
+		SELECT id, name, description, time_tag FROM qode.project ORDER BY id 
+	`
+
+	results := make([]store.Project, 0)
+
+	rows, err := p.con.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var project store.Project
+
+		err := rows.Scan(project.Id, project.Name, project.Description, project.TimeTag)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, project)
+	}
+
+	return results, nil
 }
 
 var _ store.ProjectStore = &ProjectStore{}

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
+	"github.com/discmonkey/retext/pkg/endpoints/project"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend"
 	"log"
 	"net/http"
@@ -36,10 +37,14 @@ func main() {
 
 	retextLocation := getTempFileDir()
 	log.Printf("file store dir: %s", retextLocation)
+
 	fileBackend, err := postgres_backend.NewFileStore(retextLocation)
 	FailIfError(err)
 
 	codeBackend, err := postgres_backend.NewCodeStore()
+	FailIfError(err)
+
+	projectBackend, err := postgres_backend.NewProjectStore()
 	FailIfError(err)
 
 	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
@@ -51,6 +56,9 @@ func main() {
 	http.HandleFunc("/code/get", code.GetEndpoint(codeBackend))
 	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
 	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
+
+	http.HandleFunc("/project/create", project.CreateProject(projectBackend))
+	http.HandleFunc("/project/list", project.ListEndpoint(projectBackend))
 
 	log.Println("Listening on :3000...")
 	FailIfError(http.ListenAndServe(":3000", nil))

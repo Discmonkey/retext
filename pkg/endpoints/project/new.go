@@ -7,36 +7,31 @@ import (
 	"net/http"
 )
 
-func AddCreateProjectEndpoint(project store.ProjectStore) func(w http.ResponseWriter, r *http.Request) {
+type createRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Month       int    `json:"month"`
+	Year        int    `json:"year"`
+}
+
+func CreateProject(project store.ProjectStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		name, ok := endpoints.GetStringOk(r, w, "name", "project name missing from create request")
-		if !ok {
+		if r.Method != http.MethodPost {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
-		description, ok := endpoints.GetStringOk(r, w, "description", "project description missing from create request")
-		if !ok {
-			return
-		}
+		var req createRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
 
-		month, ok := endpoints.GetIntOk(r, w, "month", "project month missing form create request")
-		if !ok {
-			return
-		}
+		id, err := project.CreateProject(req.Name, req.Description, req.Month, req.Year)
+		project, err := project.GetProject(id)
 
-		year, ok := endpoints.GetIntOk(r, w, "year", "project year missing from create request")
-		if !ok {
-			return
-		}
-
-		id, err := project.CreateProject(name, description, month, year)
 		if endpoints.HttpNotOk(400, w, "error creating project", err) {
 			return
 		} else {
-			_ = json.NewEncoder(w).Encode(struct {
-				ProjectId int
-			}{ProjectId: id})
+			_ = json.NewEncoder(w).Encode(project)
 		}
 	}
 }
