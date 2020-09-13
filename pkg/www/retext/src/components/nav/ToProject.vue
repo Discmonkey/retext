@@ -1,5 +1,5 @@
 <template>
-    <div class="layout">
+    <div class="border--blue layout">
         <h5 class="link"> {{projectName}}</h5>
 
         <h5 class="date"> {{stringDate}}</h5>
@@ -31,7 +31,12 @@ export default {
 
     .layout {
         width: 100%;
-        height: 100%;
+        height: 120px;
+        padding: 10px;
+        border-width: 2px;
+        border-style: solid;
+        border-radius: 5px;
+        box-sizing: border-box;
     }
 
     .link {

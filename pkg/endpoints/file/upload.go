@@ -14,7 +14,7 @@ type AddResponse []struct {
 	Type string
 }
 
-func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func AddUploadEndpoint(fileStore store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -26,7 +26,6 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-		file, handle, err := r.FormFile("file")
 		r.Body = http.MaxBytesReader(w, r.Body, endpoints.MaxUploadSize)
 		err := r.ParseMultipartForm(endpoints.MaxUploadSize)
 		if err != nil {
@@ -52,9 +51,12 @@ func AddUploadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *htt
 			}
 			_ = file.Close()
 
-		uploadedFile, err := store.UploadFile(handle.Filename, data, projectId)
+			uploadedFile, err := fileStore.UploadFile(handle.Filename, data, projectId)
 
-			response = append(response, uploadedFile)
+			response = append(response, struct {
+				File store.File
+				Type string
+			}{File: uploadedFile, Type: "source"})
 		}
 
 		err = json.NewEncoder(w).Encode(response)
