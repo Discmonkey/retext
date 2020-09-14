@@ -2,7 +2,9 @@ package postgres_backend
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
+	"time"
 )
 
 type ProjectStore struct {
@@ -19,12 +21,16 @@ func NewProjectStore() (ProjectStore, error) {
 }
 
 func (p ProjectStore) CreateProject(name, description string, month, year int) (store.ProjectId, error) {
+
+	t := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	fmt.Println(t)
 	query := `
         INSERT INTO qode.project (name, description, created, time_tag) 
-        VALUES ($1, $2, now(), format('%s-%s-%s', $3, $4, 0)::time)
+        VALUES ($1, $2, now(), $3)
+        returning id;
     `
 
-	row := p.con.QueryRow(query, name, description, month, year)
+	row := p.con.QueryRow(query, name, description, t)
 
 	var projectId int
 
@@ -41,7 +47,7 @@ func (p ProjectStore) GetProject(id store.ProjectId) (store.Project, error) {
 	row := p.con.QueryRow(query, id)
 
 	var project store.Project
-	err := row.Scan(project.Id, project.Name, project.Description, project.TimeTag)
+	err := row.Scan(&project.Id, &project.Name, &project.Description, &project.TimeTag)
 
 	return project, err
 }
@@ -61,7 +67,7 @@ func (p ProjectStore) GetProjects() ([]store.Project, error) {
 	for rows.Next() {
 		var project store.Project
 
-		err := rows.Scan(project.Id, project.Name, project.Description, project.TimeTag)
+		err := rows.Scan(&project.Id, &project.Name, &project.Description, &project.TimeTag)
 		if err != nil {
 			return nil, err
 		}

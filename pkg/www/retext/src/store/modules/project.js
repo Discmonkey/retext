@@ -24,7 +24,12 @@ export const ProjectModule = {
     mutations: {
 
         [ProjectMutations.ADD_PROJECT](state, project) {
-            for (const project of state.projects)
+            for (const projectOld of state.projects) {
+                if (project.Id === projectOld.Id) {
+                    return;
+                }
+            }
+
             state.projects.push(project);
         },
 
@@ -49,6 +54,10 @@ export const ProjectModule = {
     getters: {
         currentProject(state) {
             return state.currentProject;
+        },
+
+        projects(state) {
+            return state.projects;
         }
     }
 }

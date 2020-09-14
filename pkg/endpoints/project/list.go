@@ -7,9 +7,7 @@ import (
 	"net/http"
 )
 
-type ListResponse struct {
-	Files []store.Project
-}
+type ListResponse = []store.Project
 
 func ListEndpoint(store store.ProjectStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -20,16 +18,13 @@ func ListEndpoint(store store.ProjectStore) func(w http.ResponseWriter, r *http.
 
 		w.Header().Set("Content-Type", "application/json")
 
-		l := ListResponse{}
-
 		projects, err := store.GetProjects()
 
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(400)
 		} else {
-			l.Files = projects
-			_ = json.NewEncoder(w).Encode(l)
+			_ = json.NewEncoder(w).Encode(projects)
 		}
 	}
 

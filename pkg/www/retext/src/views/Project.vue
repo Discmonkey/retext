@@ -4,27 +4,24 @@
             <div class="col-5">
                 <h3 class="text-center font-weight-bold mb-4">Existing Projects</h3>
 
-                <ToProject v-for="project " :project-date="new Date()" project-description="test description" project-name="test name"></ToProject>
+                <ToProject v-for="project in projects" :project-date="new Date(project.TimeTag)"
+                           :project-description="project.Description" :project-name="project.Name" v-bind:key="project.Id"></ToProject>
             </div>
 
             <div class="col-7">
                 <div class="form-group">
                     <h3 class="text-center font-weight-bold mb-4">Start a new Project</h3>
 
-                    <input type="text" placeholder="Project Name" class="mb-4 w-100 d-inline-block form-control">
+                    <input type="text" placeholder="Project Name" class="mb-4 w-100 d-inline-block form-control" v-model="name">
 
-                    <input type="month" class="mb-4 d-inline-block form-control">
+                    <input type="month" class="mb-4 d-inline-block form-control" v-model="date">
 
-                    <textarea class="mb-4 w-100 form-control" placeholder="Project Description">
-
-                    </textarea>
-
-                    <textarea class="mb-4 w-100 form-control" placeholder="Initial Codes for Project (separated by ;)">
+                    <textarea class="mb-4 w-100 form-control" placeholder="Project Description" v-model="description">
 
                     </textarea>
 
                     <div class="w-100 text-center">
-                    <button class="btn btn-primary d-inline-block"> Create Project </button>
+                    <button class="btn btn-primary d-inline-block" @click="createProject()"> Create Project </button>
                     </div>
                 </div>
 
@@ -35,10 +32,34 @@
 
 <script>
 import ToProject from "@/components/nav/ToProject";
+import {ProjectActions} from "@/store/modules/project";
+
 export default {
     name: "Project",
     data() {
+        const current = new Date();
+        return {
+            name: "",
+            description: "",
+            date: `${current.getFullYear()}-${current.getMonth() + 1}`,
+        }
+    },
 
+    mounted() {
+        this.$store.dispatch(ProjectActions.LOAD_PROJECTS);
+    },
+
+    methods: {
+        createProject() {
+            const [year, month] = this.date.split("-").map(i => parseInt(i))
+            this.$store.dispatch(ProjectActions.ADD_PROJECT, ProjectActions.makeAddProjectPayload(this.name, this.description, year, month));
+        }
+    },
+
+    computed: {
+        projects() {
+            return this.$store.getters.projects;
+        }
     },
     components: {ToProject}
 }
