@@ -1,8 +1,8 @@
 <template>
     <ul class="breadcrumb" v-if="crumbs.length" >
         <li v-for="(crumb, i) in crumbs" :key="i" class="breadcrumb-item" :class="{'active': isLast(i)}">
-            <router-link v-if="!isLast(i)" :to="crumb">{{ crumb.name }}</router-link>
-            <span v-else class="last">{{ crumb.name }}</span>
+            <router-link v-if="!isLast(i)" :to="getTo(crumb)">{{ crumbName(crumb) }}</router-link>
+            <span v-else class="last">{{ crumbName(crumb) }}</span>
         </li>
     </ul>
 </template>
@@ -22,6 +22,25 @@
         methods: {
             isLast(i) {
                 return i === this.crumbs.length - 1;
+            },
+            getTo(crumb) {
+                let to = {params: this.$route.params}
+                if (crumb.name) {
+                    to.name = crumb.name;
+                } else if (crumb.path) {
+                    to.path = crumb.path;
+                }
+                return to;
+            },
+            crumbName(crumb) {
+                // `crumb.path` contains the full path and would have to be parsed to figure out
+                //  which `params` to use as display text. If `crumb.path` contained only the child route's
+                //  path, meta.name would likely be unnecessary...
+                if (crumb.meta.name) {
+                    return this.$route.params[crumb.meta.name];
+                } else {
+                    return crumb.name;
+                }
             }
         }
     }

@@ -5,48 +5,59 @@ import Upload from "@/views/Upload";
 import Demo from "@/views/Demo";
 import Home from "@/Home";
 import Project from "@/views/Project";
+import LoadProject from "@/views/LoadProject";
 
 Vue.use(VueRouter);
 
-// Set the landing page by changing homePath below.
-// homePath gets "injected" into `routes` below programmatically.
-const homePath = '/project';
-
+// `meta: {name: ...}` used in Breadcrumbs.vue
 const routes = [
     {
-        path: '/',
-        name: 'Home',
+        path: '/project',
+        name: 'Projects',
         component: Home,
-        redirect: homePath,
+        redirect: 'project',
         children: [
             {
-                path: '/code/:documentId',
-                name: 'Code',
-                component: Code
+                path: '',
+                name: 'List',
+                component: Project,
             },
             {
-                path: '/demo/:documentId',
-                name: 'Demo',
-                component: Demo
-            },
-            {
-                path: '/upload',
-                name: 'Upload',
-                component: Upload,
-            },
-            {
-                path: '/project',
-                name: 'Projects',
-                component: Project
+                path: ':projectId',
+                meta: {name: 'projectId'},
+                name: 'projectView',
+                component: LoadProject,
+                redirect: ':projectId',
+                children: [
+                    {
+                        path: 'code',
+                        name: 'Code',
+                        redirect: 'upload',
+                        component: Home,
+                        children: [
+                            {
+                                path: ':documentId',
+                                meta: {name: 'documentId'},
+                                component: Code
+                            },
+                        ],
+                    },
+                    {
+                        path: 'demo/:documentId',
+                        name: 'Demo',
+                        component: Demo
+                    },
+                    {
+                        path: 'upload',
+                        alias: '',
+                        name: 'Upload',
+                        component: Upload,
+                    },
+                ]
             }
         ],
     },
 ];
-routes[0].children.forEach(child => {
-    if(child.path === homePath) {
-        child.alias = '/';
-    }
-});
 
 const router = new VueRouter({
     mode: 'history',
