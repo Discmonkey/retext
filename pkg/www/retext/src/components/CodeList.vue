@@ -10,9 +10,13 @@
         </div>
 
         <draggable v-model="containers" group="people" @start="drag=true" @end="drag=false">
-            <div v-for="container in containers" :key="container.containerId" @text-drop="textDrop(container.main, $event.detail, $event)">
+            <div v-for="container in containers"
+                 :key="container.containerId"
+                 @text-drop="textDrop(container.main, $event.detail, $event)"
+                 @click="toggleColor(container)"
+            >
                 <div class="spacer">
-                    <div :style="style(container.containerId)">
+                    <div :style="style(container)">
                         <code-drop-zone :code="container.main">
                             <div class="top-container margined">
                                 <h5 class="code-title">{{container.main.name}}</h5>
@@ -51,7 +55,6 @@
 <script>
 import Draggable from 'vuedraggable';
 import CodeDropZone from "@/components/CodeDropZone";
-import {getColor} from "@/core/Colors";
 import {actions, getters, mutations} from "@/store"
 import {mapGetters} from "vuex";
 // eslint-disable-next-line no-unused-vars
@@ -83,6 +86,9 @@ import {mapGetters} from "vuex";
             this.$store.dispatch(actions.INIT_CONTAINERS)
         },
         methods: {
+            toggleColor(container) {
+                this.$store.dispatch(actions.SET_COLOR_ACTIVE, container);
+            },
             textDrop: async function (code, packet, e) {
                 e.stopPropagation(); // stop the event
 
@@ -129,8 +135,8 @@ import {mapGetters} from "vuex";
             },
 
 
-            style(idx) {
-                return `border-radius: 10px; border: 3px solid ${getColor(idx)}; padding: 20px;`;
+            style(container) {
+                return `border-radius: 10px; border: 3px solid ${container.colorInfo}; padding: 20px;`;
             }
         }
 

@@ -7,9 +7,9 @@
                         <span
                                 v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
                                 v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
-                                @mousedown.right="contextMenu"
                                 v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
-                                v-bind:class="{active: word.Selected}"
+                                :class="{active: word.Selected}"
+                                :style="wordStyle(parIndex, senIndex, wordIndex)"
                                 class="border-on-hover word non-selectable"
                         >
                             {{word.Text}}
@@ -28,7 +28,9 @@
 </template>
 
 <script>
-    // eslint-disable-next-line no-unused-vars
+import {getters} from "@/store";
+import {mapGetters} from "vuex";
+// eslint-disable-next-line no-unused-vars
     let TextType = {
         Paragraphs: [{
             Sentences: {
@@ -39,7 +41,6 @@
             }
         }]
     };
-    import Vue from "vue"
 
     let createDiv = (x, y) => {
         let div = document.createElement("div")
@@ -66,12 +67,40 @@
 
         return div;
     };
+    function mapCodifiedTexts(v, codeTextMap, texts, container) {
+        if(!texts) {
+            return;
+        }
+        for (let text of texts) {
+            let wordCoord = [text.anchor.paragraph, text.anchor.sentence, text.anchor.word];
+
+            let lastWordCoord = Object.values(text.last);
+
+            if (!codeTextMap[wordCoord]) {
+                codeTextMap[wordCoord] = new Set();
+            }
+            codeTextMap[wordCoord].add(container.containerId);
+
+            while (!(
+                wordCoord[0] === lastWordCoord[0] &&
+                wordCoord[1] === lastWordCoord[1] &&
+                wordCoord[2] === lastWordCoord[2]
+            )) {
+                wordCoord = v.next(...wordCoord).slice(0, 3); // we only want the coordinates
+                if (!codeTextMap[wordCoord]) {
+                    codeTextMap[wordCoord] = new Set();
+                }
+                codeTextMap[wordCoord].add(container.containerId)
+            }
+        }
+    }
 
     export default {
         name: "TextRenderer",
         props: ["text", "documentId"],
         data: function() {
             return {
+                dumbTest: 0,
                 path: [],
                 dragging: false,
 
@@ -92,7 +121,54 @@
                 }
             }
         },
+        computed: {
+            containerizedWords() {
+                let containers = this[getters.CONTAINERS];
+                let wordContainerMapThingy = {};
+
+                for(let container of containers) {
+                    mapCodifiedTexts(this, wordContainerMapThingy, container.main.texts, container);
+
+                    for(let subcode of container.subcodes) {
+                        mapCodifiedTexts(this, wordContainerMapThingy, subcode.texts, container);
+                    }
+                }
+
+                for (let k of Object.keys(wordContainerMapThingy)) {
+                    wordContainerMapThingy[k] = Array.from(wordContainerMapThingy[k]);
+                }
+                return wordContainerMapThingy;
+            },
+            containerizedParagraphs() {
+                let myMap = {};
+
+                for(let [psw, ids] of this.containerizedWords.entries()) {
+                    let p = parseInt(psw.split(',', 2));
+
+                    if(!(p in myMap)) {
+                        myMap[p] = new Set();
+                    }
+                    for(let id of ids) {
+                        myMap[p].add(id);
+                    }
+                }
+
+                return myMap;
+            },
+            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER]),
+        },
         methods: {
+            wordStyle(p, s, w) {
+                if([p, s, w] in this.containerizedWords) {
+                    for(let id of this.containerizedWords[[p, s, w]]) {
+
+                        if(this[getters.ID_TO_CONTAINER][id].isColorActive) {
+                            let ci = this[getters.ID_TO_CONTAINER][id].colorInfo;
+                            return {backgroundColor: ci + " !important"};
+                        }
+                    }
+                }
+            },
             start: function(paragraph, sentence, word, e) {
                 this.dragTool.shift = e.shiftKey;
 
@@ -189,7 +265,7 @@
 
             // updates the view
             updateWord: function(paragraph, sentence, word) {
-                Vue.set(this.words(paragraph, sentence), word, this.words(paragraph, sentence)[word]);
+                this.$set(this.words(paragraph, sentence), word, this.words(paragraph, sentence)[word]);
             },
 
             dragStop: function() {
@@ -424,5 +500,8 @@
         padding-bottom: .25em;
     }
 
-
+    .codified {
+        background-color: purple !important;
+        color: white !important;
+    }
 </style>
