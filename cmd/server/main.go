@@ -51,6 +51,7 @@ func main() {
 	http.HandleFunc("/code/get", code.GetEndpoint(codeBackend))
 	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
 	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
+	http.HandleFunc("/code/disassociate", code.DisassociateText(codeBackend))
 
 	log.Println("Listening on :3000...")
 	FailIfError(http.ListenAndServe(":3000", nil))

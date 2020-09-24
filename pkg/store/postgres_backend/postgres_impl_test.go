@@ -15,7 +15,7 @@ func TestFileStorePostgresBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	store.StubTestStore(t, fileBackend, testDirName)
+	store.StubTestStore(t, fileBackend)
 }
 
 func setup() (*CodeStore, *FileStore, error) {

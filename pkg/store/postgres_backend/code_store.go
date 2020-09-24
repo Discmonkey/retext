@@ -6,6 +6,7 @@ import (
 	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend/builders"
 	"github.com/discmonkey/retext/pkg/version"
+	"github.com/lib/pq"
 )
 
 type CodeStore struct {
@@ -66,6 +67,14 @@ func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text
 	`, firstWord.Paragraph, firstWord.Sentence, firstWord.Word,
 		lastWord.Paragraph, lastWord.Sentence, lastWord.Word,
 		text, codeId, documentId, version.Version)
+
+	return err
+}
+
+func (c CodeStore) UncodeText(textIds []store.TextId) error {
+	_, err := c.db.Exec(`
+		DELETE FROM qode.text WHERE id = ANY($1)
+	`, pq.Array(textIds))
 
 	return err
 }

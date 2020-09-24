@@ -3,7 +3,6 @@ package store
 import (
 	"io/ioutil"
 	"log"
-	"os"
 	"testing"
 )
 
@@ -14,7 +13,7 @@ func CreateTestDir() string {
 }
 
 // TestFSBackend covers all the file interface methods
-func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string) {
+func StubTestStore(t *testing.T, fileBackend FileStore) {
 	files, err := fileBackend.Files()
 	if err != nil {
 		t.Fatal(err)
@@ -127,8 +126,10 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		numCodes := len(containers)
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
-	_ = os.Remove("/tmp/filetest")
 
-	// second start-up tests "cache path"
+	err = codeBackend.UncodeText([]int{firstCode.Texts[0].Id})
 
+	if err != nil {
+		t.Fatalf("failed to uncode text: %s", err)
+	}
 }
