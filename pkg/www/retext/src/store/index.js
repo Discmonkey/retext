@@ -137,12 +137,25 @@ export const store = new Vuex.Store({
             return code;
         },
         async [actions.ASSOCIATE_TEXT](context, {codeId, words}) {
+            if(
+                words.anchor.paragraph > words.last.paragraph ||
+                words.anchor.paragraph === words.last.paragraph && words.anchor.sentence > words.last.sentence ||
+                words.anchor.paragraph === words.last.paragraph && words.anchor.sentence === words.last.sentence && words.anchor.word > words.last.word
+            ) {
+                // swap the order to make sure the first is first
+                let t = words.last;
+                words.last = words.anchor;
+                words.anchor = t;
+            }
+
             return Vue.axios.post("/code/associate", {
                 key: parseInt(words.documentId),
                 codeId: codeId,
-                text: words.text
+                text: words.text,
+                anchor: words.anchor,
+                last: words.last,
             }).then(() => {
-                context.commit(mutations.ADD_TEXT, {codeId, text: words.text})
+                context.commit(mutations.ADD_TEXT, {codeId, text: words})
             });
         },
         async [actions.INIT_CONTAINERS](context) {

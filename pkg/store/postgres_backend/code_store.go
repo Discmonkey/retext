@@ -57,6 +57,14 @@ func (c CodeStore) CreateCode(name string, containerId store.ContainerId) (store
 }
 
 func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
+	if firstWord.Paragraph > lastWord.Paragraph ||
+		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence > lastWord.Sentence ||
+		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence == lastWord.Sentence && firstWord.Word > lastWord.Word {
+		// swap the order to make sure the first is first
+		t := lastWord
+		lastWord = firstWord
+		firstWord = t
+	}
 
 	// TODO grab parser id from environment variable (or something similar)
 	_, err := c.db.Exec(`
