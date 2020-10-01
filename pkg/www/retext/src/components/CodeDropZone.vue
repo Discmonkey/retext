@@ -30,14 +30,6 @@
 </script>
 
 <style scoped>
-    /* apply to empty element + a background-color to get a circle */
-    /*noinspection CssUnusedSymbol*/
-    .code-color-drop {
-        border-radius: 50%;
-        padding: .5em;
-        margin-right: 5px;
-    }
-
     .code-drop-zone {
         cursor: default;
     }

@@ -1,6 +1,6 @@
 import Vue from "vue"
 import Vuex from "vuex";
-import {getColor} from "@/core/Colors";
+import {getColor, invertColor} from "@/core/Colors";
 
 Vue.use(Vuex)
 
@@ -83,17 +83,19 @@ export const store = new Vuex.Store({
     },
     mutations: {
         [mutations.ADD_CONTAINER](state, container) {
-            if(!("isColorActive" in container)) {
-                Vue.set(container, "isColorActive", false);
-            }
             if(!(container.containerId in state.idToContainer)) {
-                container.colorInfo = getColor(state.containers.length);
+                container.colorInfo = {
+                    active: false,
+                    bg: getColor(state.containers.length),
+                };
+                container.colorInfo.fg = invertColor(container.colorInfo.bg, true);
                 state.containers.push(container);
             } else {
                 // if the same container gets added again, replace old with new
-                for(const [i, container] of state.containers.entries()) {
-                    if(container.containerId === container.containerId) {
-                        container.colorInfo = state.containers[i].colorInfo;
+                //  note that the old colorInfo is preserved due to how getColor works
+                for(const [i, c] of state.containers.entries()) {
+                    if(container.containerId === c.containerId) {
+                        container.colorInfo = c.colorInfo;
                         state.containers[i] = container;
                         break;
                     }
@@ -165,14 +167,20 @@ export const store = new Vuex.Store({
                 context.commit(mutations.ADD_TEXT, {codeId, text: words})
             });
         },
+        /**
+         * if `toggleTo` is not provided, whatever the current "status" is will be flipped
+         *
+         * only 1 container can be "color active" at a time
+         */
         async [actions.SET_COLOR_ACTIVE] (context, {containerId, toggleTo}) {
             let c = context.getters[getters.ID_TO_CONTAINER][containerId];
-            toggleTo = toggleTo === undefined ? !c.isColorActive : toggleTo;
+            toggleTo = toggleTo === undefined ? !c.colorInfo.active : toggleTo;
 
-            Vue.set(c, "isColorActive", toggleTo);
+            for(let c of context.getters[getters.CONTAINERS]) {
+                c.colorInfo.active = false;
+            }
 
-            context.commit(mutations.ADD_CONTAINER, c);
-            context.commit(mutations.SET_CONTAINERS, context.getters[getters.CONTAINERS]);
+            c.colorInfo.active = toggleTo;
         },
         async [actions.INIT_CONTAINERS](context) {
             Vue.axios.get("/code/list").then((res) => {

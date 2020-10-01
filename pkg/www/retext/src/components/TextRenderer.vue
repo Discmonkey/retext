@@ -1,7 +1,7 @@
 <template>
     <div class="scroll-container flip">
         <div class="text-display flip">
-            <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false">
+            <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false" class="clearfix">
                 <p class="paragraph">
                     <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                         <span
@@ -17,8 +17,12 @@
                     </span>
                 </p>
 
-                <div class="done">
-
+                <div class="done" v-if="wordCoordTextMap[parIndex]">
+                    <div
+                        v-for="(containerId) in wordCoordTextMap[parIndex].cIds" :key="containerId"
+                        :style="paragraphStyle(containerId)"
+                        @click="toggleColor(containerId)"
+                    ></div>
                 </div>
             </div>
 
@@ -28,7 +32,7 @@
 </template>
 
 <script>
-import {getters} from "@/store";
+import {actions, getters} from "@/store";
 import {mapGetters} from "vuex";
 // eslint-disable-next-line no-unused-vars
     let TextType = {
@@ -67,30 +71,46 @@ import {mapGetters} from "vuex";
 
         return div;
     };
-    function mapCodifiedTexts(v, codeTextMap, texts, container) {
+
+    function mapCodifiedTexts(v, cc, texts, container) {
         if(!texts) {
             return;
         }
         for (let text of texts) {
-            let wordCoord = [text.anchor.paragraph, text.anchor.sentence, text.anchor.word];
-
             let lastWordCoord = Object.values(text.last);
 
-            if (!codeTextMap[wordCoord]) {
-                codeTextMap[wordCoord] = new Set();
-            }
-            codeTextMap[wordCoord].add(container.containerId);
-
-            while (!(
-                wordCoord[0] === lastWordCoord[0] &&
-                wordCoord[1] === lastWordCoord[1] &&
-                wordCoord[2] === lastWordCoord[2]
-            )) {
-                wordCoord = v.next(...wordCoord).slice(0, 3); // we only want the coordinates
-                if (!codeTextMap[wordCoord]) {
-                    codeTextMap[wordCoord] = new Set();
+            let [p, s, w] = [text.anchor.paragraph, text.anchor.sentence, text.anchor.word];
+            // eslint-disable-next-line no-constant-condition
+            while(true) {
+                // check if p, s, w are keys; if not, add
+                if(!(p in cc)) {
+                    cc[p] = {
+                        cIds: new Set(),
+                        s: {}
+                    };
                 }
-                codeTextMap[wordCoord].add(container.containerId)
+                if(!(s in cc[p].s)) {
+                    cc[p].s[s] = {
+                        w: {}
+                    }
+                }
+                if(!(w in cc[p].s[s].w)) {
+                    cc[p].s[s].w[w] = {
+                        cIds: new Set(),
+                        texts: [],
+                    }
+                }
+                // check if con is already in [p].cons; if not, add
+                cc[p].cIds.add(container.containerId);
+                // check if con is already in [p,s,w].cons; if not, add
+                cc[p].s[s].w[w].cIds.add(container.containerId);
+                // add text to [p, s, w].texts
+                cc[p].s[s].w[w].texts.push(text);
+                // check if we're at the lastCoord; if yes, break. if not, move to next coord
+                if(p === lastWordCoord[0] && s === lastWordCoord[1] && w === lastWordCoord[2]) {
+                    break;
+                }
+                [p, s, w] = v.next(p, s, w);
             }
         }
     }
@@ -100,7 +120,6 @@ import {mapGetters} from "vuex";
         props: ["text", "documentId"],
         data: function() {
             return {
-                dumbTest: 0,
                 path: [],
                 dragging: false,
 
@@ -122,53 +141,54 @@ import {mapGetters} from "vuex";
             }
         },
         computed: {
-            containerizedWords() {
+            /*  */
+            wordCoordTextMap() {
                 let containers = this[getters.CONTAINERS];
-                let wordContainerMapThingy = {};
+                let coordTextMap = {};
 
                 for(let container of containers) {
-                    mapCodifiedTexts(this, wordContainerMapThingy, container.main.texts, container);
+                    mapCodifiedTexts(this, coordTextMap, container.main.texts, container);
 
                     for(let subcode of container.subcodes) {
-                        mapCodifiedTexts(this, wordContainerMapThingy, subcode.texts, container);
+                        mapCodifiedTexts(this, coordTextMap, subcode.texts, container);
                     }
                 }
 
-                for (let k of Object.keys(wordContainerMapThingy)) {
-                    wordContainerMapThingy[k] = Array.from(wordContainerMapThingy[k]);
-                }
-                return wordContainerMapThingy;
-            },
-            containerizedParagraphs() {
-                let myMap = {};
-
-                for(let [psw, ids] of this.containerizedWords.entries()) {
-                    let p = parseInt(psw.split(',', 2));
-
-                    if(!(p in myMap)) {
-                        myMap[p] = new Set();
-                    }
-                    for(let id of ids) {
-                        myMap[p].add(id);
-                    }
-                }
-
-                return myMap;
+                return coordTextMap;
             },
             ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER]),
         },
         methods: {
             wordStyle(p, s, w) {
-                if([p, s, w] in this.containerizedWords) {
-                    for(let id of this.containerizedWords[[p, s, w]]) {
+                let ids = this.wordCoordTextMap[p].s[s].w[w];
 
-                        if(this[getters.ID_TO_CONTAINER][id].isColorActive) {
+                if(ids) {
+                    for(let id of ids.cIds) {
+                        if(this[getters.ID_TO_CONTAINER][id].colorInfo.active) {
                             let ci = this[getters.ID_TO_CONTAINER][id].colorInfo;
-                            return {backgroundColor: ci + " !important"};
+                            return {
+                                backgroundColor: ci.bg + " !important",
+                                color: ci.fg,
+                            };
                         }
                     }
                 }
             },
+
+            paragraphStyle(containerId) {
+                let c = this[getters.ID_TO_CONTAINER][containerId];
+                return {
+                    backgroundColor: c.colorInfo.bg,
+                    borderRadius: "50% !important",
+                    padding: ".5em !important",
+                    marginLeft: "50% !important",
+                };
+            },
+
+            toggleColor(containerId) {
+                this.$store.dispatch(actions.SET_COLOR_ACTIVE, {containerId});
+            },
+
             start: function(paragraph, sentence, word, e) {
                 this.dragTool.shift = e.shiftKey;
 
@@ -500,8 +520,20 @@ import {mapGetters} from "vuex";
         padding-bottom: .25em;
     }
 
-    .codified {
-        background-color: purple !important;
-        color: white !important;
+    /*
+    used to give the parent div of .paragraph+.done some height.
+    without the height, the "list" of container-color-drops starts overlapping(try it out)
+    from: https://stackoverflow.com/questions/12540436/
+    */
+    .clearfix:after {
+        content: ".";
+        display: block;
+        clear: both;
+        visibility: hidden;
+        line-height: 0;
+        height: 0;
+    }
+    .clearfix {
+        display: inline-block;
     }
 </style>

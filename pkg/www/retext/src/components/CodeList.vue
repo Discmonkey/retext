@@ -136,7 +136,7 @@ import {mapGetters} from "vuex";
 
 
             style(container) {
-                return `border-radius: 10px; border: 3px solid ${container.colorInfo}; padding: 20px;`;
+                return `border-radius: 10px; border: 3px solid ${container.colorInfo.bg}; padding: 20px;`;
             }
         }
 

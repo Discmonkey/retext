@@ -17,6 +17,7 @@ func ListEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
+		// TODO: either add a fileId parameter that will restrict the DocumentWord's returned or add a new endpoint that does. (either way, will still need to return all Codes)
 		containers, err := store.GetContainers()
 
 		if endpoints.HttpNotOk(400, w, "could not fetch containers", err) {
