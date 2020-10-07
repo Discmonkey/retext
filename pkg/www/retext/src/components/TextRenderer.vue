@@ -1,39 +1,69 @@
 <template>
-    <div class="scroll-container flip">
-        <div class="text-display flip">
-            <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false" class="clearfix">
-                <p class="paragraph">
+    <div>
+        <div class="scroll-container flip">
+            <div class="text-display flip">
+                <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false"
+                     class="clearfix">
+                    <p class="paragraph">
                     <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                         <span
-                                v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
-                                v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
-                                v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
-                                :class="{active: word.Selected}"
-                                :style="wordStyle(parIndex, senIndex, wordIndex)"
-                                class="border-on-hover word non-selectable"
+                            v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
+                            v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
+                            v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
+                            :class="{active: word.Selected}"
+                            :style="wordStyle(parIndex, senIndex, wordIndex)"
+                            @contextmenu.prevent="chooseMenu($event, parIndex, senIndex, wordIndex)"
+                            class="border-on-hover word non-selectable"
                         >
-                            {{word.Text}}
+                            {{ word.Text }}
                         </span>
                     </span>
-                </p>
+                    </p>
 
-                <div class="done" v-if="wordCoordTextMap[parIndex]">
-                    <div
-                        v-for="(containerId) in wordCoordTextMap[parIndex].cIds" :key="containerId"
-                        :style="paragraphStyle(containerId)"
-                        @click="toggleColor(containerId)"
-                    ></div>
+                    <div class="done" v-if="wordCoordTextMap[parIndex]">
+                        <div
+                            v-for="(containerId) in wordCoordTextMap[parIndex].cIds" :key="containerId"
+                            :style="paragraphStyle(containerId)"
+                            @click="toggleColor(containerId)"
+                        ></div>
+                    </div>
                 </div>
             </div>
-
-
         </div>
+        <vue-context ref="deleteMenu" v-slot="{data: texts}">
+            <template v-if="texts">
+                <div @click="deleteTexts(texts)">Delete</div>
+            </template>
+        </vue-context>
+        <vue-context ref="associateMenu">
+            <template>
+            <li
+                v-for="(container) in containers"
+                :key="container.containerId"
+                :class="{'v-context__sub': container.subcodes.length}"
+            >
+                <a @click.prevent="associateSelectedText(container.main.id)">{{ container.main.name }}</a>
+                <ul class="v-context"
+                    v-if="container.subcodes.length"
+                >
+                    <li
+                        v-for="(subcode) in container.subcodes"
+                        :key="subcode.id"
+                    >
+                        <a @click.prevent="associateSelectedText(container.main.id)">{{ subcode.name }}</a>
+                    </li>
+                </ul>
+            </li>
+            </template>
+        </vue-context>
     </div>
 </template>
 
 <script>
 import {actions, getters} from "@/store";
 import {mapGetters} from "vuex";
+import VueContext from 'vue-context';
+import 'vue-context/dist/css/vue-context.css';
 // eslint-disable-next-line no-unused-vars
     let TextType = {
         Paragraphs: [{
@@ -143,6 +173,7 @@ import {mapGetters} from "vuex";
                 }
             }
         },
+        components: {VueContext},
         computed: {
             wordCoordTextMap() {
                 let containers = this[getters.CONTAINERS];
@@ -172,6 +203,38 @@ import {mapGetters} from "vuex";
             ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER]),
         },
         methods: {
+            chooseMenu(e, p, s, w) {
+                if(this.activeContainerId) {
+                    // check if the word is part of an excerpt in the active container
+                    if(this.activeContainerId && this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId]) {
+                        if(
+                            p in this.wordCoordTextMap &&
+                            s in this.wordCoordTextMap[p].s &&
+                            w in this.wordCoordTextMap[p].s[s].w &&
+                            "texts" in this.wordCoordTextMap[p].s[s].w[w] &&
+                            this.activeContainerId in this.wordCoordTextMap[p].s[s].w[w].texts
+                        ) {
+                            let texts = this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId];
+                            this.$refs.deleteMenu.open(e, texts)
+                        }
+                    }
+                } else if(this.text.Paragraphs[p].Sentences[s].Parts[w].Selected) {
+                    this.$refs.associateMenu.open(e, {})
+                }
+                // TODO else, if [p,s,w] is selected, show context menu for associate text to Codes
+            },
+            deleteTexts(texts) {
+                // TODO: $store.deleteTexts(texts)
+                alert("Pretend this deleted the text: " + JSON.stringify(texts));
+            },
+            associateSelectedText(codeId) {
+                let data = {
+                    codeId,
+                    // TODO: logic from pickupStart() to find {anchor, last, text}. Don't forget the callback, probably?
+                };
+                // TODO: pass `data` to $store.associateText
+                alert("Pretend this is associated text: " + JSON.stringify(data))
+            },
             wordStyle(p, s, w) {
                 if (!this.activeContainerId) {
                     return;
