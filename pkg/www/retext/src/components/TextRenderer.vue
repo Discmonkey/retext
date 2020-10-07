@@ -97,7 +97,7 @@ import {mapGetters} from "vuex";
                 if(!(w in cc[p].s[s].w)) {
                     cc[p].s[s].w[w] = {
                         cIds: new Set(),
-                        texts: [],
+                        texts: {},
                     }
                 }
                 // check if con is already in [p].cons; if not, add
@@ -105,7 +105,7 @@ import {mapGetters} from "vuex";
                 // check if con is already in [p,s,w].cons; if not, add
                 cc[p].s[s].w[w].cIds.add(container.containerId);
                 // add text to [p, s, w].texts
-                cc[p].s[s].w[w].texts.push(text);
+                cc[p].s[s].w[w].texts[container.containerId] = text;
                 // check if we're at the lastCoord; if yes, break. if not, move to next coord
                 if(p === lastWordCoord[0] && s === lastWordCoord[1] && w === lastWordCoord[2]) {
                     break;
@@ -141,7 +141,6 @@ import {mapGetters} from "vuex";
             }
         },
         computed: {
-            /*  */
             wordCoordTextMap() {
                 let containers = this[getters.CONTAINERS];
                 let coordTextMap = {};
@@ -156,21 +155,38 @@ import {mapGetters} from "vuex";
 
                 return coordTextMap;
             },
+            activeContainerId() {
+                let containers = this[getters.CONTAINERS];
+
+                for(let c of containers) {
+                    if(c.colorInfo.active) {
+                        return c.containerId
+                    }
+                }
+
+                return false;
+            },
             ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER]),
         },
         methods: {
             wordStyle(p, s, w) {
-                let ids = this.wordCoordTextMap[p].s[s].w[w];
+                if (!this.activeContainerId) {
+                    return;
+                }
 
-                if(ids) {
-                    for(let id of ids.cIds) {
-                        if(this[getters.ID_TO_CONTAINER][id].colorInfo.active) {
-                            let ci = this[getters.ID_TO_CONTAINER][id].colorInfo;
-                            return {
-                                backgroundColor: ci.bg + " !important",
-                                color: ci.fg,
-                            };
-                        }
+                if(
+                    p in this.wordCoordTextMap &&
+                    s in this.wordCoordTextMap[p].s &&
+                    w in this.wordCoordTextMap[p].s[s].w &&
+                    "texts" in this.wordCoordTextMap[p].s[s].w[w]
+                ) {
+                    let texts = this.wordCoordTextMap[p].s[s].w[w].texts;
+                    if (this.activeContainerId in texts) {
+                        let ci = this[getters.ID_TO_CONTAINER][this.activeContainerId].colorInfo;
+                        return {
+                            backgroundColor: ci.bg + " !important",
+                            color: ci.fg,
+                        };
                     }
                 }
             },
