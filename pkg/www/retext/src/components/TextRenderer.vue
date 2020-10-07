@@ -105,7 +105,10 @@ import {mapGetters} from "vuex";
                 // check if con is already in [p,s,w].cons; if not, add
                 cc[p].s[s].w[w].cIds.add(container.containerId);
                 // add text to [p, s, w].texts
-                cc[p].s[s].w[w].texts[container.containerId] = text;
+                if(!(container.containerId in cc[p].s[s].w[w].texts)) {
+                    cc[p].s[s].w[w].texts[container.containerId] = [];
+                }
+                cc[p].s[s].w[w].texts[container.containerId].push(text);
                 // check if we're at the lastCoord; if yes, break. if not, move to next coord
                 if(p === lastWordCoord[0] && s === lastWordCoord[1] && w === lastWordCoord[2]) {
                     break;
