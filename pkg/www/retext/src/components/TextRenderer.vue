@@ -182,6 +182,7 @@ import {mapGetters} from "vuex";
                     borderRadius: "50% !important",
                     padding: ".5em !important",
                     marginLeft: "50% !important",
+                    marginRight: "50% !important",
                 };
             },
 
