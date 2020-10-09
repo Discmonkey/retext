@@ -10,12 +10,18 @@ Vue.use(VueRouter);
 
 // Set the landing page by changing homePath below.
 // homePath gets "injected" into `routes` below programmatically.
-const homePath = '/project';
+const homePath = '/projects';
 
 const routes = [
     {
-        path: '/',
-        name: 'Home',
+        path: '/projects',
+        name: 'Projects',
+        component: Project,
+        alias: '/'
+    },
+    {
+        path: '/project/:id',
+        name: 'project',
         component: Home,
         redirect: homePath,
         children: [
@@ -34,19 +40,10 @@ const routes = [
                 name: 'Upload',
                 component: Upload,
             },
-            {
-                path: '/project',
-                name: 'Projects',
-                component: Project
-            }
         ],
     },
 ];
-routes[0].children.forEach(child => {
-    if(child.path === homePath) {
-        child.alias = '/';
-    }
-});
+
 
 const router = new VueRouter({
     mode: 'history',
