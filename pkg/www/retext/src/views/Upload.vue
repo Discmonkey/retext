@@ -18,15 +18,17 @@
                 </div>
                 <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.Id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.Id" :document-name="file.Name" button-text="Code" path="/code"></ToDocument>
+                        <ToDocument :document-id="file.Id"
+                                    :document-name="file.Name"
+                                    :project-id="projectId"
+                                    button-text="Code" path="/code"></ToDocument>
                     </div>
                 </div>
 
                 <div>
                     <UploadFile file-type="Source"
-                                v-on:success="addSource($event)" :project-id="$route.params.projectId"
-                                accepted-files=".docx,.txt,.text" :multiple=true
-                                tooltip="You can upload multiple Source files at once.">Upload New Sources</UploadFile>
+                                v-on:success="addSource($event)" :project-id="projectId"
+                                accepted-files=".docx,.txt,.text" :multiple=true>Upload New Sources</UploadFile>
                 </div>
             </div>
 
@@ -34,12 +36,14 @@
                 <h4 class="upload-header"> Demographic Information </h4>
                 <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.Id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.Id" :document-name="file.Name" button-text="Modify" path="/demo"></ToDocument>
+                        <ToDocument :document-id="file.Id" :document-name="file.Name"
+                                    :project-id="projectId"
+                                    button-text="Modify" path="/demo"></ToDocument>
                     </div>
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)" :project-id="$route.params.projectId"
+                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)" :project-id="projectId"
                                 tooltip="For demographic information, please upload a .xlsx or .csv file in which each participant is a different row (a header row is required)."
                                 accepted-files=".xlsx,.csv">Upload New Demographics</UploadFile>
                 </div>
@@ -78,6 +82,10 @@ export default {
                 (this.currentPage - 1) * this.perPage,
                 this.currentPage * this.perPage
             );
+        },
+
+        projectId() {
+            return parseInt(this.$route.params.projectId);
         }
     },
 
@@ -96,7 +104,7 @@ export default {
     methods: {
         addSource(items) {
             items.forEach((item) => {
-                this.uploadedSourceFiles.push(item);
+                this.uploadedSourceFiles.push(item.File);
             });
         },
 

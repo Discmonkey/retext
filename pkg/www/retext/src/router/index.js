@@ -10,7 +10,7 @@ Vue.use(VueRouter);
 
 // Set the landing page by changing homePath below.
 // homePath gets "injected" into `routes` below programmatically.
-const homePath = '/projects';
+// const homePath = '/projects';
 
 const routes = [
     {
@@ -23,7 +23,6 @@ const routes = [
         path: '/project/:projectId',
         name: 'project',
         component: Home,
-        redirect: homePath,
         children: [
             {
                 path: 'code/:documentId',
@@ -50,5 +49,9 @@ const router = new VueRouter({
     base: process.env.BASE_URL,
     routes
 });
+
+router.afterEach((to, from) => {
+    console.log(to, from);
+})
 
 export default router
