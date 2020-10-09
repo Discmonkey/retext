@@ -26,7 +26,7 @@ type WordCoordinate struct {
 }
 
 type DocumentText struct {
-	Id         TextId
+	Id         TextId         `json:"id"`
 	DocumentId FileId         `json:"documentId"`
 	Text       string         `json:"text"`
 	FirstWord  WordCoordinate `json:"anchor"`

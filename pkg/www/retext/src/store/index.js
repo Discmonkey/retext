@@ -8,7 +8,6 @@ export const getters = {
     CONTAINERS: "containers",
     ID_TO_CONTAINER: "idToContainer",
     ID_TO_CODE: "idToCode",
-    GET_CODE: "getCode",
     GET_TEXTS_LENGTH: "getTextsLength",
 }
 
@@ -23,6 +22,7 @@ export const actions = {
     CREATE_CONTAINER: "createContainer",
     CREATE_CODE: "createCode",
     ASSOCIATE_TEXT: "associateText",
+    DISASSOCIATE_TEXT: "disassociateText",
     SET_COLOR_ACTIVE: "toggleColorActive",
 }
 
@@ -164,7 +164,32 @@ export const store = new Vuex.Store({
                 anchor: words.anchor,
                 last: words.last,
             }).then(() => {
+                // TODO: need the textId here?
                 context.commit(mutations.ADD_TEXT, {codeId, text: words})
+            });
+        },
+        async [actions.DISASSOCIATE_TEXT](context, {codedTexts}) {
+            let allTextIds = [];
+            for(let ti of Object.values(codedTexts)) {
+                for(let textId of ti) {
+                    allTextIds.push(textId);
+                }
+            }
+
+            return Vue.axios.delete("/code/disassociate", {
+                data: {textIds: allTextIds}
+            }).then(() => {
+                for(let [codeId, textIds] of Object.entries(codedTexts)) {
+                    let code = context.getters[getters.ID_TO_CODE][codeId];
+
+                    let newTexts = [];
+                    for(let text of code.texts) {
+                        if(!textIds.includes(text.id)) {
+                            newTexts.push(text);
+                        }
+                    }
+                    code.texts = newTexts;
+                }
             });
         },
         /**

@@ -1,12 +1,17 @@
 package code
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/store"
 	"net/http"
 )
+
+type disassociateRequest struct {
+	TextIds []int `json:"textIds"`
+}
 
 func DisassociateText(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -15,21 +20,20 @@ func DisassociateText(store store.CodeStore) func(w http.ResponseWriter, r *http
 			return
 		}
 
-		strIds, ok := r.URL.Query()["TextIds"]
+		var req disassociateRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
 
-		if !ok || len(strIds) == 0 {
+		if len(req.TextIds) == 0 {
 			err := errors.New("textIds parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
 		}
 
-		textIds, err := endpoints.SliceAtoi(strIds)
-
 		if endpoints.HttpNotOk(400, w, "Invalid TextIds passed", err) {
 			return
 		}
 
-		err = store.UncodeText(textIds)
+		err = store.UncodeText(req.TextIds)
 
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to disassociate text.", err) {
 			return

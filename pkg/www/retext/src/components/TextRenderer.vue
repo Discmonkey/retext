@@ -30,9 +30,9 @@
                 </div>
             </div>
         </div>
-        <vue-context ref="deleteMenu" v-slot="{data: texts}">
-            <template v-if="texts">
-                <div @click="deleteTexts(texts)">Delete</div>
+        <vue-context ref="deleteMenu" v-slot="{data: codedTexts}">
+            <template v-if="codedTexts">
+                <li><a @click="deleteTexts(codedTexts)">Delete</a></li>
             </template>
         </vue-context>
         <vue-context ref="associateMenu">
@@ -102,11 +102,12 @@ import 'vue-context/dist/css/vue-context.css';
         return div;
     };
 
-    function mapCodifiedTexts(v, cc, texts, container) {
-        if(!texts) {
+    function mapCodifiedTexts(v, cc, code, container) {
+        if(!code || !code.texts) {
             return;
         }
-        for (let text of texts) {
+        let cid = container.containerId
+        for (let text of code.texts) {
             let lastWordCoord = Object.values(text.last);
 
             let [p, s, w] = [text.anchor.paragraph, text.anchor.sentence, text.anchor.word];
@@ -122,23 +123,27 @@ import 'vue-context/dist/css/vue-context.css';
                 if(!(s in cc[p].s)) {
                     cc[p].s[s] = {
                         w: {}
-                    }
+                    };
                 }
                 if(!(w in cc[p].s[s].w)) {
                     cc[p].s[s].w[w] = {
                         cIds: new Set(),
                         texts: {},
-                    }
+                    };
                 }
                 // check if con is already in [p].cons; if not, add
-                cc[p].cIds.add(container.containerId);
+                cc[p].cIds.add(cid);
                 // check if con is already in [p,s,w].cons; if not, add
-                cc[p].s[s].w[w].cIds.add(container.containerId);
+                cc[p].s[s].w[w].cIds.add(cid);
                 // add text to [p, s, w].texts
-                if(!(container.containerId in cc[p].s[s].w[w].texts)) {
-                    cc[p].s[s].w[w].texts[container.containerId] = [];
+                if(!(cid in cc[p].s[s].w[w].texts)) {
+                    cc[p].s[s].w[w].texts[cid] = {};
                 }
-                cc[p].s[s].w[w].texts[container.containerId].push(text);
+                // add a "code layer" so we can use it if we disassociate text
+                if(!(code.id in cc[p].s[s].w[w].texts[cid])) {
+                    cc[p].s[s].w[w].texts[cid][code.id] = [];
+                }
+                cc[p].s[s].w[w].texts[cid][code.id].push(text.id);
                 // check if we're at the lastCoord; if yes, break. if not, move to next coord
                 if(p === lastWordCoord[0] && s === lastWordCoord[1] && w === lastWordCoord[2]) {
                     break;
@@ -180,10 +185,10 @@ import 'vue-context/dist/css/vue-context.css';
                 let coordTextMap = {};
 
                 for(let container of containers) {
-                    mapCodifiedTexts(this, coordTextMap, container.main.texts, container);
+                    mapCodifiedTexts(this, coordTextMap, container.main, container);
 
                     for(let subcode of container.subcodes) {
-                        mapCodifiedTexts(this, coordTextMap, subcode.texts, container);
+                        mapCodifiedTexts(this, coordTextMap, subcode, container);
                     }
                 }
 
@@ -200,7 +205,7 @@ import 'vue-context/dist/css/vue-context.css';
 
                 return false;
             },
-            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER]),
+            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER, getters.ID_TO_CODE]),
         },
         methods: {
             chooseMenu(e, p, s, w) {
@@ -214,26 +219,26 @@ import 'vue-context/dist/css/vue-context.css';
                             "texts" in this.wordCoordTextMap[p].s[s].w[w] &&
                             this.activeContainerId in this.wordCoordTextMap[p].s[s].w[w].texts
                         ) {
-                            let texts = this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId];
-                            this.$refs.deleteMenu.open(e, texts)
+                            let codedTexts = this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId];
+                            this.$refs.deleteMenu.open(e, codedTexts);
                         }
                     }
                 } else if(this.text.Paragraphs[p].Sentences[s].Parts[w].Selected) {
                     this.$refs.associateMenu.open(e, {})
                 }
-                // TODO else, if [p,s,w] is selected, show context menu for associate text to Codes
             },
-            deleteTexts(texts) {
-                // TODO: $store.deleteTexts(texts)
-                alert("Pretend this deleted the text: " + JSON.stringify(texts));
+
+            deleteTexts(codedTexts) {
+                this.$store.dispatch(actions.DISASSOCIATE_TEXT, {codedTexts});
             },
+
             associateSelectedText(codeId) {
                 let data = {
                     codeId,
                     // TODO: logic from pickupStart() to find {anchor, last, text}. Don't forget the callback, probably?
                 };
                 // TODO: pass `data` to $store.associateText
-                alert("Pretend this is associated text: " + JSON.stringify(data))
+                alert("Pretend this associated text: " + JSON.stringify(data))
             },
             wordStyle(p, s, w) {
                 if (!this.activeContainerId) {
