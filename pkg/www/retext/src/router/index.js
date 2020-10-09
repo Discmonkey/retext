@@ -20,23 +20,23 @@ const routes = [
         alias: '/'
     },
     {
-        path: '/project/:id',
+        path: '/project/:projectId',
         name: 'project',
         component: Home,
         redirect: homePath,
         children: [
             {
-                path: '/code/:documentId',
+                path: 'code/:documentId',
                 name: 'Code',
                 component: Code
             },
             {
-                path: '/demo/:documentId',
+                path: 'demo/:documentId',
                 name: 'Demo',
                 component: Demo
             },
             {
-                path: '/upload',
+                path: 'upload',
                 name: 'Upload',
                 component: Upload,
             },

@@ -4,8 +4,7 @@
             <div class="col-5">
                 <h3 class="text-center font-weight-bold mb-4">Existing Projects</h3>
 
-                <ToProject v-for="project in projects" :project-date="time(project.TimeTag)" class="mb-1"
-                           :project-description="project.Description" :project-name="project.Name" v-bind:key="project.Id"></ToProject>
+                <ToProject v-for="project in projects"  class="mb-1" :project="project" v-bind:key="project.id"></ToProject>
             </div>
 
             <div class="col-7">
@@ -33,7 +32,6 @@
 <script>
 import ToProject from "@/components/nav/ToProject";
 import {ProjectActions} from "@/store/modules/project";
-import moment from 'moment';
 export default {
     name: "Project",
     data() {
@@ -54,10 +52,6 @@ export default {
             const [year, month] = this.date.split("-").map(i => parseInt(i))
             this.$store.dispatch(ProjectActions.ADD_PROJECT, ProjectActions.makeAddProjectPayload(this.name, this.description, year, month));
         },
-
-        time(stamp) {
-            return moment(stamp).add(1, 'days').toDate();
-        }
     },
 
     computed: {

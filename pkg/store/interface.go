@@ -16,10 +16,10 @@ const (
 )
 
 type Project struct {
-	Id          ProjectId
-	TimeTag     time.Time
-	Name        string
-	Description string
+	Id          ProjectId `json:"id"`
+	TimeTag     time.Time `json:"timeTag"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
 }
 
 type File struct {

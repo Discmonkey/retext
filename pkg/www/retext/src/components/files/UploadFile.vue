@@ -18,6 +18,10 @@
             multiple: {
                 type: Boolean,
                 default: false
+            },
+            projectId: {
+                type: Number,
+                default: -1
             }
         },
         data: function() {
@@ -38,7 +42,7 @@
                     formData.append("file", file);
                 });
 
-                this.axios.post("/file/upload",
+                this.axios.post(`/file/upload?projectId=${this.projectId}`,
                     formData,
                     {
                         headers: {

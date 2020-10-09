@@ -25,7 +25,7 @@ export const ProjectModule = {
 
         [ProjectMutations.ADD_PROJECT](state, project) {
             for (const projectOld of state.projects) {
-                if (project.Id === projectOld.Id) {
+                if (project.id === projectOld.id) {
                     return;
                 }
             }

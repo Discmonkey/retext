@@ -1,10 +1,13 @@
 <template>
     <div class="border--blue layout">
-        <h5 class="link"> {{projectName}}</h5>
+        <h5 class="link" >
+            <router-link :to="link"> {{project.name}}</router-link>
+
+        </h5>
 
         <h5 class="date"> {{stringDate}}</h5>
 
-        <p>  {{projectDescription}}</p>
+        <p>  {{project.description}}</p>
     </div>
 </template>
 
@@ -14,15 +17,17 @@ import moment from 'moment'
 export default {
     name: "ToProject",
     props: [
-        "projectName",
-        "projectDate",
-        "projectDescription"
+        "project",
     ],
 
     computed: {
         stringDate() {
-            return moment(this.projectDate).format("MMM YYYY");
-        }
+            return moment(this.project.timeTag).add(1, "days").format("MMM YYYY");
+        },
+
+        link() {
+            return `/project/${this.project.id}/upload`
+        },
     }
 }
 </script>

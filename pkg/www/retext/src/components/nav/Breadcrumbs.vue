@@ -47,6 +47,9 @@
 </script>
 
 <style scoped>
+li {
+    font-weight: bold;
+}
 .breadcrumb {
     background-color: transparent;
 }
