@@ -35,22 +35,18 @@
                 <li><a @click="deleteTexts(codedTexts)">Delete</a></li>
             </template>
         </vue-context>
-        <vue-context ref="associateMenu">
+        <vue-context ref="associateMenu" v-slot="{data}">
             <template>
+            <li style="margin-left:10px"><h5>Associate</h5></li>
             <li
                 v-for="(container) in containers"
                 :key="container.containerId"
                 :class="{'v-context__sub': container.subcodes.length}"
             >
-                <a @click.prevent="associateSelectedText(container.main.id)">{{ container.main.name }}</a>
-                <ul class="v-context"
-                    v-if="container.subcodes.length"
-                >
-                    <li
-                        v-for="(subcode) in container.subcodes"
-                        :key="subcode.id"
-                    >
-                        <a @click.prevent="associateSelectedText(container.main.id)">{{ subcode.name }}</a>
+                <a @click.prevent="associateSelectedText(container.main.id, data)">{{ container.main.name }}</a>
+                <ul class="v-context" v-if="container.subcodes.length">
+                    <li v-for="(subcode) in container.subcodes" :key="subcode.id">
+                        <a @click.prevent="associateSelectedText(container.main.id, data)">{{ subcode.name }}</a>
                     </li>
                 </ul>
             </li>
@@ -63,6 +59,7 @@
 import {actions, getters} from "@/store";
 import {mapGetters} from "vuex";
 import VueContext from 'vue-context';
+// the default styling relies on <li> elements and specific classes.
 import 'vue-context/dist/css/vue-context.css';
 // eslint-disable-next-line no-unused-vars
     let TextType = {
@@ -153,6 +150,63 @@ import 'vue-context/dist/css/vue-context.css';
         }
     }
 
+/**
+ * Given p, s, and w, finds all adjacent, selected words and returns their coordinates
+ *  of the first and last words, and a string containing all the text between (inclusive)
+ *
+ * @param tr a TextRenderer instance
+ * @param p  paragraph index
+ * @param s  sentence index
+ * @param w  word index
+ * @returns {{anchor, last, text}}
+ */
+function getSelectedRegion(tr, p, s, w) {
+        let regionInfo = {};
+
+        let selectedWords = [];
+        let currentWord = tr.words(p, s)[w];
+        let indices = [p, s, w];
+
+        while (currentWord.Selected) {
+            selectedWords.push(currentWord.Text);
+            indices = tr.previous(indices[0], indices[1], indices[2]);
+
+            if (indices[3] === 0) {
+                break;
+            }
+            currentWord = tr.words(indices[0], indices[1])[indices[2]];
+        }
+
+        selectedWords.reverse();
+        regionInfo.anchor = {
+            paragraph: indices[0],
+            sentence: indices[1],
+            word: indices[2],
+        }
+
+        indices = tr.next(p, s, w);
+        currentWord = tr.words(indices[0], indices[1])[indices[2]];
+
+        while (currentWord.Selected) {
+            selectedWords.push(currentWord.Text);
+            indices = tr.next(indices[0], indices[1], indices[2]);
+
+            if (indices[3] === 0) {
+                break;
+            }
+            currentWord = tr.words(indices[0], indices[1])[indices[2]];
+        }
+
+        regionInfo.last = {
+            paragraph: indices[0],
+            sentence: indices[1],
+            word: indices[2],
+        }
+        regionInfo.text = selectedWords.join(" ");
+
+        return regionInfo;
+    }
+
     export default {
         name: "TextRenderer",
         props: ["text", "documentId"],
@@ -224,7 +278,7 @@ import 'vue-context/dist/css/vue-context.css';
                         }
                     }
                 } else if(this.text.Paragraphs[p].Sentences[s].Parts[w].Selected) {
-                    this.$refs.associateMenu.open(e, {})
+                    this.$refs.associateMenu.open(e, {data: {p, s, w}});
                 }
             },
 
@@ -232,13 +286,14 @@ import 'vue-context/dist/css/vue-context.css';
                 this.$store.dispatch(actions.DISASSOCIATE_TEXT, {codedTexts});
             },
 
-            associateSelectedText(codeId) {
-                let data = {
-                    codeId,
-                    // TODO: logic from pickupStart() to find {anchor, last, text}. Don't forget the callback, probably?
-                };
-                // TODO: pass `data` to $store.associateText
-                alert("Pretend this associated text: " + JSON.stringify(data))
+            associateSelectedText(codeId, {p, s, w}) {
+                let words = getSelectedRegion(this, p, s, w);
+
+                this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId, words}).then(() => {
+                    // todo: "success" toast or something
+                }, () => {
+                    // todo: "an error occurred" toast or something
+                });
             },
             wordStyle(p, s, w) {
                 if (!this.activeContainerId) {
@@ -305,37 +360,10 @@ import 'vue-context/dist/css/vue-context.css';
             },
 
             pickupStart: function(paragraph, sentence, word, e) {
-                let selectedWords = [];
-                let currentWord = this.words(paragraph, sentence)[word];
-                let indices = [paragraph, sentence, word];
-
-                while (currentWord.Selected) {
-                    selectedWords.push(currentWord.Text);
-                    indices = this.previous(indices[0], indices[1], indices[2]);
-
-                    if (indices[3] === 0) {
-                        break;
-                    }
-                    currentWord = this.words(indices[0], indices[1])[indices[2]];
-                }
-
-                selectedWords.reverse();
-
-                indices = this.next(paragraph, sentence, word);
-                currentWord = this.words(indices[0], indices[1])[indices[2]];
-
-                while (currentWord.Selected) {
-                    selectedWords.push(currentWord.Text);
-                    indices = this.next(indices[0], indices[1], indices[2]);
-
-                    if (indices[3] === 0) {
-                        break;
-                    }
-                    currentWord = this.words(indices[0], indices[1])[indices[2]];
-                }
+                let words = getSelectedRegion(this, paragraph, sentence, word);
 
                 let div = createDiv(e.clientX, e.clientY);
-                div.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
+                div.innerText = `"${words.text}"`;
 
                 document.body.appendChild(div);
 
@@ -349,14 +377,12 @@ import 'vue-context/dist/css/vue-context.css';
                     document.removeEventListener("mouseup", remove);
                     document.removeEventListener("mousemove", move);
 
-                    let words = JSON.parse(JSON.stringify(this.dragTool));
                     words.documentId = documentId;
-                    words.text = selectedWords.join(" ");
 
                     let textDropEvent = new CustomEvent("text-drop", {
                         bubbles: true, cancelable: true,
                         detail: {
-                            data: {words: words},
+                            data: {words},
                             callback: () => {
                                 // todo: add code-specific color-class
                                 console.log(`sample: ${JSON.stringify(words)}`);

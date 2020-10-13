@@ -127,9 +127,6 @@ import {mapGetters} from "vuex";
                     // todo: "an error occurred" toast or something
                 });
             },
-            getCode(codeId) {
-                return this.$store.getters[getters.GET_CODE](codeId)
-            },
             getContainerTextsLength(container) {
                 return this.$store.getters[getters.GET_TEXTS_LENGTH](container.containerId)
             },
