@@ -71,3 +71,9 @@ func ProjectIdOk(r *http.Request, w http.ResponseWriter, errMessage string) (sto
 
 	return projectId, true
 }
+
+func LogIf(err error) {
+	if err != nil {
+		log.Println(err)
+	}
+}

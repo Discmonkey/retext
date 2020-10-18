@@ -57,6 +57,7 @@ func main() {
 	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
 	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
 
+	http.HandleFunc("/project", project.GetEndpoint(projectBackend))
 	http.HandleFunc("/project/create", project.CreateProject(projectBackend))
 	http.HandleFunc("/project/list", project.ListEndpoint(projectBackend))
 
