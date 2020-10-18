@@ -33,9 +33,6 @@ export const ProjectModule = {
             state.projects.push(project);
         },
 
-        [ProjectMutations.SELECT_PROJECT](state, index) {
-            state.currentProject = state.projects[index];
-        },
     },
 
     actions: {

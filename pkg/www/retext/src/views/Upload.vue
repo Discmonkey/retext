@@ -11,11 +11,7 @@
             <div class="col-6">
                 <h4 class="upload-header">Source Files </h4>
 
-                <div>
-                    <b-pagination v-model="currentPage"
-                                  :total-rows="uploadedSourceFiles.length"
-                                  :per-page="perPage"></b-pagination>
-                </div>
+
                 <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.Id">
                     <div class="mb-3">
                         <ToDocument :document-id="file.Id"
@@ -25,11 +21,19 @@
                     </div>
                 </div>
 
+
+                <div v-if="uploadedSourceFiles.length > perPage">
+                    <b-pagination v-model="currentPage"
+                                  :total-rows="uploadedSourceFiles.length"
+                                  :per-page="perPage"></b-pagination>
+                </div>
+
                 <div>
                     <UploadFile file-type="Source"
                                 v-on:success="addSource($event)" :project-id="projectId"
                                 accepted-files=".docx,.txt,.text" :multiple=true>Upload New Sources</UploadFile>
                 </div>
+
             </div>
 
             <div class="col-6">

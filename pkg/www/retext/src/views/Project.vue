@@ -1,13 +1,13 @@
 <template>
     <div class="container">
         <div class="row">
-            <div class="col-5">
+            <div class="col-8">
                 <h3 class="text-center font-weight-bold mb-4">Existing Projects</h3>
 
                 <ToProject v-for="project in projects"  class="mb-1" :project="project" v-bind:key="project.id"></ToProject>
             </div>
 
-            <div class="col-7">
+            <div class="col-4">
                 <div class="form-group">
                     <h3 class="text-center font-weight-bold mb-4">Start a new Project</h3>
 
@@ -15,7 +15,7 @@
 
                     <input type="month" class="mb-4 d-inline-block form-control" v-model="date">
 
-                    <textarea class="mb-4 w-100 form-control" placeholder="Project Description" v-model="description">
+                    <textarea class="mb-4 w-100 form-control" placeholder="Project Description" v-model="description" rows="10">
 
                     </textarea>
 

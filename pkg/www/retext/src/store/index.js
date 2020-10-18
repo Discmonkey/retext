@@ -17,6 +17,7 @@ export const mutations = {
     ADD_CONTAINER: "addContainer",
     ADD_CODE: "addCode",
     ADD_TEXT: "addText",
+    SET_PROJECT: "setProject"
 }
 export const actions = {
     INIT_CONTAINERS: "initContainers",
@@ -48,6 +49,7 @@ export const store = new Vuex.Store({
         containers: [],
         idToContainer: {},
         idToCode: {},
+        project: -1,
     },
     getters: {
         [getters.CONTAINERS](state) {
@@ -110,7 +112,7 @@ export const store = new Vuex.Store({
         },
         [mutations.ADD_TEXT](state, {codeId, text}) {
             state.idToCode[codeId].texts.push(text);
-        },
+        }
     },
     actions: {
         async [actions.CREATE_CONTAINER](context, {name}) {
