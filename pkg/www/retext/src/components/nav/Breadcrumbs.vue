@@ -1,5 +1,8 @@
 <template>
     <ul class="breadcrumb" v-if="crumbs.length" >
+        <li v-if="nohome" class="breadcrumb-item">
+            <router-link to="/"> Home </router-link>
+        </li>
         <li v-for="(crumb, i) in crumbs" :key="i" class="breadcrumb-item" :class="{'active': isLast(i)}">
             <router-link v-if="!isLast(i)" :to="getTo(crumb)">{{ crumbName(crumb) }}</router-link>
             <span v-else class="last">{{ crumbName(crumb) }}</span>
@@ -16,16 +19,13 @@
         name: "Breadcrumbs",
         computed: {
             crumbs() {
-                const crumbs = [{
-                    name: "projects",
-                    path: "/",
-                    meta: {}
-                }]
 
-                this.$route.matched.forEach(route => crumbs.push(route));
-
-                return crumbs;
+                return this.$route.matched
             },
+
+            nohome() {
+                return this.$route.matched[0].name !== "Projects"
+            }
         },
         methods: {
             isLast(i) {
