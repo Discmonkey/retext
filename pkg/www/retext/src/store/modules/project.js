@@ -69,7 +69,6 @@ export const ProjectModule = {
 
             commit(ProjectMutations.SELECT_PROJECT, payload);
 
-            console.log(state.currentProject);
         }
     },
 

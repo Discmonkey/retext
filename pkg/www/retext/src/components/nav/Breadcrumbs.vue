@@ -16,7 +16,15 @@
         name: "Breadcrumbs",
         computed: {
             crumbs() {
-                return this.$route.matched;
+                const crumbs = [{
+                    name: "projects",
+                    path: "/",
+                    meta: {}
+                }]
+
+                this.$route.matched.forEach(route => crumbs.push(route));
+
+                return crumbs;
             },
         },
         methods: {
