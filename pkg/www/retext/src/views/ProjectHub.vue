@@ -1,6 +1,8 @@
 <template>
 <div class="project-container">
-    <h4></h4>
+    <h4>
+        {{project.name}}
+    </h4>
 </div>
 </template>
 

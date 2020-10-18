@@ -26,7 +26,7 @@ export default {
         },
 
         link() {
-            return `/project/${this.project.id}/upload`
+            return `/project/${this.project.id}`
         },
     }
 }

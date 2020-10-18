@@ -11,13 +11,19 @@
                 <div class="form-group">
                     <h3 class="text-center font-weight-bold mb-4">Start a new Project</h3>
 
-                    <input type="text" placeholder="Project Name" class="mb-4 w-100 d-inline-block form-control" v-model="name">
+                    <label>
+                        <input type="text" placeholder="Project Name" class="mb-4 w-100 d-inline-block form-control" v-model="name">
+                    </label>
 
-                    <input type="month" class="mb-4 d-inline-block form-control" v-model="date">
+                    <label>
+                        <input type="month" class="mb-4 d-inline-block form-control" v-model="date">
+                    </label>
 
-                    <textarea class="mb-4 w-100 form-control" placeholder="Project Description" v-model="description" rows="10">
+                    <label>
+<textarea class="mb-4 w-100 form-control" placeholder="Project Description" v-model="description" rows="10">
 
-                    </textarea>
+</textarea>
+                    </label>
 
                     <div class="w-100 text-center">
                     <button class="btn btn-primary d-inline-block" @click="createProject()"> Create Project </button>
@@ -68,10 +74,10 @@ input {
     padding: 10px;
     border-radius: 5px;
 }
-
-.mb-1 {
-    margin-bottom: 1em;
+label {
+    width: 100%;
 }
+
 .mr-4 {
     margin-right: 4%;
 }

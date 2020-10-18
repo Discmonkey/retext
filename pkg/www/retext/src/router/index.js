@@ -5,6 +5,7 @@ import Upload from "@/views/Upload";
 import Demo from "@/views/Demo";
 import Home from "@/Home";
 import Project from "@/views/Project";
+import ProjectHub from "@/views/ProjectHub";
 
 Vue.use(VueRouter);
 
@@ -39,6 +40,11 @@ const routes = [
                 name: 'Upload',
                 component: Upload,
             },
+            {
+                path: '',
+                name: "ProjectHub",
+                component: ProjectHub
+            }
         ],
     },
 ];
