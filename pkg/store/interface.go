@@ -9,6 +9,7 @@ type FileType = string
 
 type CodeId = int
 type ContainerId = int
+type TextId = int
 
 const (
 	SourceFile FileType = "SourceFile"
@@ -36,6 +37,7 @@ type WordCoordinate struct {
 }
 
 type DocumentText struct {
+	Id         TextId         `json:"id"`
 	DocumentId FileId         `json:"documentId"`
 	Text       string         `json:"text"`
 	FirstWord  WordCoordinate `json:"anchor"`
@@ -74,6 +76,7 @@ type CodeStore interface {
 	CreateContainer(id ProjectId) (ContainerId, error)
 	CreateCode(name string, containerId ContainerId) (CodeId, error)
 	CodifyText(codeId CodeId, documentId FileId, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
+	UncodeText(textIds []TextId) error
 	GetCode(codeId CodeId) (Code, error)
 	GetContainer(codeId ContainerId) (CodeContainer, error)
 	GetContainers(id ProjectId) ([]CodeContainer, error)

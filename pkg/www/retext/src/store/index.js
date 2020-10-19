@@ -1,6 +1,7 @@
 import Vue from "vue"
 import Vuex from "vuex";
 import {ProjectModule} from "@/store/modules/project";
+import {getColor, invertColor} from "@/core/Colors";
 
 Vue.use(Vuex)
 
@@ -25,6 +26,8 @@ export const actions = {
     CREATE_CONTAINER: "createContainer",
     CREATE_CODE: "createCode",
     ASSOCIATE_TEXT: "associateText",
+    DISASSOCIATE_TEXT: "disassociateText",
+    SET_COLOR_ACTIVE: "toggleColorActive",
 }
 
 /*
@@ -90,11 +93,18 @@ export const store = new Vuex.Store({
     mutations: {
         [mutations.ADD_CONTAINER](state, container) {
             if(!(container.containerId in state.idToContainer)) {
+                container.colorInfo = {
+                    active: false,
+                    bg: getColor(state.containers.length),
+                };
+                container.colorInfo.fg = invertColor(container.colorInfo.bg, true);
                 state.containers.push(container);
             } else {
                 // if the same container gets added again, replace old with new
-                for(const [i, container] of state.containers.entries()) {
-                    if(container.containerId === container.containerId) {
+                //  note that the old colorInfo is preserved due to how getColor works
+                for(const [i, c] of state.containers.entries()) {
+                    if(container.containerId === c.containerId) {
+                        container.colorInfo = c.colorInfo;
                         state.containers[i] = container;
                         break;
                     }
@@ -102,10 +112,10 @@ export const store = new Vuex.Store({
             }
 
             // override the map values with the values from the new container
-            state.idToContainer[container.containerId] = container;
-            state.idToCode[container.main.id] = container.main;
+            Vue.set(state.idToContainer, container.containerId, container)
+            Vue.set(state.idToCode, container.main.id, container.main)
             for(const code of container.subcodes) {
-                state.idToCode[code.id] = code;
+                Vue.set(state.idToCode, code.id, code);
             }
         },
 
@@ -155,13 +165,66 @@ export const store = new Vuex.Store({
             return code;
         },
         async [actions.ASSOCIATE_TEXT](context, {codeId, words}) {
+            if(
+                words.anchor.paragraph > words.last.paragraph ||
+                words.anchor.paragraph === words.last.paragraph && words.anchor.sentence > words.last.sentence ||
+                words.anchor.paragraph === words.last.paragraph && words.anchor.sentence === words.last.sentence && words.anchor.word > words.last.word
+            ) {
+                // swap the order to make sure the first is first
+                let t = words.last;
+                words.last = words.anchor;
+                words.anchor = t;
+            }
+
             return Vue.axios.post("/code/associate", {
                 key: parseInt(words.documentId),
                 codeId: codeId,
-                text: words.text
+                text: words.text,
+                anchor: words.anchor,
+                last: words.last,
             }).then(() => {
-                context.commit(mutations.ADD_TEXT, {codeId, text: words.text})
+                // TODO: need the textId here?
+                context.commit(mutations.ADD_TEXT, {codeId, text: words})
             });
+        },
+        async [actions.DISASSOCIATE_TEXT](context, {codedTexts}) {
+            let allTextIds = [];
+            for(let ti of Object.values(codedTexts)) {
+                for(let textId of ti) {
+                    allTextIds.push(textId);
+                }
+            }
+
+            return Vue.axios.delete("/code/disassociate", {
+                data: {textIds: allTextIds}
+            }).then(() => {
+                for(let [codeId, textIds] of Object.entries(codedTexts)) {
+                    let code = context.getters[getters.ID_TO_CODE][codeId];
+
+                    let newTexts = [];
+                    for(let text of code.texts) {
+                        if(!textIds.includes(text.id)) {
+                            newTexts.push(text);
+                        }
+                    }
+                    code.texts = newTexts;
+                }
+            });
+        },
+        /**
+         * if `toggleTo` is not provided, whatever the current "status" is will be flipped
+         *
+         * only 1 container can be "color active" at a time
+         */
+        async [actions.SET_COLOR_ACTIVE] (context, {containerId, toggleTo}) {
+            let c = context.getters[getters.ID_TO_CONTAINER][containerId];
+            toggleTo = toggleTo === undefined ? !c.colorInfo.active : toggleTo;
+
+            for(let c of context.getters[getters.CONTAINERS]) {
+                c.colorInfo.active = false;
+            }
+
+            c.colorInfo.active = toggleTo;
         },
         async [actions.INIT_CONTAINERS](context) {
             Vue.axios.get(`/code/list?${makeId(context)}`).then((res) => {

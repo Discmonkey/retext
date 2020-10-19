@@ -18,6 +18,22 @@ func HttpNotOk(statusCode int, w http.ResponseWriter, frontendErr string, err er
 	}
 }
 
+func SliceAtoi(strings []string) ([]int, error) {
+	ints := make([]int, len(strings))
+
+	for j, s := range strings {
+		i, err := strconv.Atoi(s)
+
+		if err != nil {
+			return nil, err
+		}
+
+		ints[j] = i
+	}
+
+	return ints, nil
+}
+
 const MaxUploadSize = 2 * 1024 * 1024
 
 func GetInt(r *http.Request, key string) (int, bool) {
