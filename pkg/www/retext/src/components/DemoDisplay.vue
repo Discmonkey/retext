@@ -36,8 +36,6 @@ export default {
                     return;
                 }
 
-                console.log(res.data);
-
                 let columns = res.data.Attributes.Columns;
                 let values = res.data.Attributes.Values;
 

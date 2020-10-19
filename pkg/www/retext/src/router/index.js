@@ -58,8 +58,4 @@ const router = new VueRouter({
     routes
 });
 
-router.afterEach((to, from) => {
-    console.log(to, from);
-})
-
 export default router
