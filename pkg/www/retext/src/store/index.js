@@ -13,6 +13,7 @@ export const getters = {
 }
 
 export const mutations = {
+    CLEAR_CONTAINERS: "clearContainers",
     SET_CONTAINERS: "setContainers",
     ADD_CONTAINER: "addContainer",
     ADD_CODE: "addCode",
@@ -107,6 +108,16 @@ export const store = new Vuex.Store({
                 state.idToCode[code.id] = code;
             }
         },
+
+        [mutations.CLEAR_CONTAINERS](state) {
+            while (state.containers.length) {
+                state.containers.pop();
+            }
+
+            state.idToContainer = {};
+            state.idToCode = {};
+        },
+
         [mutations.SET_CONTAINERS] (state, containers) {
             Vue.set(state, "containers", containers);
         },
@@ -155,6 +166,8 @@ export const store = new Vuex.Store({
         async [actions.INIT_CONTAINERS](context) {
             Vue.axios.get(`/code/list?${makeId(context)}`).then((res) => {
                 const containers = res.data;
+
+                context.commit(mutations.CLEAR_CONTAINERS);
 
                 for(const c of containers) {
                     const container = prepareContainer(c)
