@@ -114,7 +114,7 @@ export default {
 
         addDemo(items) {
             items.forEach((item) => {
-                this.uploadedDemoFiles.push(item);
+                this.uploadedDemoFiles.push(item.File);
             });
         },
 

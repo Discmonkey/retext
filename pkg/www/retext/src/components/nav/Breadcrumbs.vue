@@ -15,17 +15,27 @@
       started with this link... doesn't much resemble it anymore. consider it a url-parsing-alternative...
       https://github.com/NxtChg/pieces/blob/master/js/vue/vs-crumbs/vs-crumbs.js
     =============================================================================*/
+    import {HubName, ProjectName} from "@/router";
+
     export default {
         name: "Breadcrumbs",
         computed: {
             crumbs() {
+                const crumbs = [];
 
-                return this.$route.matched
+                this.$route.matched.forEach(c => {
+                    if (c.name !== HubName) {
+                        crumbs.push(c);
+                    }
+                })
+
+                return crumbs;
             },
 
             nohome() {
                 return this.$route.matched[0].name !== "Projects"
-            }
+            },
+
         },
         methods: {
             isLast(i) {
@@ -35,12 +45,26 @@
                 let to = {params: this.$route.params}
                 if (crumb.name) {
                     to.name = crumb.name;
+                }
+
+                if (crumb.name === ProjectName) {
+                    to.name = HubName;
+                    to.path = `/project/${this.$route.params.projectId}/`
                 } else if (crumb.path) {
                     to.path = crumb.path;
                 }
+
+
                 return to;
             },
+
             crumbName(crumb) {
+                // rewrite the name to the actual project name,
+                // TODO refactor to method  if more rewrite need to take place
+                if (crumb.name === ProjectName && this.$store.getters.currentProject !== null) {
+                    return this.$store.getters.currentProject.name;
+                }
+
                 // `crumb.path` contains the full path and would have to be parsed to figure out
                 //  which `params` to use as display text. If `crumb.path` contained only the child route's
                 //  path, meta.name would likely be unnecessary...

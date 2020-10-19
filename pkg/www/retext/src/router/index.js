@@ -12,6 +12,8 @@ Vue.use(VueRouter);
 // Set the landing page by changing homePath below.
 // homePath gets "injected" into `routes` below programmatically.
 // const homePath = '/projects';
+export const HubName = "ProjectHub";
+export const ProjectName = "project";
 
 const routes = [
     {
@@ -22,7 +24,7 @@ const routes = [
     },
     {
         path: '/project/:projectId',
-        name: 'project',
+        name: ProjectName,
         component: Home,
         children: [
             {
@@ -42,7 +44,7 @@ const routes = [
             },
             {
                 path: '',
-                name: "ProjectHub",
+                name: HubName,
                 component: ProjectHub
             }
         ],

@@ -44,6 +44,10 @@ async function createCode(containerId, name) {
             })).data
 }
 
+function makeId(context) {
+    return `projectId=${context.state.ProjectModule.currentProject.id}`
+}
+
 export const store = new Vuex.Store({
     state: {
         containers: [],
@@ -116,7 +120,7 @@ export const store = new Vuex.Store({
     },
     actions: {
         async [actions.CREATE_CONTAINER](context, {name}) {
-            const res = await Vue.axios.post("/code/container/create");
+            const res = await Vue.axios.post(`/code/container/create?${makeId(context)}`);
             const containerId = res.data.ContainerId;
 
             const code = await createCode(containerId, name);
@@ -149,7 +153,7 @@ export const store = new Vuex.Store({
             });
         },
         async [actions.INIT_CONTAINERS](context) {
-            Vue.axios.get("/code/list").then((res) => {
+            Vue.axios.get(`/code/list?${makeId(context)}`).then((res) => {
                 const containers = res.data;
 
                 for(const c of containers) {
