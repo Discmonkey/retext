@@ -1,0 +1,29 @@
+# 1) make sure the code connects to this new port
+# 2) use this d-c when running tests to avoid polluting the other db
+
+version: '3'
+
+volumes:
+  db-data-test:
+services:
+  db_test:
+    image: postgres
+    volumes:
+      - db-data-test:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5433
+    ports:
+    - 5433:5433
+
+  db_loader_test:
+    image: qode_db_loader
+    volumes:
+      - ../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
+    environment:
+      - QODE_DB_PORT=5433
+    network_mode: host
+    depends_on:
+      - db_test

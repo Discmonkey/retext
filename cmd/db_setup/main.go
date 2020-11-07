@@ -5,7 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/discmonkey/retext/pkg/store/credentials"
+	"github.com/discmonkey/retext/pkg/store/postgres_backend"
 	packageVersion "github.com/discmonkey/retext/pkg/version"
 	_ "github.com/lib/pq"
 	"io/ioutil"
@@ -109,18 +109,13 @@ func version(tx *sql.Tx) error {
 	return nil
 }
 func main() {
-
 	migrationDir, err := getMigrationDir()
 	timeoutTries := 10
 
 	fatalLogIf(err, "")
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		credentials.GetHost(), credentials.GetPort(),
-		credentials.GetUser(), credentials.GetPass(), credentials.GetDB())
+	db, err := postgres_backend.GetConnection()
 
-	db, err := sql.Open("postgres", psqlInfo)
 	fatalLogIf(err, "could not open database connection")
 
 	for ; timeoutTries > 0; timeoutTries-- {

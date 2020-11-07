@@ -10,6 +10,7 @@ COPY go.sum ./
 RUN go mod download
 
 COPY cmd/db_setup/main.go ./cmd/db_setup/main.go
+COPY pkg/store/postgres_backend/connection.go ./pkg/store/postgres_backend/connection.go
 COPY pkg/store/credentials/credentials.go ./pkg/store/credentials/credentials.go
 COPY pkg/version/version.go ./pkg/version/version.go
 

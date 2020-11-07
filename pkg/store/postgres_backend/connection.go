@@ -10,9 +10,14 @@ import (
 type connection = *sql.DB
 
 func GetConnection() (*sql.DB, error) {
+	p, err := credentials.GetPort()
+	if err != nil {
+		return nil, err
+	}
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		credentials.GetHost(), credentials.GetPort(),
+		credentials.GetHost(), p,
 		credentials.GetUser(), credentials.GetPass(), credentials.GetDB())
 
 	return sql.Open("postgres", psqlInfo)
