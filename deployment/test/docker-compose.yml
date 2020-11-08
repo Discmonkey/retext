@@ -22,7 +22,7 @@ services:
   db_loader_test:
     image: qode_db_loader
     volumes:
-      - ../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
+      - ../../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
     environment:
       - IS_DOCKER=1
       - QODE_DB_PORT=5433
