@@ -67,10 +67,8 @@ func GetIntOk(r *http.Request, w http.ResponseWriter, key, message string) (int,
 func GetStringOk(r *http.Request, w http.ResponseWriter, key, message string) (string, bool) {
 	value, ok := r.URL.Query()[key]
 	if !ok || len(value) < 1 {
-		if !ok {
-			err := errors.New("message")
-			HttpNotOk(400, w, err.Error(), err)
-		}
+		err := errors.New(message)
+		HttpNotOk(400, w, err.Error(), err)
 	}
 
 	return value[0], true
