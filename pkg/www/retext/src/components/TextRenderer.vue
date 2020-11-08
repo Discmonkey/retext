@@ -166,9 +166,11 @@ function getSelectedRegion(tr, p, s, w) {
         let selectedWords = [];
         let currentWord = tr.words(p, s)[w];
         let indices = [p, s, w];
+        let currentIndices = indices;
 
         while (currentWord.Selected) {
             selectedWords.push(currentWord.Text);
+            currentIndices = indices;
             indices = tr.previous(indices[0], indices[1], indices[2]);
 
             if (indices[3] === 0) {
@@ -179,16 +181,18 @@ function getSelectedRegion(tr, p, s, w) {
 
         selectedWords.reverse();
         regionInfo.anchor = {
-            paragraph: indices[0],
-            sentence: indices[1],
-            word: indices[2],
+            paragraph: currentIndices[0],
+            sentence: currentIndices[1],
+            word: currentIndices[2],
         }
 
-        indices = tr.next(p, s, w);
         currentWord = tr.words(indices[0], indices[1])[indices[2]];
+        indices = tr.next(p, s, w);
+        currentIndices = indices;
 
         while (currentWord.Selected) {
             selectedWords.push(currentWord.Text);
+            currentIndices = indices;
             indices = tr.next(indices[0], indices[1], indices[2]);
 
             if (indices[3] === 0) {
@@ -198,9 +202,9 @@ function getSelectedRegion(tr, p, s, w) {
         }
 
         regionInfo.last = {
-            paragraph: indices[0],
-            sentence: indices[1],
-            word: indices[2],
+            paragraph: currentIndices[0],
+            sentence: currentIndices[1],
+            word: currentIndices[2],
         }
         regionInfo.text = selectedWords.join(" ");
 
