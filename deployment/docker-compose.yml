@@ -2,9 +2,11 @@ version: '3'
 
 volumes:
   db-data:
+  files:
 
 services:
   db:
+    container_name: "qode_db"
     image: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -19,6 +21,19 @@ services:
     image: qode_db_loader
     volumes:
       - ../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
-    network_mode: host
+    environment:
+      - IS_DOCKER=1
     depends_on:
       - db
+
+  qode:
+    image: qode
+    volumes:
+      - files:/files
+    command: ["./bin/server", "-file_dir", "/files"]
+    environment:
+      - IS_DOCKER=1
+    ports:
+      - 3000:3000
+    depends_on:
+      - db_loader

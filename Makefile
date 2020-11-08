@@ -9,7 +9,7 @@ backend: frontend
 
 .PHONY: docker_server
 docker_server:
-	docker build . -f deployment/Dockerfile -t retext
+	docker build . -f deployment/Dockerfile -t qode
 
 .PHONY: docker_db_loader
 docker_db_loader:
