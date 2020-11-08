@@ -23,10 +23,8 @@ services:
       - ../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
     environment:
       - IS_DOCKER=1
-      - QODE_DB_PORT=5433
     depends_on:
       - db
-
   qode:
     image: qode
     volumes:
@@ -34,7 +32,6 @@ services:
     command: ["./bin/server", "-file_dir", "/files"]
     environment:
       - IS_DOCKER=1
-      - QODE_DB_PORT=5433
     ports:
       - 3000:3000
     depends_on:
