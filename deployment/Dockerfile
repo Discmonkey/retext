@@ -1,27 +1,19 @@
 FROM ubuntu:18.04
 
-RUN apt-get update
+COPY third_party /third_party
+RUN tar xf /third_party/node-v14.5.0-linux-x64.tar.gz
+RUN tar xf /third_party/go1.14.4.linux-amd64.tar.gz
 
-RUN apt-get install -y curl
+# so we can find npm + go
+ENV PATH=$PATH:/node-v14.5.0-linux-x64/bin:/go/bin
 
-RUN curl -O https://dl.google.com/go/go1.14.3.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.14.3.linux-amd64.tar.gz
-ENV PATH=$PATH:/usr/local/go/bin
+RUN mkdir retext
 
-RUN apt-get install -y npm
+WORKDIR retext
 
-RUN apt-get install -y make
-
-RUN npm install -g @vue/cli
-
-RUN mkdir /retext
-WORKDIR /retext
-
+COPY go.mod ./
 COPY pkg ./pkg
-COPY cmd ./cmd
-COPY makefile ./makefile
 
-ENV PATH=$PATH:/usr/local/bin
-RUN cd /retext/pkg/www/retext && npm install
+RUN cd pkg/www/retext && npm install && npm run build
 
-COPY ./go.mod .
-RUN make backend
+RUN mkdir -p bin && go build -o bin/server cmd/server/main.go
