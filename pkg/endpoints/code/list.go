@@ -17,7 +17,12 @@ func ListEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		containers, err := store.GetContainers()
+		projectId, ok := endpoints.ProjectIdOk(r, w, "project Id required to list code containers")
+		if !ok {
+			return
+		}
+
+		containers, err := store.GetContainers(projectId)
 
 		if endpoints.HttpNotOk(400, w, "could not fetch containers", err) {
 			return

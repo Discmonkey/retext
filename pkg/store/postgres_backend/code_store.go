@@ -1,37 +1,35 @@
 package postgres_backend
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend/builders"
 	"github.com/discmonkey/retext/pkg/version"
+	"github.com/lib/pq"
 )
 
 type CodeStore struct {
 	db connection
 }
 
-func NewCodeStore() (*CodeStore, error) {
-	con, err := GetConnection()
-	if err != nil {
-		return nil, err
-	}
+func NewCodeStore(connection *sql.DB) CodeStore {
 
-	return &CodeStore{db: con}, nil
+	return CodeStore{db: connection}
 }
 
-func (c CodeStore) CreateContainer() (store.ContainerId, error) {
+func (c CodeStore) CreateContainer(id store.ProjectId) (store.ContainerId, error) {
 	row := c.db.QueryRow(`
-		INSERT INTO qode.code_container (display_order) VALUES (0)
+		INSERT INTO qode.code_container (display_order, project_id) VALUES (0, $1)
 		RETURNING id  
-	`)
+	`, id)
 
-	var id int
+	var containerId int
 
-	err := row.Scan(&id)
+	err := row.Scan(&containerId)
 
-	return id, err
+	return containerId, err
 }
 
 func IdDoesNotExistError(objectName string, id int) error {
@@ -56,6 +54,14 @@ func (c CodeStore) CreateCode(name string, containerId store.ContainerId) (store
 }
 
 func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
+	if firstWord.Paragraph > lastWord.Paragraph ||
+		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence > lastWord.Sentence ||
+		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence == lastWord.Sentence && firstWord.Word > lastWord.Word {
+		// swap the order to make sure the first is first
+		t := lastWord
+		lastWord = firstWord
+		firstWord = t
+	}
 
 	// TODO grab parser id from environment variable (or something similar)
 	_, err := c.db.Exec(`
@@ -66,6 +72,14 @@ func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text
 	`, firstWord.Paragraph, firstWord.Sentence, firstWord.Word,
 		lastWord.Paragraph, lastWord.Sentence, lastWord.Word,
 		text, codeId, documentId, version.Version)
+
+	return err
+}
+
+func (c CodeStore) UncodeText(textIds []store.TextId) error {
+	_, err := c.db.Exec(`
+		DELETE FROM qode.text WHERE id = ANY($1)
+	`, pq.Array(textIds))
 
 	return err
 }
@@ -135,17 +149,18 @@ func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContai
 	return builder.Finish(), nil
 }
 
-func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
+func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, error) {
 
 	rows, err := c.db.Query(`
 		SELECT container.display_order as container_display_order,
 		       c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
-		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id 
+		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id, t.id 
 		FROM qode.code_container container  
 	    LEFT JOIN qode.code c on c.code_container_id = container.id
 		LEFT JOIN qode.text t on c.id = t.code_id
+		WHERE container.project_id = $1 
 		ORDER BY c.code_container_id, c.display_order
-	`)
+	`, id)
 
 	if err != nil {
 		return nil, err
@@ -158,7 +173,7 @@ func (c CodeStore) GetContainers() ([]store.CodeContainer, error) {
 		err = rows.Scan(&row.ContainerOrder, &row.ContainerRow.CodeRow.Name, &row.ContainerRow.CodeDisplayOrder,
 			&row.ContainerRow.CodeId, &row.ContainerId, &row.ContainerRow.CodeRow.P1, &row.ContainerRow.CodeRow.S1,
 			&row.ContainerRow.CodeRow.W1,
-			&row.ContainerRow.CodeRow.P2, &row.ContainerRow.CodeRow.S2, &row.ContainerRow.CodeRow.W2, &row.ContainerRow.CodeRow.Text, &row.ContainerRow.CodeRow.SourceId)
+			&row.ContainerRow.CodeRow.P2, &row.ContainerRow.CodeRow.S2, &row.ContainerRow.CodeRow.W2, &row.ContainerRow.CodeRow.Text, &row.ContainerRow.CodeRow.SourceId, &row.ContainerRow.CodeRow.TextId)
 
 		builder.Push(row)
 	}

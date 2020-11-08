@@ -19,6 +19,7 @@ type CodeRow struct {
 
 	Text     sql.NullString
 	SourceId sql.NullInt32
+	TextId   sql.NullInt32
 }
 
 type ContainerRow struct {
@@ -67,6 +68,7 @@ func (c *CodeBuilder) Push(row CodeRow) {
 				Sentence:  int(row.S2.Int32),
 				Word:      int(row.W2.Int32),
 			},
+			Id: int(row.TextId.Int32),
 		})
 	}
 }

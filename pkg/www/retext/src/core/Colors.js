@@ -1,5 +1,14 @@
 // a list of colors that are pleasing to the eye (taken from some website)
-let allColors = ["#FFDC00", "#F012BE", "#aaa", "#FF4136", "#2ECC40", "#111", "#7FDBFF", "#001F3F", "#FF851B", "#0074D9", "#85144B", "#3D9970", "#39CCCC", "#01FF70", "#ddd", "#B10DC9", "#fff"];
+let allColors = [
+    "#FFDC00",
+    "#F012BE",
+    "#aaa",
+    "#FF4136",
+    "#2ECC40",
+    "#111",
+    "#7FDBFF",
+    "#001F3F",
+    "#FF851B", "#0074D9", "#85144B", "#3D9970", "#39CCCC", "#01FF70", "#ddd", "#B10DC9", "#fff"];
 
 /**
  * Get a unique color based on the index you pass in. The color returned for a
@@ -98,7 +107,7 @@ function generateColor(h) {
  * from https://stackoverflow.com/questions/35969656/how-can-i-generate-the-opposite-color-according-to-current-color/35970186#35970186
  *
  * @param hex string containing a hex color code (with or without #). handles 3 and 6 digit codes
- * @param bw bool, true if you want only either black or white as the returned foreground color
+ * @param bw bool, true if you want only either black or white as the returned "foreground" color
  * @returns {string} hex color string (always includes #)
  */
 export function invertColor(hex, bw) {

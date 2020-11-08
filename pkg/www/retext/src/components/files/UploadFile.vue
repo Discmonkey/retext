@@ -1,9 +1,8 @@
 <template>
     <div>
         <input type="file" :multiple="multiple" ref="form" v-on:change="upload()" :accept="acceptedFiles">
-        <button class="btn btn-primary" @click="clickFile()"
-            v-b-tooltip.bottom="(tooltip ? tooltip + ' | ' : '') +  ' Max total upload size: 2MB'">
-            <slot>{{fileType}}</slot> <i class="fa fa-question-circle"></i>
+        <button class="btn btn-primary font-weight-bold" @click="clickFile()">
+            <slot>{{fileType}}</slot>
         </button>
     </div>
 </template>
@@ -18,6 +17,10 @@
             multiple: {
                 type: Boolean,
                 default: false
+            },
+            projectId: {
+                type: Number,
+                default: -1
             }
         },
         data: function() {
@@ -38,7 +41,7 @@
                     formData.append("file", file);
                 });
 
-                this.axios.post("/file/upload",
+                this.axios.post(`/file/upload?projectId=${this.projectId}`,
                     formData,
                     {
                         headers: {

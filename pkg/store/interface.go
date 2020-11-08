@@ -1,15 +1,27 @@
 package store
 
+import "time"
+
+type ProjectId = int
+
 type FileId = int
 type FileType = string
 
 type CodeId = int
 type ContainerId = int
+type TextId = int
 
 const (
 	SourceFile FileType = "SourceFile"
 	DemoFile   FileType = "DemoFile"
 )
+
+type Project struct {
+	Id          ProjectId `json:"id"`
+	TimeTag     time.Time `json:"timeTag"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+}
 
 type File struct {
 	Id   FileId
@@ -25,6 +37,7 @@ type WordCoordinate struct {
 }
 
 type DocumentText struct {
+	Id         TextId         `json:"id"`
 	DocumentId FileId         `json:"documentId"`
 	Text       string         `json:"text"`
 	FirstWord  WordCoordinate `json:"anchor"`
@@ -47,17 +60,24 @@ type CodeContainer struct {
 type CodeParentIdMap = map[CodeId][]CodeId
 type CodeMap = map[CodeId]Code
 
+type ProjectStore interface {
+	CreateProject(name, description string, month, year int) (ProjectId, error)
+	GetProject(id ProjectId) (Project, error)
+	GetProjects() ([]Project, error)
+}
+
 type FileStore interface {
-	UploadFile(filename string, contents []byte) (File, error)
+	UploadFile(filename string, contents []byte, id ProjectId) (File, error)
 	GetFile(id FileId) ([]byte, File, error)
-	Files() ([]File, error)
+	GetFiles(id ProjectId) ([]File, error)
 }
 
 type CodeStore interface {
-	CreateContainer() (ContainerId, error)
+	CreateContainer(id ProjectId) (ContainerId, error)
 	CreateCode(name string, containerId ContainerId) (CodeId, error)
 	CodifyText(codeId CodeId, documentId FileId, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
+	UncodeText(textIds []TextId) error
 	GetCode(codeId CodeId) (Code, error)
 	GetContainer(codeId ContainerId) (CodeContainer, error)
-	GetContainers() ([]CodeContainer, error)
+	GetContainers(id ProjectId) ([]CodeContainer, error)
 }

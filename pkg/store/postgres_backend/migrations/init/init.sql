@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS project(
     id SERIAL PRIMARY KEY,
     name text,
     description text,
-    created time,
-    time_tag time
+    created timestamptz,
+    time_tag date
 );
 
 CREATE TABLE IF NOT EXISTS file(

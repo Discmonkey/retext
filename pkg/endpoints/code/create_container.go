@@ -10,8 +10,13 @@ import (
 
 func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 
-	return func(w http.ResponseWriter, _ *http.Request) {
-		containerId, err := store.CreateContainer()
+	return func(w http.ResponseWriter, r *http.Request) {
+		projectId, ok := endpoints.ProjectIdOk(r, w, "projectId required to create code")
+		if !ok {
+			return
+		}
+
+		containerId, err := store.CreateContainer(projectId)
 		if endpoints.HttpNotOk(500, w, "could not create code", err) {
 			return
 		}

@@ -1,27 +1,39 @@
 FROM ubuntu:18.04
 
-RUN apt-get update
+# install git for downloading go dependencies
+RUN apt-get update && apt-get install -y git
 
-RUN apt-get install -y curl
+# major dependencies are vendored in the project and extracted here
+COPY third_party /third_party
+RUN tar xf /third_party/node-v14.5.0-linux-x64.tar.gz
+RUN tar xf /third_party/go1.14.4.linux-amd64.tar.gz
 
-RUN curl -O https://dl.google.com/go/go1.14.3.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.14.3.linux-amd64.tar.gz
-ENV PATH=$PATH:/usr/local/go/bin
+# so we can find npm + go
+ENV PATH=$PATH:/node-v14.5.0-linux-x64/bin:/go/bin
 
-RUN apt-get install -y npm
+# create project dir
+RUN mkdir retext
 
-RUN apt-get install -y make
+WORKDIR retext
 
-RUN npm install -g @vue/cli
+# copy lock dependency and lock files
+COPY go.mod ./
+COPY go.sum ./
+COPY pkg/www/retext/package.json pkg/www/retext/package.json
+COPY pkg/www/retext/package-lock.json pkg/www/retext/package-lock.json
 
-RUN mkdir /retext
-WORKDIR /retext
+# install dependencies for frontend and backend
+RUN go mod download
+RUN cd pkg/www/retext && npm install
 
+# grab the source
 COPY pkg ./pkg
 COPY cmd ./cmd
-COPY makefile ./makefile
 
-ENV PATH=$PATH:/usr/local/bin
-RUN cd /retext/pkg/www/retext && npm install
+# build the frontend
+RUN cd pkg/www/retext && npm run build
 
-COPY ./go.mod .
-RUN make backend
+# build the backend
+RUN mkdir -p bin && go build -o bin/server cmd/server/main.go
+
+CMD ["./bin/server"]

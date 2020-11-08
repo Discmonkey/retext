@@ -22,10 +22,10 @@
 
     export default {
         name: "ToDocument",
-        props: ["documentName", "documentId", "path", "buttonText"],
+        props: ["documentName", "documentId", "path", "buttonText", "projectId"],
         methods: {
             goto() {
-                this.$router.push(`${this.path}/${this.documentId}`)
+                this.$router.push(`/project/${this.projectId}${this.path}/${this.documentId}`)
             }
         }
     }

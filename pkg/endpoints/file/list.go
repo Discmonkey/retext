@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/store"
 	"log"
 	"net/http"
@@ -18,11 +19,16 @@ func ListEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
+		projectId, ok := endpoints.ProjectIdOk(r, w, "projectId parameter required to list files")
+		if !ok {
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 
 		l := ListResponse{}
 
-		files, err := store.Files()
+		files, err := store.GetFiles(projectId)
 
 		if err != nil {
 			log.Println(err)
