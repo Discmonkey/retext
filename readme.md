@@ -7,16 +7,10 @@ for qualitative research.
 
 1) docker + docker-compose
 
-2) go 1.14
-
-3) npm + yarn 
-
 See deployment/Dockerfile for details build instructions. 
 
-#### Build
+#### Running
 
-The build is nicely summarized within the makefile.
-
-1) build the frontend
-
-2) build the backend
+1) make docker_db_load and docker_server
+2) cd deployment
+3) docker-compose up -d 
