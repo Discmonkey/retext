@@ -13,7 +13,7 @@ func CreateTestDir() string {
 }
 
 // TestFSBackend covers all the file interface methods
-func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string, projectId ProjectId) {
+func StubTestStore(t *testing.T, fileBackend FileStore, projectId ProjectId) {
 	files, err := fileBackend.GetFiles(projectId)
 	if err != nil {
 		t.Fatal(err)

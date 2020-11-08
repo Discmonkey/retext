@@ -4,18 +4,23 @@ import (
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
 	"testing"
+	"time"
 )
 
 func TestFileStorePostgresBackend(t *testing.T) {
 	testDirName := store.CreateTestDir()
-
 	fileBackend, err := NewFileStore(testDirName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	projectId, err := createTestProject()
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	store.StubTestStore(t, fileBackend)
+	store.StubTestStore(t, fileBackend, projectId)
 }
 
 func setup() (*CodeStore, *FileStore, error) {
@@ -36,12 +41,12 @@ func setup() (*CodeStore, *FileStore, error) {
 func TestCodeStorePostgresBackend(t *testing.T) {
 
 	cStore, fStore, err := setup()
+	fatalIf(err, t)
 
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+	projectId, err := createTestProject()
+	fatalIf(err, t)
 
-	store.StubTestCodeStore(t, cStore, fStore)
+	store.StubTestCodeStore(t, cStore, fStore, projectId)
 
 }
 
@@ -50,17 +55,21 @@ func fatalIf(err error, t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 }
+
 func TestCodeStoreList(t *testing.T) {
 	cStore, fStore, err := setup()
 	fatalIf(err, t)
 
-	_, err = fStore.UploadFile("test.txt", []byte("TestCodeStoreList"))
+	projectId, err := createTestProject()
 	fatalIf(err, t)
 
-	containerId, err := cStore.CreateContainer()
+	_, err = fStore.UploadFile("test.txt", []byte("TestCodeStoreList"), projectId)
 	fatalIf(err, t)
 
-	containerId2, err := cStore.CreateContainer()
+	containerId, err := cStore.CreateContainer(projectId)
+	fatalIf(err, t)
+
+	containerId2, err := cStore.CreateContainer(projectId)
 	fatalIf(err, t)
 
 	assertContainerID := func(codeId store.CodeId, containerId int) {
@@ -87,7 +96,7 @@ func TestCodeStoreList(t *testing.T) {
 	fatalIf(err, t)
 	assertContainerID(id3, containerId)
 
-	containers, err := cStore.GetContainers()
+	containers, err := cStore.GetContainers(projectId)
 
 	if len(containers) < 2 {
 		t.Fail()
@@ -96,4 +105,14 @@ func TestCodeStoreList(t *testing.T) {
 	for _, container := range containers {
 		fmt.Println(container)
 	}
+}
+
+func createTestProject() (store.ProjectId, error) {
+	projectStore, err := NewProjectStore()
+	if err != nil {
+		return 0, err
+	}
+
+	return projectStore.CreateProject(fmt.Sprint("test", time.Now()), "test",
+		int(time.Now().Month()), time.Now().Year())
 }
