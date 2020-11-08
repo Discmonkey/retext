@@ -32,20 +32,18 @@ func getTempFileDir() string {
 }
 
 func main() {
+	connection, err := postgres_backend.GetConnection()
+	FailIfError(err)
+
 	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
 	http.Handle("/", fs)
 
 	retextLocation := getTempFileDir()
 	log.Printf("file store dir: %s", retextLocation)
 
-	fileBackend, err := postgres_backend.NewFileStore(retextLocation)
-	FailIfError(err)
-
-	codeBackend, err := postgres_backend.NewCodeStore()
-	FailIfError(err)
-
-	projectBackend, err := postgres_backend.NewProjectStore()
-	FailIfError(err)
+	fileBackend := postgres_backend.NewFileStore(retextLocation, connection)
+	codeBackend := postgres_backend.NewCodeStore(connection)
+	projectBackend := postgres_backend.NewProjectStore(connection)
 
 	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
 	http.HandleFunc("/file/list", file.ListEndpoint(fileBackend))
@@ -56,6 +54,7 @@ func main() {
 	http.HandleFunc("/code/get", code.GetEndpoint(codeBackend))
 	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
 	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
+	http.HandleFunc("/code/disassociate", code.DisassociateText(codeBackend))
 
 	http.HandleFunc("/project", project.GetEndpoint(projectBackend))
 	http.HandleFunc("/project/create", project.CreateProject(projectBackend))

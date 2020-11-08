@@ -11,13 +11,8 @@ type ProjectStore struct {
 	con *sql.DB
 }
 
-func NewProjectStore() (ProjectStore, error) {
-	con, err := GetConnection()
-	if err != nil {
-		return ProjectStore{}, err
-	}
-
-	return ProjectStore{con: con}, nil
+func NewProjectStore(con *sql.DB) ProjectStore {
+	return ProjectStore{con: con}
 }
 
 func (p ProjectStore) CreateProject(name, description string, month, year int) (store.ProjectId, error) {

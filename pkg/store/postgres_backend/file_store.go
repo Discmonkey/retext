@@ -98,20 +98,13 @@ func (c FileStore) GetFiles(id store.ProjectId) ([]store.File, error) {
 	return listFiles(c.db, id)
 }
 
-func NewFileStore(writeLocation string) (*FileStore, error) {
-	c := FileStore{
+func NewFileStore(writeLocation string, con *sql.DB) FileStore {
+	return FileStore{
 		writeDir: writeLocation,
 		fileSys:  DefaultFileSys{},
+		db:       con,
 	}
 
-	con, err := GetConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	c.db = con
-
-	return &c, nil
 }
 
 func hashContents(contents []byte) string {

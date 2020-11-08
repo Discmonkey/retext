@@ -13,7 +13,7 @@ func CreateTestDir() string {
 }
 
 // TestFSBackend covers all the file interface methods
-func StubTestStore(t *testing.T, fileBackend FileStore, testDirName string, projectId ProjectId) {
+func StubTestStore(t *testing.T, fileBackend FileStore, projectId ProjectId) {
 	files, err := fileBackend.GetFiles(projectId)
 	if err != nil {
 		t.Fatal(err)
@@ -125,5 +125,11 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 	if len(containers)-initialLength != 1 {
 		numCodes := len(containers)
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
+	}
+
+	err = codeBackend.UncodeText([]int{firstCode.Texts[0].Id})
+
+	if err != nil {
+		t.Fatalf("failed to uncode text: %s", err)
 	}
 }

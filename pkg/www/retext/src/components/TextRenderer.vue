@@ -1,34 +1,67 @@
 <template>
-    <div class="scroll-container flip">
-        <div class="text-display flip">
-            <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false">
-                <p class="paragraph">
+    <div>
+        <div class="scroll-container flip">
+            <div class="text-display flip">
+                <div v-for="(paragraph, parIndex) in text.Paragraphs" v-bind:key="parIndex" draggable="false"
+                     class="clearfix">
+                    <p class="paragraph">
                     <span v-for="(sentence, senIndex) in paragraph.Sentences" v-bind:key="senIndex">
                         <span
-                                v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
-                                v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
-                                @mousedown.right="contextMenu"
-                                v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
-                                v-bind:class="{active: word.Selected}"
-                                class="border-on-hover word non-selectable"
+                            v-for="(word, wordIndex) in sentence.Parts" v-bind:key="wordIndex"
+                            v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
+                            v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
+                            :class="{active: word.Selected}"
+                            :style="wordStyle(parIndex, senIndex, wordIndex)"
+                            @contextmenu.prevent="chooseMenu($event, parIndex, senIndex, wordIndex)"
+                            class="border-on-hover word non-selectable"
                         >
-                            {{word.Text}}
+                            {{ word.Text }}
                         </span>
                     </span>
-                </p>
+                    </p>
 
-                <div class="done">
-
+                    <div class="done" v-if="wordCoordTextMap[parIndex]">
+                        <div
+                            v-for="(containerId) in wordCoordTextMap[parIndex].cIds" :key="containerId"
+                            :style="paragraphStyle(containerId)"
+                            @click="toggleColor(containerId)"
+                        ></div>
+                    </div>
                 </div>
             </div>
-
-
         </div>
+        <vue-context ref="deleteMenu" v-slot="{data: codedTexts}">
+            <template v-if="codedTexts">
+                <li><a @click="deleteTexts(codedTexts)">Delete</a></li>
+            </template>
+        </vue-context>
+        <vue-context ref="associateMenu" v-slot="{data}">
+            <template>
+            <li style="margin-left:10px"><h5>Associate</h5></li>
+            <li
+                v-for="(container) in containers"
+                :key="container.containerId"
+                :class="{'v-context__sub': container.subcodes.length}"
+            >
+                <a @click.prevent="associateSelectedText(container.main.id, data)">{{ container.main.name }}</a>
+                <ul class="v-context" v-if="container.subcodes.length">
+                    <li v-for="(subcode) in container.subcodes" :key="subcode.id">
+                        <a @click.prevent="associateSelectedText(container.main.id, data)">{{ subcode.name }}</a>
+                    </li>
+                </ul>
+            </li>
+            </template>
+        </vue-context>
     </div>
 </template>
 
 <script>
-    // eslint-disable-next-line no-unused-vars
+import {actions, getters} from "@/store";
+import {mapGetters} from "vuex";
+import VueContext from 'vue-context';
+// the default styling relies on <li> elements and specific classes.
+import 'vue-context/dist/css/vue-context.css';
+// eslint-disable-next-line no-unused-vars
     let TextType = {
         Paragraphs: [{
             Sentences: {
@@ -39,7 +72,6 @@
             }
         }]
     };
-    import Vue from "vue"
 
     let createDiv = (x, y) => {
         let div = document.createElement("div")
@@ -67,6 +99,114 @@
         return div;
     };
 
+    function mapCodifiedTexts(v, cc, code, container) {
+        if(!code || !code.texts) {
+            return;
+        }
+        let cid = container.containerId
+        for (let text of code.texts) {
+            let lastWordCoord = Object.values(text.last);
+
+            let [p, s, w] = [text.anchor.paragraph, text.anchor.sentence, text.anchor.word];
+            // eslint-disable-next-line no-constant-condition
+            while(true) {
+                // check if p, s, w are keys; if not, add
+                if(!(p in cc)) {
+                    cc[p] = {
+                        cIds: new Set(),
+                        s: {}
+                    };
+                }
+                if(!(s in cc[p].s)) {
+                    cc[p].s[s] = {
+                        w: {}
+                    };
+                }
+                if(!(w in cc[p].s[s].w)) {
+                    cc[p].s[s].w[w] = {
+                        cIds: new Set(),
+                        texts: {},
+                    };
+                }
+                // check if con is already in [p].cons; if not, add
+                cc[p].cIds.add(cid);
+                // check if con is already in [p,s,w].cons; if not, add
+                cc[p].s[s].w[w].cIds.add(cid);
+                // add text to [p, s, w].texts
+                if(!(cid in cc[p].s[s].w[w].texts)) {
+                    cc[p].s[s].w[w].texts[cid] = {};
+                }
+                // add a "code layer" so we can use it if we disassociate text
+                if(!(code.id in cc[p].s[s].w[w].texts[cid])) {
+                    cc[p].s[s].w[w].texts[cid][code.id] = [];
+                }
+                cc[p].s[s].w[w].texts[cid][code.id].push(text.id);
+                // check if we're at the lastCoord; if yes, break. if not, move to next coord
+                if(p === lastWordCoord[0] && s === lastWordCoord[1] && w === lastWordCoord[2]) {
+                    break;
+                }
+                [p, s, w] = v.next(p, s, w);
+            }
+        }
+    }
+
+/**
+ * Given p, s, and w, finds all adjacent, selected words and returns their coordinates
+ *  of the first and last words, and a string containing all the text between (inclusive)
+ *
+ * @param tr a TextRenderer instance
+ * @param p  paragraph index
+ * @param s  sentence index
+ * @param w  word index
+ * @returns {{anchor, last, text}}
+ */
+function getSelectedRegion(tr, p, s, w) {
+        let regionInfo = {};
+
+        let selectedWords = [];
+        let currentWord = tr.words(p, s)[w];
+        let indices = [p, s, w];
+
+        while (currentWord.Selected) {
+            selectedWords.push(currentWord.Text);
+            indices = tr.previous(indices[0], indices[1], indices[2]);
+
+            if (indices[3] === 0) {
+                break;
+            }
+            currentWord = tr.words(indices[0], indices[1])[indices[2]];
+        }
+
+        selectedWords.reverse();
+        regionInfo.anchor = {
+            paragraph: indices[0],
+            sentence: indices[1],
+            word: indices[2],
+        }
+
+        indices = tr.next(p, s, w);
+        currentWord = tr.words(indices[0], indices[1])[indices[2]];
+
+        while (currentWord.Selected) {
+            selectedWords.push(currentWord.Text);
+            indices = tr.next(indices[0], indices[1], indices[2]);
+
+            if (indices[3] === 0) {
+                break;
+            }
+            currentWord = tr.words(indices[0], indices[1])[indices[2]];
+        }
+
+        regionInfo.last = {
+            paragraph: indices[0],
+            sentence: indices[1],
+            word: indices[2],
+        }
+        regionInfo.text = selectedWords.join(" ");
+
+        return regionInfo;
+    }
+
     export default {
         name: "TextRenderer",
         props: ["text", "documentId"],
@@ -92,7 +232,106 @@
                 }
             }
         },
+        components: {VueContext},
+        computed: {
+            wordCoordTextMap() {
+                let containers = this[getters.CONTAINERS];
+                let coordTextMap = {};
+
+                for(let container of containers) {
+                    mapCodifiedTexts(this, coordTextMap, container.main, container);
+
+                    for(let subcode of container.subcodes) {
+                        mapCodifiedTexts(this, coordTextMap, subcode, container);
+                    }
+                }
+
+                return coordTextMap;
+            },
+            activeContainerId() {
+                let containers = this[getters.CONTAINERS];
+
+                for(let c of containers) {
+                    if(c.colorInfo.active) {
+                        return c.containerId
+                    }
+                }
+
+                return false;
+            },
+            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER, getters.ID_TO_CODE]),
+        },
         methods: {
+            chooseMenu(e, p, s, w) {
+                if(this.activeContainerId) {
+                    // check if the word is part of an excerpt in the active container
+                    if(this.activeContainerId && this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId]) {
+                        if(
+                            p in this.wordCoordTextMap &&
+                            s in this.wordCoordTextMap[p].s &&
+                            w in this.wordCoordTextMap[p].s[s].w &&
+                            "texts" in this.wordCoordTextMap[p].s[s].w[w] &&
+                            this.activeContainerId in this.wordCoordTextMap[p].s[s].w[w].texts
+                        ) {
+                            let codedTexts = this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId];
+                            this.$refs.deleteMenu.open(e, codedTexts);
+                        }
+                    }
+                } else if(this.text.Paragraphs[p].Sentences[s].Parts[w].Selected) {
+                    this.$refs.associateMenu.open(e, {data: {p, s, w}});
+                }
+            },
+
+            deleteTexts(codedTexts) {
+                this.$store.dispatch(actions.DISASSOCIATE_TEXT, {codedTexts});
+            },
+
+            associateSelectedText(codeId, {p, s, w}) {
+                let words = getSelectedRegion(this, p, s, w);
+
+                this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId, words}).then(() => {
+                    // todo: "success" toast or something
+                }, () => {
+                    // todo: "an error occurred" toast or something
+                });
+            },
+            wordStyle(p, s, w) {
+                if (!this.activeContainerId) {
+                    return;
+                }
+
+                if(
+                    p in this.wordCoordTextMap &&
+                    s in this.wordCoordTextMap[p].s &&
+                    w in this.wordCoordTextMap[p].s[s].w &&
+                    "texts" in this.wordCoordTextMap[p].s[s].w[w]
+                ) {
+                    let texts = this.wordCoordTextMap[p].s[s].w[w].texts;
+                    if (this.activeContainerId in texts) {
+                        let ci = this[getters.ID_TO_CONTAINER][this.activeContainerId].colorInfo;
+                        return {
+                            backgroundColor: ci.bg + " !important",
+                            color: ci.fg,
+                        };
+                    }
+                }
+            },
+
+            paragraphStyle(containerId) {
+                let c = this[getters.ID_TO_CONTAINER][containerId];
+                return {
+                    backgroundColor: c.colorInfo.bg,
+                    borderRadius: "50% !important",
+                    padding: ".5em !important",
+                    marginLeft: "50% !important",
+                    marginRight: "50% !important",
+                };
+            },
+
+            toggleColor(containerId) {
+                this.$store.dispatch(actions.SET_COLOR_ACTIVE, {containerId});
+            },
+
             start: function(paragraph, sentence, word, e) {
                 this.dragTool.shift = e.shiftKey;
 
@@ -121,37 +360,10 @@
             },
 
             pickupStart: function(paragraph, sentence, word, e) {
-                let selectedWords = [];
-                let currentWord = this.words(paragraph, sentence)[word];
-                let indices = [paragraph, sentence, word];
-
-                while (currentWord.Selected) {
-                    selectedWords.push(currentWord.Text);
-                    indices = this.previous(indices[0], indices[1], indices[2]);
-
-                    if (indices[3] === 0) {
-                        break;
-                    }
-                    currentWord = this.words(indices[0], indices[1])[indices[2]];
-                }
-
-                selectedWords.reverse();
-
-                indices = this.next(paragraph, sentence, word);
-                currentWord = this.words(indices[0], indices[1])[indices[2]];
-
-                while (currentWord.Selected) {
-                    selectedWords.push(currentWord.Text);
-                    indices = this.next(indices[0], indices[1], indices[2]);
-
-                    if (indices[3] === 0) {
-                        break;
-                    }
-                    currentWord = this.words(indices[0], indices[1])[indices[2]];
-                }
+                let words = getSelectedRegion(this, paragraph, sentence, word);
 
                 let div = createDiv(e.clientX, e.clientY);
-                div.innerText = "\"" +  selectedWords.reduce((acc, val) => {return acc + " " + val;}) + "\"";
+                div.innerText = `"${words.text}"`;
 
                 document.body.appendChild(div);
 
@@ -165,14 +377,12 @@
                     document.removeEventListener("mouseup", remove);
                     document.removeEventListener("mousemove", move);
 
-                    let words = JSON.parse(JSON.stringify(this.dragTool));
                     words.documentId = documentId;
-                    words.text = selectedWords.join(" ");
 
                     let textDropEvent = new CustomEvent("text-drop", {
                         bubbles: true, cancelable: true,
                         detail: {
-                            data: {words: words},
+                            data: {words},
                             callback: () => {
                                 // todo: add code-specific color-class
                                 console.log(`sample: ${JSON.stringify(words)}`);
@@ -189,7 +399,7 @@
 
             // updates the view
             updateWord: function(paragraph, sentence, word) {
-                Vue.set(this.words(paragraph, sentence), word, this.words(paragraph, sentence)[word]);
+                this.$set(this.words(paragraph, sentence), word, this.words(paragraph, sentence)[word]);
             },
 
             dragStop: function() {
@@ -424,5 +634,20 @@
         padding-bottom: .25em;
     }
 
-
+    /*
+    used to give the parent div of .paragraph+.done some height.
+    without the height, the "list" of container-color-drops starts overlapping(try it out)
+    from: https://stackoverflow.com/questions/12540436/
+    */
+    .clearfix:after {
+        content: ".";
+        display: block;
+        clear: both;
+        visibility: hidden;
+        line-height: 0;
+        height: 0;
+    }
+    .clearfix {
+        display: inline-block;
+    }
 </style>
