@@ -7,6 +7,7 @@ volumes:
   db-data-test:
 services:
   db_test:
+    container_name: qode_test_db
     image: postgres
     volumes:
       - db-data-test:/var/lib/postgresql/data
@@ -23,7 +24,16 @@ services:
     volumes:
       - ../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
     environment:
-      - QODE_DB_PORT=5433
+      - IS_DOCKER=1
+      - Q
     network_mode: host
     depends_on:
       - db_test
+
+  test_runner:
+    image: qode
+    command: ["go", "test", "-v", "./..."]
+    environment:
+      - IS_TEST=1
+    depends_on:
+      - db_loader
