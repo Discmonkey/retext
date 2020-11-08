@@ -8,45 +8,44 @@ import (
 )
 
 func TestFileStorePostgresBackend(t *testing.T) {
-	testDirName := store.CreateTestDir()
-	fileBackend, err := NewFileStore(testDirName)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	projectId, err := createTestProject()
+	projects, files, _, err := setup()
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	store.StubTestStore(t, fileBackend, projectId)
+	projectId, err := createTestProject(projects)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	store.StubTestStore(t, files, projectId)
 }
 
-func setup() (*CodeStore, *FileStore, error) {
-	codeBackend, err := NewCodeStore()
+func setup() (ProjectStore, FileStore, CodeStore, error) {
+	conn, err := GetConnection()
 	if err != nil {
-		return nil, nil, err
+		return ProjectStore{}, FileStore{}, CodeStore{}, err
 	}
 
 	testDirName := store.CreateTestDir()
-	fileBackend, err := NewFileStore(testDirName)
-	if err != nil {
-		return nil, nil, err
-	}
+	codeBackend := NewCodeStore(conn)
+	fileBackend := NewFileStore(testDirName, conn)
+	projectBackend := NewProjectStore(conn)
 
-	return codeBackend, fileBackend, nil
+	return projectBackend, fileBackend, codeBackend, nil
 }
 
 func TestCodeStorePostgresBackend(t *testing.T) {
 
-	cStore, fStore, err := setup()
+	projects, files, codes, err := setup()
 	fatalIf(err, t)
 
-	projectId, err := createTestProject()
+	projectId, err := createTestProject(projects)
 	fatalIf(err, t)
 
-	store.StubTestCodeStore(t, cStore, fStore, projectId)
+	store.StubTestCodeStore(t, codes, files, projectId)
 
 }
 
@@ -57,23 +56,23 @@ func fatalIf(err error, t *testing.T) {
 }
 
 func TestCodeStoreList(t *testing.T) {
-	cStore, fStore, err := setup()
+	projects, files, codes, err := setup()
 	fatalIf(err, t)
 
-	projectId, err := createTestProject()
+	projectId, err := createTestProject(projects)
 	fatalIf(err, t)
 
-	_, err = fStore.UploadFile("test.txt", []byte("TestCodeStoreList"), projectId)
+	_, err = files.UploadFile("test.txt", []byte("TestCodeStoreList"), projectId)
 	fatalIf(err, t)
 
-	containerId, err := cStore.CreateContainer(projectId)
+	containerId, err := codes.CreateContainer(projectId)
 	fatalIf(err, t)
 
-	containerId2, err := cStore.CreateContainer(projectId)
+	containerId2, err := codes.CreateContainer(projectId)
 	fatalIf(err, t)
 
 	assertContainerID := func(codeId store.CodeId, containerId int) {
-		code, err := cStore.GetCode(codeId)
+		code, err := codes.GetCode(codeId)
 		if err != nil {
 			t.Fail()
 			return
@@ -83,20 +82,20 @@ func TestCodeStoreList(t *testing.T) {
 			t.Fail()
 		}
 	}
-	id1, err := cStore.CreateCode("test1", containerId)
+	id1, err := codes.CreateCode("test1", containerId)
 
 	fatalIf(err, t)
 	assertContainerID(id1, containerId)
 
-	id2, err := cStore.CreateCode("test2", containerId2)
+	id2, err := codes.CreateCode("test2", containerId2)
 	fatalIf(err, t)
 	assertContainerID(id2, containerId2)
 
-	id3, err := cStore.CreateCode("test3", containerId)
+	id3, err := codes.CreateCode("test3", containerId)
 	fatalIf(err, t)
 	assertContainerID(id3, containerId)
 
-	containers, err := cStore.GetContainers(projectId)
+	containers, err := codes.GetContainers(projectId)
 
 	if len(containers) < 2 {
 		t.Fail()
@@ -107,12 +106,7 @@ func TestCodeStoreList(t *testing.T) {
 	}
 }
 
-func createTestProject() (store.ProjectId, error) {
-	projectStore, err := NewProjectStore()
-	if err != nil {
-		return 0, err
-	}
-
+func createTestProject(projectStore store.ProjectStore) (store.ProjectId, error) {
 	return projectStore.CreateProject(fmt.Sprint("test", time.Now()), "test",
 		int(time.Now().Month()), time.Now().Year())
 }

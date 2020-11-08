@@ -1,6 +1,7 @@
 package postgres_backend
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/discmonkey/retext/pkg/store"
@@ -13,13 +14,9 @@ type CodeStore struct {
 	db connection
 }
 
-func NewCodeStore() (*CodeStore, error) {
-	con, err := GetConnection()
-	if err != nil {
-		return nil, err
-	}
+func NewCodeStore(connection *sql.DB) CodeStore {
 
-	return &CodeStore{db: con}, nil
+	return CodeStore{db: connection}
 }
 
 func (c CodeStore) CreateContainer(id store.ProjectId) (store.ContainerId, error) {
