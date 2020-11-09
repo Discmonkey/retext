@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"github.com/discmonkey/retext/pkg/endpoints/project"
@@ -17,10 +18,6 @@ func FailIfError(err error) {
 	}
 }
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-}
-
 func getTempFileDir() string {
 	retextLocation := path.Join(os.TempDir(), "retext")
 
@@ -31,15 +28,27 @@ func getTempFileDir() string {
 	return retextLocation
 }
 
+func getFileSaveDir() string {
+	location := flag.String("file_dir", "", "directory where files are stored")
+
+	flag.Parse()
+
+	if len(*location) == 0 {
+		return getTempFileDir()
+	} else {
+		return *location
+	}
+}
+
 func main() {
+	retextLocation := getFileSaveDir()
+	log.Printf("file store dir: %s", retextLocation)
+
 	connection, err := postgres_backend.GetConnection()
 	FailIfError(err)
 
 	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
 	http.Handle("/", fs)
-
-	retextLocation := getTempFileDir()
-	log.Printf("file store dir: %s", retextLocation)
 
 	fileBackend := postgres_backend.NewFileStore(retextLocation, connection)
 	codeBackend := postgres_backend.NewCodeStore(connection)

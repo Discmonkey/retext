@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  db-data:
+  files:
+
+services:
+  db:
+    container_name: "qode_db"
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+    - 5432:5432
+
+  db_loader:
+    image: qode_db_loader
+    volumes:
+      - ../../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
+    environment:
+      - QODE_DB_HOST=qode_db
+    depends_on:
+      - db
+  qode:
+    image: qode
+    volumes:
+      - files:/files
+    command: ["./bin/server", "-file_dir", "/files"]
+    environment:
+      - QODE_DB_HOST=qode_db
+    ports:
+      - 3000:3000
+    depends_on:
+      - db_loader

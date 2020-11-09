@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 # install git for downloading go dependencies
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git gcc
 
 # major dependencies are vendored in the project and extracted here
 COPY third_party /third_party
