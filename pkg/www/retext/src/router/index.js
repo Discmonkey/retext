@@ -6,6 +6,7 @@ import Demo from "@/views/Demo";
 import Home from "@/Home";
 import Project from "@/views/Project";
 import ProjectHub from "@/views/ProjectHub";
+import Buckets from "@/views/Buckets";
 
 Vue.use(VueRouter);
 
@@ -46,6 +47,11 @@ const routes = [
                 path: '',
                 name: HubName,
                 component: ProjectHub
+            },
+            {
+                path: 'coding-buckets',
+                name: 'Coding Buckets',
+                component: Buckets
             }
         ],
     },
