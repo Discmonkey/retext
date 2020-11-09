@@ -24,7 +24,7 @@ services:
     volumes:
       - ../../pkg/store/postgres_backend/migrations:/pkg/store/postgres_backend/migrations
     environment:
-      - IS_DOCKER=1
+      - QODE_DB_HOST=qode_test_db
       - QODE_DB_PORT=5433
     network_mode: host
     depends_on:
@@ -34,7 +34,7 @@ services:
     image: qode
     command: ["go", "test", "-v", "./..."]
     environment:
-      - IS_DOCKER=1
+      - QODE_DB_HOST=qode_test_db
       - QODE_DB_PORT=5433
     depends_on:
       - db_loader_test

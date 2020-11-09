@@ -19,8 +19,8 @@ func GetUser() string {
 }
 
 func GetHost() string {
-	if _, ok := os.LookupEnv("IS_DOCKER"); ok {
-		return "qode_db"
+	if host, ok := os.LookupEnv("QODE_DB_HOST"); ok {
+		return host
 	}
 
 	return "localhost"
