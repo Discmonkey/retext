@@ -24,10 +24,10 @@ type Project struct {
 }
 
 type File struct {
-	Id   FileId
-	Type FileType
-	Name string
-	Ext  string
+	Id   FileId   `json:"id"`
+	Type FileType `json:"type"`
+	Name string   `json:"name"`
+	Ext  string   `json:"ext"`
 }
 
 type WordCoordinate struct {

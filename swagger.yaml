@@ -1,0 +1,105 @@
+openapi: 3.0.3
+
+info:
+  title: EMPIRE API
+  version: '0.9'
+
+components:
+  schemas:
+
+    Code:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        texts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentText'
+
+    CodeContainer:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        order:
+          type: number
+        codes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Code'
+
+    DocumentText:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        document_id:
+          $ref: '#/components/schemas/Id'
+        text:
+          type: string
+        first_word:
+          $ref: '#/components/schemas/WordCoordinate'
+        last_word:
+          $ref: '#/components/schemas/WordCoordinate'
+
+
+    Id:
+      type: number
+      description: A unique identifier within the class of the specific object it is referencing
+
+    File:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        type:
+          type: string
+          enum:
+            - SOURCE_FILE
+            - DEMO_FILE
+        name:
+          type: string
+        ext:
+          type: string
+      required:
+        - id
+        - type
+        - name
+        - ext
+
+    WordCoordinate:
+      type: object
+      properties:
+        paragraph:
+          type: number
+        sentence:
+          type: number
+        word:
+          type: number
+      required:
+        - paragraph
+        - sentence
+        - word
+
+
+paths:
+  /file:
+    post:
+      responses:
+        200:
+          description: successful upload, returns uplaoded file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+
+  /files:
+    get:
+      description: retrieves list of files
+
+
