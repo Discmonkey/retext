@@ -18,6 +18,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentText'
+      required:
+        - name
+        - texts
 
     CodeContainer:
       type: object
@@ -30,6 +33,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Code'
+      required:
+        - order
+        - codes
 
     DocumentText:
       type: object
@@ -44,7 +50,11 @@ components:
           $ref: '#/components/schemas/WordCoordinate'
         last_word:
           $ref: '#/components/schemas/WordCoordinate'
-
+      required:
+        - document_id
+        - text
+        - first_word
+        - last_word
 
     Id:
       type: number
@@ -97,9 +107,5 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/File'
-
-  /files:
-    get:
-      description: retrieves list of files
 
 
