@@ -40,6 +40,55 @@ func getFileSaveDir() string {
 	}
 }
 
+// from NotFoundRedirectRespWr to wrapHandler mostly from https://stackoverflow.com/questions/47285119/
+type NotFoundRedirectRespWr struct {
+	http.ResponseWriter // We embed http.ResponseWriter
+	status              int
+}
+
+func (w *NotFoundRedirectRespWr) WriteHeader(status int) {
+	w.status = status // Store the status for our own use
+	if status != http.StatusNotFound {
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+
+const staticDir = "pkg/www/retext/dist"
+
+func (w *NotFoundRedirectRespWr) Write(p []byte) (int, error) {
+	if w.status != http.StatusNotFound {
+		return w.ResponseWriter.Write(p)
+	}
+	return len(p), nil // Lie that we successfully written it
+}
+
+//wrapHandler we have a single-page application; chances are good that the url doesn't
+// correspond to an actual page. Instead of 404, just serve the index page and hope for the best.
+// (assume the front-end will 404 as necessary)
+func wrapHandler(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		nfrw := &NotFoundRedirectRespWr{ResponseWriter: w}
+		h.ServeHTTP(nfrw, r)
+		if nfrw.status == 404 {
+			// the call to h.serveHTTP above sets the C-t to text/plain. Overwrite to appropriate type.
+			w.Header().Add("Content-type", "text/html")
+
+			f, err := os.Open(staticDir + "/index.html")
+			if err != nil {
+				// index file not found? just give up cause something is terribly wrong
+				log.Fatalf("error opening index.html: %s", err)
+			}
+			fs, err := f.Stat()
+			if err != nil {
+				// no stats for index file? just give up cause something is terribly wrong
+				log.Fatalf("error getting stats for index.html: %s", err)
+			}
+
+			http.ServeContent(w, r, "index.html", fs.ModTime(), f)
+		}
+	}
+}
+
 func main() {
 	retextLocation := getFileSaveDir()
 	log.Printf("file store dir: %s", retextLocation)
@@ -47,8 +96,8 @@ func main() {
 	connection, err := postgres_backend.GetConnection()
 	FailIfError(err)
 
-	fs := http.FileServer(http.Dir("pkg/www/retext/dist"))
-	http.Handle("/", fs)
+	fs := http.FileServer(http.Dir(staticDir))
+	http.Handle("/", wrapHandler(fs))
 
 	fileBackend := postgres_backend.NewFileStore(retextLocation, connection)
 	codeBackend := postgres_backend.NewCodeStore(connection)
