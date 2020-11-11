@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+// @ts-ignore
 import VueContext from 'vue-context';
 import App from './App.vue'
 import router from './router/index'
