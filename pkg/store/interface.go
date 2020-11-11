@@ -1,61 +1,29 @@
 package store
 
-import "time"
-
-type ProjectId = int
-
-type FileId = int
-type FileType = string
-
-type CodeId = int
-type ContainerId = int
-type TextId = int
-
-const (
-	SourceFile FileType = "SourceFile"
-	DemoFile   FileType = "DemoFile"
+import (
+	swagger "github.com/discmonkey/retext/pkg/swagger"
 )
 
-type Project struct {
-	Id          ProjectId `json:"id"`
-	TimeTag     time.Time `json:"timeTag"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-}
+type ProjectId = int64
 
-type File struct {
-	Id   FileId   `json:"id"`
-	Type FileType `json:"type"`
-	Name string   `json:"name"`
-	Ext  string   `json:"ext"`
-}
+type FileId = int64
+type FileType = string
 
-type WordCoordinate struct {
-	Paragraph int `json:"paragraph"`
-	Sentence  int `json:"sentence"`
-	Word      int `json:"word"`
-}
+type CodeId = int64
+type ContainerId = int64
+type TextId = int64
 
-type DocumentText struct {
-	Id         TextId         `json:"id"`
-	DocumentId FileId         `json:"documentId"`
-	Text       string         `json:"text"`
-	FirstWord  WordCoordinate `json:"anchor"`
-	LastWord   WordCoordinate `json:"last"`
-}
+const (
+	SourceFile FileType = "SOURCE_FILE"
+	DemoFile   FileType = "DEMO_FILE"
+)
 
-type Code struct {
-	Id        CodeId         `json:"id"`
-	Name      string         `json:"name"`
-	Texts     []DocumentText `json:"texts"`
-	Container ContainerId    `json:"containerId"`
-}
-
-type CodeContainer struct {
-	Id    ContainerId `json:"containerId"`
-	Order int
-	Codes []Code `json:"subcodes"`
-}
+type Project = swagger.Project
+type File = swagger.File
+type WordCoordinate = swagger.WordCoordinate
+type DocumentText = swagger.DocumentText
+type Code = swagger.Code
+type CodeContainer = swagger.CodeContainer
 
 type CodeParentIdMap = map[CodeId][]CodeId
 type CodeMap = map[CodeId]Code

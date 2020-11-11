@@ -36,24 +36,24 @@ func SliceAtoi(strings []string) ([]int, error) {
 
 const MaxUploadSize = 2 * 1024 * 1024
 
-func GetInt(r *http.Request, key string) (int, bool) {
+func GetInt(r *http.Request, key string) (int64, bool) {
 	var i int64 = 0
 	value, ok := r.URL.Query()[key]
 
 	if !ok {
-		return int(i), ok
+		return i, ok
 	}
 
 	i, err := strconv.ParseInt(value[0], 10, 64)
 
 	if err != nil {
-		return int(i), false
+		return i, false
 	}
 
-	return int(i), true
+	return i, true
 }
 
-func GetIntOk(r *http.Request, w http.ResponseWriter, key, message string) (int, bool) {
+func GetIntOk(r *http.Request, w http.ResponseWriter, key, message string) (int64, bool) {
 	val, ok := GetInt(r, key)
 
 	if !ok {

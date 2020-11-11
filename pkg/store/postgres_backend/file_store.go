@@ -73,9 +73,9 @@ func (c FileStore) UploadFile(filename string, contents []byte, projectId store.
 	}
 
 	return store.File{
-		Id:   id,
-		Type: assignTypeFromExtension(ext),
-		Name: name,
+		Id:    id,
+		Type_: assignTypeFromExtension(ext),
+		Name:  name,
 	}, nil
 }
 
@@ -159,7 +159,7 @@ func logFileToDb(con connection, filename, location, hash string, project store.
 		RETURNING id 
 		`
 
-	var id int
+	var id int64
 
 	row := con.QueryRow(insert, filename, location, hash, project)
 
@@ -224,7 +224,7 @@ type rowLike interface {
 
 func parseFileRow(row rowLike, location *string) (store.File, error) {
 	var filename string
-	var id int
+	var id int64
 
 	err := row.Scan(&id, &filename, location)
 
@@ -241,7 +241,7 @@ func parseFileRow(row rowLike, location *string) (store.File, error) {
 	f := store.File{}
 	f.Id = id
 	f.Name = name
-	f.Type = assignTypeFromExtension(ext)
+	f.Type_ = assignTypeFromExtension(ext)
 	f.Ext = ext
 
 	return f, nil

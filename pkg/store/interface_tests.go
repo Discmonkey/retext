@@ -127,7 +127,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 
-	err = codeBackend.UncodeText([]int{firstCode.Texts[0].Id})
+	err = codeBackend.UncodeText([]int64{firstCode.Texts[0].Id})
 
 	if err != nil {
 		t.Fatalf("failed to uncode text: %s", err)

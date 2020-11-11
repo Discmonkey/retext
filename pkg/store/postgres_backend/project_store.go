@@ -27,7 +27,7 @@ func (p ProjectStore) CreateProject(name, description string, month, year int) (
 
 	row := p.con.QueryRow(query, name, description, t)
 
-	var projectId int
+	var projectId int64
 
 	err := row.Scan(&projectId)
 

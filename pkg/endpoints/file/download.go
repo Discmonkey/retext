@@ -44,7 +44,7 @@ func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http
 
 		w.Header().Set("Content-Type", "application/json")
 
-		contents, fileSpec, err := store.GetFile(int(id))
+		contents, fileSpec, err := store.GetFile(id)
 
 		if err != nil {
 			log.Println(err)

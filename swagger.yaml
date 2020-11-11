@@ -12,6 +12,8 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/Id'
+        container:
+          $ref: '#/components/schemas/Id'
         name:
           type: string
         texts:
@@ -21,6 +23,7 @@ components:
       required:
         - name
         - texts
+        - container
 
     CodeContainer:
       type: object
@@ -57,7 +60,8 @@ components:
         - last_word
 
     Id:
-      type: number
+      type: integer
+      format: int64
       description: A unique identifier within the class of the specific object it is referencing
 
     File:
@@ -80,15 +84,34 @@ components:
         - name
         - ext
 
+    Project:
+      type: object
+      properties:
+        Id:
+          $ref: '#/components/schemas/Id'
+        TimeTag:
+          type: string
+          format: date-time
+        Name:
+          type: string
+        Description:
+          type: string
+      required:
+        - TimeTag
+        - Name
+        - Description
+
+
+
     WordCoordinate:
       type: object
       properties:
         paragraph:
-          type: number
+          type: integer
         sentence:
-          type: number
+          type: integer
         word:
-          type: number
+          type: integer
       required:
         - paragraph
         - sentence

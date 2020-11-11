@@ -25,14 +25,14 @@ func (c CodeStore) CreateContainer(id store.ProjectId) (store.ContainerId, error
 		RETURNING id  
 	`, id)
 
-	var containerId int
+	var containerId int64
 
 	err := row.Scan(&containerId)
 
 	return containerId, err
 }
 
-func IdDoesNotExistError(objectName string, id int) error {
+func IdDoesNotExistError(objectName string, id int64) error {
 	return errors.New(fmt.Sprintf("%s with id: <%d> does not exist", objectName, id))
 }
 
@@ -46,7 +46,7 @@ func (c CodeStore) CreateCode(name string, containerId store.ContainerId) (store
 		RETURNING id;
 	`, containerId, name)
 
-	var id int
+	var id int64
 
 	err := row.Scan(&id)
 
@@ -99,7 +99,7 @@ func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 	}
 
 	row := builders.CodeRow{}
-	var codeContainerId int
+	var codeContainerId int64
 	empty := true
 
 	for rows.Next() {

@@ -26,7 +26,7 @@ func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.
 		w.Header().Set("Content-Type", "application/json")
 
 		err = encoder.Encode(struct {
-			ContainerId int
+			ContainerId int64
 		}{ContainerId: containerId})
 
 		if err != nil {

@@ -56,5 +56,11 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "rules": {
+    "@typescript-eslint/ban-ts-ignore": 0,
+    "@typescript-eslint/camelcase": 1,
+    "@typescript-eslint/no-use-before-define": 0,
+    "@typescript-eslint/no-inferrable-types": 0
+  }
 }

@@ -20,7 +20,7 @@ let allColors = [
  * @param index the color returned
  * @returns {string} a hex color code (eg #007fbb)
  */
-export function getColor(index: number) {
+export function getColor(index: number): string {
     while(index >= allColors.length) {
         allColors.push(generateColor(allColors.length));
     }

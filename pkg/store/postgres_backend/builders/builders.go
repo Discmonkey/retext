@@ -42,13 +42,13 @@ func NewCodeBuilder() CodeBuilder {
 	return CodeBuilder{code: &store.Code{Texts: make([]store.DocumentText, 0)}}
 }
 
-func (c *CodeBuilder) SetCodeId(id int) *CodeBuilder {
+func (c *CodeBuilder) SetCodeId(id int64) *CodeBuilder {
 	c.code.Id = id
 
 	return c
 }
 
-func (c *CodeBuilder) SetContainerId(id int) *CodeBuilder {
+func (c *CodeBuilder) SetContainerId(id int64) *CodeBuilder {
 	c.code.Container = id
 
 	return c
@@ -61,14 +61,16 @@ func (c *CodeBuilder) Push(row CodeRow) {
 
 	if row.Text.Valid {
 		c.code.Texts = append(c.code.Texts, store.DocumentText{
-			DocumentId: int(row.SourceId.Int32), Text: row.Text.String, FirstWord: store.WordCoordinate{
-				Paragraph: int(row.P1.Int32), Sentence: int(row.S1.Int32), Word: int(row.W1.Int32)},
-			LastWord: store.WordCoordinate{
-				Paragraph: int(row.P2.Int32),
-				Sentence:  int(row.S2.Int32),
-				Word:      int(row.W2.Int32),
+			DocumentId: int64(row.SourceId.Int32), Text: row.Text.String,
+			FirstWord: &store.WordCoordinate{
+				Paragraph: row.P1.Int32, Sentence: row.S1.Int32, Word: row.W1.Int32},
+
+			LastWord: &store.WordCoordinate{
+				Paragraph: row.P2.Int32,
+				Sentence:  row.S2.Int32,
+				Word:      row.W2.Int32,
 			},
-			Id: int(row.TextId.Int32),
+			Id: int64(row.TextId.Int32),
 		})
 	}
 }
@@ -86,7 +88,7 @@ type ContainerBuilder struct {
 	codeBuilder    *CodeBuilder
 }
 
-func NewContainerBuilder(containerId int) ContainerBuilder {
+func NewContainerBuilder(containerId int64) ContainerBuilder {
 	return ContainerBuilder{
 		container: &store.CodeContainer{
 			Id:    containerId,
@@ -105,7 +107,7 @@ func (c *ContainerBuilder) Push(row ContainerRow) {
 		}
 
 		codeBuilder := NewCodeBuilder()
-		c.codeBuilder = codeBuilder.SetContainerId(c.container.Id).SetCodeId(row.CodeId)
+		c.codeBuilder = codeBuilder.SetContainerId(c.container.Id).SetCodeId(int64(row.CodeId))
 	}
 
 	c.codeBuilder.Push(row.CodeRow)
@@ -135,13 +137,13 @@ func NewContainerListBuilder() ContainerListBuilder {
 }
 
 func (c *ContainerListBuilder) Push(row ContainerListRow) {
-	if c.containerBuilder != nil && c.containerBuilder.container.Id != row.ContainerId {
+	if c.containerBuilder != nil && c.containerBuilder.container.Id != int64(row.ContainerId) {
 		c.containers = append(c.containers, c.containerBuilder.Finish())
 		c.containerBuilder = nil
 	}
 
 	if c.containerBuilder == nil {
-		builder := NewContainerBuilder(row.ContainerId)
+		builder := NewContainerBuilder(int64(row.ContainerId))
 		c.containerBuilder = &builder
 	}
 

@@ -10,7 +10,7 @@ import (
 )
 
 type disassociateRequest struct {
-	TextIds []int `json:"textIds"`
+	TextIds []int64 `json:"textIds"`
 }
 
 func DisassociateText(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
