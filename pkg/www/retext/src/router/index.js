@@ -6,6 +6,7 @@ import Demo from "@/views/Demo";
 import Home from "@/Home";
 import Project from "@/views/Project";
 import ProjectHub from "@/views/ProjectHub";
+import NotFound from "@/components/nav/NotFound";
 
 Vue.use(VueRouter);
 
@@ -49,6 +50,14 @@ const routes = [
             }
         ],
     },
+    {
+        path: '/404',
+        component: NotFound
+    },
+    {
+        path: '*',
+        component: NotFound
+    }
 ];
 
 
