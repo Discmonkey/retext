@@ -104,10 +104,10 @@ import 'vue-context/dist/css/vue-context.css';
             return;
         }
 
-        let cid = container.id
+        let cid = container.containerId
         for (let text of code.texts) {
-
-            let [paragraph, sentence, word] = [text.first.paragraph, text.first.sentence, text.first.word];
+            console.log(text);
+            let [paragraph, sentence, word] = [text.first_word.paragraph, text.first_word.sentence, text.first_word.word];
             // eslint-disable-next-line no-constant-condition
             while(true) {
                 // check if p, s, w are keys; if not, add
