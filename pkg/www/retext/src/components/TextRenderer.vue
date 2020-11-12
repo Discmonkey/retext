@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import {actions, getters} from "@/store";
+import {actions} from "@/store";
 import {mapGetters} from "vuex";
 import VueContext from 'vue-context';
 // the default styling relies on <li> elements and specific classes.
@@ -103,49 +103,51 @@ import 'vue-context/dist/css/vue-context.css';
         if(!code || !code.texts) {
             return;
         }
-        let cid = container.containerId
-        for (let text of code.texts) {
-            let lastWordCoord = Object.values(text.last);
 
-            let [p, s, w] = [text.anchor.paragraph, text.anchor.sentence, text.anchor.word];
+        let cid = container.id
+        for (let text of code.texts) {
+
+            let [paragraph, sentence, word] = [text.first.paragraph, text.first.sentence, text.first.word];
             // eslint-disable-next-line no-constant-condition
             while(true) {
                 // check if p, s, w are keys; if not, add
-                if(!(p in cc)) {
-                    cc[p] = {
+                if(!(paragraph in cc)) {
+                    cc[paragraph] = {
                         cIds: new Set(),
                         s: {}
                     };
                 }
-                if(!(s in cc[p].s)) {
-                    cc[p].s[s] = {
+                if(!(sentence in cc[paragraph].s)) {
+                    cc[paragraph].s[sentence] = {
                         w: {}
                     };
                 }
-                if(!(w in cc[p].s[s].w)) {
-                    cc[p].s[s].w[w] = {
+                if(!(word in cc[paragraph].s[sentence].w)) {
+                    cc[paragraph].s[sentence].w[word] = {
                         cIds: new Set(),
                         texts: {},
                     };
                 }
                 // check if con is already in [p].cons; if not, add
-                cc[p].cIds.add(cid);
+                cc[paragraph].cIds.add(cid);
                 // check if con is already in [p,s,w].cons; if not, add
-                cc[p].s[s].w[w].cIds.add(cid);
+                cc[paragraph].s[sentence].w[word].cIds.add(cid);
                 // add text to [p, s, w].texts
-                if(!(cid in cc[p].s[s].w[w].texts)) {
-                    cc[p].s[s].w[w].texts[cid] = {};
+                if(!(cid in cc[paragraph].s[sentence].w[word].texts)) {
+                    cc[paragraph].s[sentence].w[word].texts[cid] = {};
                 }
                 // add a "code layer" so we can use it if we disassociate text
-                if(!(code.id in cc[p].s[s].w[w].texts[cid])) {
-                    cc[p].s[s].w[w].texts[cid][code.id] = [];
+                if(!(code.id in cc[paragraph].s[sentence].w[word].texts[cid])) {
+                    cc[paragraph].s[sentence].w[word].texts[cid][code.id] = [];
                 }
-                cc[p].s[s].w[w].texts[cid][code.id].push(text.id);
+                cc[paragraph].s[sentence].w[word].texts[cid][code.id].push(text.id);
                 // check if we're at the lastCoord; if yes, break. if not, move to next coord
-                if(p === lastWordCoord[0] && s === lastWordCoord[1] && w === lastWordCoord[2]) {
+                if(paragraph === text.last_word.paragraph
+                    && sentence === text.last_word.sentence
+                    && word === text.last_word.word) {
                     break;
                 }
-                [p, s, w] = v.next(p, s, w);
+                [paragraph, sentence, word] = v.next(paragraph, sentence, word);
             }
         }
     }
@@ -239,7 +241,7 @@ function getSelectedRegion(tr, p, s, w) {
         components: {VueContext},
         computed: {
             wordCoordTextMap() {
-                let containers = this[getters.CONTAINERS];
+                let containers = this.containers;
                 let coordTextMap = {};
 
                 for(let container of containers) {
@@ -253,7 +255,7 @@ function getSelectedRegion(tr, p, s, w) {
                 return coordTextMap;
             },
             activeContainerId() {
-                let containers = this[getters.CONTAINERS];
+                let containers = this.containers;
 
                 for(let c of containers) {
                     if(c.colorInfo.active) {
@@ -263,7 +265,7 @@ function getSelectedRegion(tr, p, s, w) {
 
                 return false;
             },
-            ...mapGetters([getters.CONTAINERS, getters.ID_TO_CONTAINER, getters.ID_TO_CODE]),
+            ...mapGetters(["containers", "idToContainer", "idToCode"]),
         },
         methods: {
             chooseMenu(e, p, s, w) {
@@ -312,7 +314,7 @@ function getSelectedRegion(tr, p, s, w) {
                 ) {
                     let texts = this.wordCoordTextMap[p].s[s].w[w].texts;
                     if (this.activeContainerId in texts) {
-                        let ci = this[getters.ID_TO_CONTAINER][this.activeContainerId].colorInfo;
+                        let ci = this.idToContainer[this.activeContainerId].colorInfo;
                         return {
                             backgroundColor: ci.bg + " !important",
                             color: ci.fg,
@@ -322,7 +324,7 @@ function getSelectedRegion(tr, p, s, w) {
             },
 
             paragraphStyle(containerId) {
-                let c = this[getters.ID_TO_CONTAINER][containerId];
+                let c = this.idToContainer[containerId];
                 return {
                     backgroundColor: c.colorInfo.bg,
                     borderRadius: "50% !important",

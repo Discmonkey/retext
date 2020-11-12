@@ -93,9 +93,11 @@ components:
         id:
           $ref: '#/components/schemas/Id'
         year:
-          type: int32
+          type: integer
+          format: int32
         month:
-          type: int32
+          type: integer
+          format: int32
         name:
           type: string
         description:
