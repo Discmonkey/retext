@@ -49,7 +49,7 @@ const routes = [
                 component: ProjectHub
             },
             {
-                path: 'coding-buckets',
+                path: 'buckets',
                 name: 'Coding Buckets',
                 component: Buckets
             }

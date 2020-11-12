@@ -1,8 +1,8 @@
-export const FileActions = {
+export const ActionNames = {
 
 }
 
-export const FileMutations = {
+export const MutationNames = {
 
 }
 

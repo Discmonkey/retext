@@ -36,9 +36,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Code'
+        percentage:
+          type: float
       required:
         - order
         - codes
+        - percentage
 
     DocumentText:
       type: object
@@ -102,9 +105,6 @@ components:
         - month
         - name
         - description
-
-
-
     WordCoordinate:
       type: object
       properties:

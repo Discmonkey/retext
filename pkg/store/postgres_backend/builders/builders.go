@@ -83,18 +83,22 @@ func (c *CodeBuilder) Finish() store.Code {
 }
 
 type ContainerBuilder struct {
-	container      *store.CodeContainer
-	currentDisplay int
-	codeBuilder    *CodeBuilder
+	container        *store.CodeContainer
+	currentDisplay   int
+	totalFiles       int
+	representedFiles []int32
+	codeBuilder      *CodeBuilder
 }
 
-func NewContainerBuilder(containerId int64) ContainerBuilder {
+func NewContainerBuilder(containerId int64, totalFiles int) ContainerBuilder {
 	return ContainerBuilder{
 		container: &store.CodeContainer{
 			Id:    containerId,
 			Codes: make([]store.Code, 0),
 		},
-		currentDisplay: math.MaxInt64,
+		currentDisplay:   math.MaxInt64,
+		totalFiles:       totalFiles,
+		representedFiles: make([]int32, 0, 0),
 	}
 }
 
@@ -110,6 +114,17 @@ func (c *ContainerBuilder) Push(row ContainerRow) {
 		c.codeBuilder = codeBuilder.SetContainerId(c.container.Id).SetCodeId(int64(row.CodeId))
 	}
 
+	found := false
+	for _, fileId := range c.representedFiles {
+		if fileId == row.CodeRow.SourceId.Int32 {
+			found = true
+		}
+	}
+
+	if !found {
+		c.representedFiles = append(c.representedFiles, row.CodeRow.SourceId.Int32)
+	}
+
 	c.codeBuilder.Push(row.CodeRow)
 }
 
@@ -117,6 +132,8 @@ func (c *ContainerBuilder) Finish() store.CodeContainer {
 	if c.codeBuilder != nil {
 		c.container.Codes = append(c.container.Codes, c.codeBuilder.Finish())
 	}
+
+	c.container.Percentage = float32(len(c.representedFiles)) / float32(c.totalFiles)
 
 	container := c.container
 
@@ -128,11 +145,13 @@ func (c *ContainerBuilder) Finish() store.CodeContainer {
 type ContainerListBuilder struct {
 	containers       []store.CodeContainer
 	containerBuilder *ContainerBuilder
+	totalFiles       int
 }
 
-func NewContainerListBuilder() ContainerListBuilder {
+func NewContainerListBuilder(totalFiles int) ContainerListBuilder {
 	return ContainerListBuilder{
 		containers: make([]store.CodeContainer, 0, 0),
+		totalFiles: totalFiles,
 	}
 }
 
@@ -143,7 +162,7 @@ func (c *ContainerListBuilder) Push(row ContainerListRow) {
 	}
 
 	if c.containerBuilder == nil {
-		builder := NewContainerBuilder(int64(row.ContainerId))
+		builder := NewContainerBuilder(int64(row.ContainerId), c.totalFiles)
 		c.containerBuilder = &builder
 	}
 

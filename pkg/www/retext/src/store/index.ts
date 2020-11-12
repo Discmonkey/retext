@@ -8,14 +8,6 @@ import {Code} from "@/model/code";
 
 Vue.use(Vuex)
 
-export const getters = {
-    CONTAINERS: "containers",
-    ID_TO_CONTAINER: "idToContainer",
-    ID_TO_CODE: "idToCode",
-    GET_CODE: "getCode",
-    GET_TEXTS_LENGTH: "getTextsLength",
-}
-
 export const mutations = {
     CLEAR_CONTAINERS: "clearContainers",
     SET_CONTAINERS: "setContainers",
@@ -62,6 +54,7 @@ function prepareContainer(backendCodeContainer: CodeContainer): CodeContainerWit
         subcodes: backendCodeContainer.codes,
     } as CodeContainerWithMain;
 }
+
 async function createCode(containerId: Id, name: string): Promise<Code> {
     return (await Vue.axios.post("/code/create", {
                 code: name,
@@ -89,16 +82,16 @@ export const store = new Vuex.Store({
     } as StoreState,
 
     getters: {
-        [getters.CONTAINERS](state) {
+        containers(state) {
             return state.containers
         },
-        [getters.ID_TO_CONTAINER](state) {
+        idToContainer(state) {
             return state.idToContainer;
         },
-        [getters.ID_TO_CODE](state) {
+        idToCode(state) {
             return state.idToCode;
         },
-        [getters.GET_TEXTS_LENGTH] (state: StoreState) {
+        textLength(state: StoreState) {
             return (containerId: Id) => {
                 if (!(containerId in state.idToContainer)) {
                     return;
@@ -237,7 +230,7 @@ export const store = new Vuex.Store({
                 data: {textIds: allTextIds}
             }).then(() => {
                 for (const [codeId, textIds] of Object.entries(codedTexts)) {
-                    let code = context.getters[getters.ID_TO_CODE][codeId];
+                    let code = context.getters.idToCode[codeId];
 
                     let newTexts = [];
                     for(let text of code.texts) {
@@ -255,15 +248,16 @@ export const store = new Vuex.Store({
          * only 1 container can be "color active" at a time
          */
         async [actions.SET_COLOR_ACTIVE] (context, {containerId, toggleTo}) {
-            let c = context.getters[getters.ID_TO_CONTAINER][containerId];
+            let c = context.getters.idToContainer[containerId];
             toggleTo = toggleTo === undefined ? !c.colorInfo.active : toggleTo;
 
-            for(let c of context.getters[getters.CONTAINERS]) {
+            for(let c of context.getters.containers) {
                 c.colorInfo.active = false;
             }
 
             c.colorInfo.active = toggleTo;
         },
+
         async [actions.INIT_CONTAINERS](context) {
             Vue.axios.get(`/code/list?${makeId(context)}`).then((res) => {
                 const containers = res.data;

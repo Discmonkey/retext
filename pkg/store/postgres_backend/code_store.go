@@ -122,6 +122,15 @@ func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 }
 
 func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContainer, error) {
+	var numFilesInProject int
+
+	row := c.db.QueryRow(`SELECT count(*) FROM qode.file 
+			WHERE project_id = (
+    			SELECT project_id FROM qode.code_container WHERE id = $1 LIMIT 1 
+			)`, containerId)
+
+	err := row.Scan(&numFilesInProject)
+
 	rows, err := c.db.Query(`
 		SELECT c.name, c.display_order, c.id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
 		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id FROM qode.code c
@@ -134,22 +143,29 @@ func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContai
 		return store.CodeContainer{}, err
 	}
 
-	builder := builders.NewContainerBuilder(containerId)
+	builder := builders.NewContainerBuilder(containerId, numFilesInProject)
 
-	row := builders.ContainerRow{}
+	builderRow := builders.ContainerRow{}
 
 	for rows.Next() {
-		err = rows.Scan(&row.CodeRow.Name, &row.CodeDisplayOrder, &row.CodeId, &row.CodeRow.P1,
-			&row.CodeRow.S1, &row.CodeRow.W1,
-			&row.CodeRow.P2, &row.CodeRow.S2, &row.CodeRow.W2, &row.CodeRow.Text, &row.CodeRow.SourceId)
+		err = rows.Scan(&builderRow.CodeRow.Name, &builderRow.CodeDisplayOrder, &builderRow.CodeId, &builderRow.CodeRow.P1,
+			&builderRow.CodeRow.S1, &builderRow.CodeRow.W1,
+			&builderRow.CodeRow.P2, &builderRow.CodeRow.S2, &builderRow.CodeRow.W2,
+			&builderRow.CodeRow.Text, &builderRow.CodeRow.SourceId)
 
-		builder.Push(row)
+		builder.Push(builderRow)
 	}
 
 	return builder.Finish(), nil
 }
 
 func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, error) {
+	var numFilesInProject int
+
+	numFilesRow := c.db.QueryRow(`SELECT count(*) FROM qode.file 
+			WHERE project_id = $1`, id)
+
+	err := numFilesRow.Scan(&numFilesInProject)
 
 	rows, err := c.db.Query(`
 		SELECT container.display_order as container_display_order,
@@ -166,7 +182,7 @@ func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, err
 		return nil, err
 	}
 
-	builder := builders.NewContainerListBuilder()
+	builder := builders.NewContainerListBuilder(numFilesInProject)
 	row := builders.ContainerListRow{}
 
 	for rows.Next() {

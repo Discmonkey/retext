@@ -55,7 +55,7 @@
 <script>
 import Draggable from 'vuedraggable';
 import CodeDropZone from "@/components/CodeDropZone";
-import {actions, getters, mutations} from "@/store"
+import {actions, mutations} from "@/store"
 import {mapGetters} from "vuex";
 // eslint-disable-next-line no-unused-vars
     let codeTypes = {
@@ -72,15 +72,15 @@ import {mapGetters} from "vuex";
         name: 'codeList',
         components: {Draggable, CodeDropZone},
         computed: {
-            [getters.CONTAINERS]: {
+            containers: {
                 get() {
-                    return this.$store.getters[getters.CONTAINERS];
+                    return this.$store.getters.containers;
                 },
                 set(c) {
                     this.$store.commit(mutations.SET_CONTAINERS, c)
                 },
             },
-            ...mapGetters([getters.ID_TO_CONTAINER])
+            ...mapGetters(["idToContainer"])
         },
         mounted() {
             this.$store.dispatch(actions.INIT_CONTAINERS)
@@ -128,7 +128,7 @@ import {mapGetters} from "vuex";
                 });
             },
             getContainerTextsLength(container) {
-                return this.$store.getters[getters.GET_TEXTS_LENGTH](container.containerId)
+                return this.$store.getters.textLength(container.containerId);
             },
 
 
