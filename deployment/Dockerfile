@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 # install git for downloading go dependencies
-RUN apt-get update && apt-get install -y git gcc
+RUN apt-get update && apt-get install -y git gcc openjdk-8-jre make
 
 # major dependencies are vendored in the project and extracted here
 COPY third_party /third_party
@@ -29,8 +29,12 @@ RUN cd pkg/www/retext && npm install
 # grab the source
 COPY pkg ./pkg
 COPY cmd ./cmd
-
+COPY Makefile ./Makefile
+COPY swagger.yaml ./swagger.yaml
 # build the frontend
+
+RUN mkdir third_party && mv /third_party/swagger-codegen-cli-3.0.20.jar third_party/swagger-codegen-cli-3.0.20.jar
+RUN make client-apis
 RUN cd pkg/www/retext && npm run build
 
 # build the backend
