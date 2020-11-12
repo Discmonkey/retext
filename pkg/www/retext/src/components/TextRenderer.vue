@@ -166,8 +166,8 @@ function getSelectedRegion(tr, p, s, w) {
         let regionInfo = {};
 
         let selectedWords = [];
-        let currentWord = tr.words(p, s)[w];
         let indices = [p, s, w];
+        let currentWord = tr.words(indices[0], indices[1])[indices[2]];
         let currentIndices = indices;
 
         while (currentWord.Selected) {
@@ -188,8 +188,8 @@ function getSelectedRegion(tr, p, s, w) {
             word: currentIndices[2],
         }
 
-        currentWord = tr.words(indices[0], indices[1])[indices[2]];
         indices = tr.next(p, s, w);
+        currentWord = tr.words(indices[0], indices[1])[indices[2]];
         currentIndices = indices;
 
         while (currentWord.Selected) {
