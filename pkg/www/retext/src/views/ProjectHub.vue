@@ -39,7 +39,8 @@ export default {
         },
 
         stringDate() {
-            return moment(this.project.timeTag).add(1, "days").format("MMM YYYY");
+
+            return moment().date(1).month(this.project.month).year(this.project.year).format("MMM YYYY");
         },
     },
 

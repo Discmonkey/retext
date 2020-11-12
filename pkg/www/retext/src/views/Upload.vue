@@ -12,10 +12,10 @@
                 <h4 class="upload-header">Source Files </h4>
 
 
-                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.Id">
+                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.Id"
-                                    :document-name="file.Name"
+                        <ToDocument :document-id="file.id"
+                                    :document-name="file.name"
                                     :project-id="projectId"
                                     button-text="Code" path="/code"></ToDocument>
                     </div>
@@ -38,9 +38,9 @@
 
             <div class="col-6">
                 <h4 class="upload-header"> Demographic Information </h4>
-                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.Id">
+                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.Id" :document-name="file.Name"
+                        <ToDocument :document-id="file.id" :document-name="file.name"
                                     :project-id="projectId"
                                     button-text="Modify" path="/demo"></ToDocument>
                     </div>
@@ -95,10 +95,10 @@ export default {
 
     mounted() {
         this.axios.get(`/file/list?projectId=${this.$route.params.projectId}`).then((res) => {
-            for (let f of res.data.Files) {
-                if (f.Type === "SourceFile") {
+            for (let f of res.data.files) {
+                if (f.type === "SOURCE_FILE") {
                     this.uploadedSourceFiles.push(f)
-                } else if (f.Type === "DemoFile") {
+                } else if (f.type === "DEMO_FILE") {
                     this.uploadedDemoFiles.push(f)
                 }
             }

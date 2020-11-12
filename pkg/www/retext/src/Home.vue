@@ -6,7 +6,7 @@ import {ProjectActions} from "@/store/modules/project";
 export default {
     name: "Home",
     mounted() {
-        this.$store.dispatch(ProjectActions.SELECT_PROJECT, this.$route.params.projectId)
+        this.$store.dispatch(ProjectActions.SELECT_PROJECT, parseInt(this.$route.params.projectId))
     },
 
     computed: {

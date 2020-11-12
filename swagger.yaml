@@ -87,21 +87,21 @@ components:
     Project:
       type: object
       properties:
-        Id:
+        id:
           $ref: '#/components/schemas/Id'
-        Year:
+        year:
           type: int32
-        Month:
+        month:
           type: int32
-        Name:
+        name:
           type: string
-        Description:
+        description:
           type: string
       required:
-        - Year
-        - Month
-        - Name
-        - Description
+        - year
+        - month
+        - name
+        - description
 
 
 

@@ -11,9 +11,9 @@ export const ProjectActions = {
     LOAD_PROJECTS: "loadProjects",
     ADD_PROJECT: "addProject",
     SELECT_PROJECT: "projectId",
-    makeAddProjectPayload(name: string, description: string, datetime: string) {
+    makeAddProjectPayload(name: string, description: string, year: number, month: number): Project {
         return {
-            name, description, datetime
+            name, description, year, month
         }
     }
 }
