@@ -197,22 +197,22 @@ export const store = new Vuex.Store({
         },
         async [actions.ASSOCIATE_TEXT](context, {codeId, words}) {
             if(
-                words.anchor.paragraph > words.last.paragraph ||
-                words.anchor.paragraph === words.last.paragraph && words.anchor.sentence > words.last.sentence ||
-                words.anchor.paragraph === words.last.paragraph && words.anchor.sentence === words.last.sentence && words.anchor.word > words.last.word
+                words.first_word.paragraph > words.last_word.paragraph ||
+                words.first_word.paragraph === words.last_word.paragraph && words.first_word.sentence > words.last_word.sentence ||
+                words.first_word.paragraph === words.last_word.paragraph && words.first_word.sentence === words.last_word.sentence && words.first_word.word > words.last_word.word
             ) {
                 // swap the order to make sure the first is first
-                let t = words.last;
-                words.last = words.anchor;
-                words.anchor = t;
+                let t = words.last_word;
+                words.last_word = words.first_word;
+                words.first_word = t;
             }
 
             return Vue.axios.post("/code/associate", {
                 key: parseInt(words.documentId),
                 codeId: codeId,
                 text: words.text,
-                anchor: words.anchor,
-                last: words.last,
+                first_word: words.first_word,
+                last_word: words.last_word,
             }).then(() => {
                 // TODO: need the textId here?
                 context.commit(mutations.ADD_TEXT, {codeId, text: words})

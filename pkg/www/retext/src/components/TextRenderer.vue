@@ -160,7 +160,7 @@ import 'vue-context/dist/css/vue-context.css';
  * @param p  paragraph index
  * @param s  sentence index
  * @param w  word index
- * @returns {{anchor, last, text}}
+ * @returns {{first_word, last_word, text}}
  */
 function getSelectedRegion(tr, p, s, w) {
         let regionInfo = {};
@@ -182,7 +182,7 @@ function getSelectedRegion(tr, p, s, w) {
         }
 
         selectedWords.reverse();
-        regionInfo.anchor = {
+        regionInfo.first_word = {
             paragraph: currentIndices[0],
             sentence: currentIndices[1],
             word: currentIndices[2],
@@ -203,7 +203,7 @@ function getSelectedRegion(tr, p, s, w) {
             currentWord = tr.words(indices[0], indices[1])[indices[2]];
         }
 
-        regionInfo.last = {
+        regionInfo.last_word = {
             paragraph: currentIndices[0],
             sentence: currentIndices[1],
             word: currentIndices[2],
