@@ -106,7 +106,7 @@ import 'vue-context/dist/css/vue-context.css';
 
         let cid = container.containerId
         for (let text of code.texts) {
-            console.log(text);
+
             let [paragraph, sentence, word] = [text.first_word.paragraph, text.first_word.sentence, text.first_word.word];
             // eslint-disable-next-line no-constant-condition
             while(true) {
