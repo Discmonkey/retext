@@ -89,15 +89,17 @@ components:
       properties:
         Id:
           $ref: '#/components/schemas/Id'
-        TimeTag:
-          type: string
-          format: date-time
+        Year:
+          type: int32
+        Month:
+          type: int32
         Name:
           type: string
         Description:
           type: string
       required:
-        - TimeTag
+        - Year
+        - Month
         - Name
         - Description
 

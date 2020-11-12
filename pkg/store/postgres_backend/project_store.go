@@ -42,7 +42,11 @@ func (p ProjectStore) GetProject(id store.ProjectId) (store.Project, error) {
 	row := p.con.QueryRow(query, id)
 
 	var project store.Project
-	err := row.Scan(&project.Id, &project.Name, &project.Description, &project.TimeTag)
+	var datetime time.Time
+	err := row.Scan(&project.Id, &project.Name, &project.Description, &datetime)
+
+	project.Year = int32(datetime.Year())
+	project.Month = int32(datetime.Month())
 
 	return project, err
 }
@@ -61,8 +65,11 @@ func (p ProjectStore) GetProjects() ([]store.Project, error) {
 
 	for rows.Next() {
 		var project store.Project
+		var datetime time.Time
+		err := rows.Scan(&project.Id, &project.Name, &project.Description, &datetime)
+		project.Month = int32(datetime.Month())
+		project.Year = int32(datetime.Year())
 
-		err := rows.Scan(&project.Id, &project.Name, &project.Description, &project.TimeTag)
 		if err != nil {
 			return nil, err
 		}
