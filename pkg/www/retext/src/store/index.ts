@@ -33,6 +33,7 @@ type Commit = (s: string, a: any) => void;
 export interface CodeContainerWithMain {
     containerId: Id;
     main: Code | null;
+    percentage: number;
     subcodes: Array<Code>;
     colorInfo: {
         bg: string;
@@ -50,6 +51,7 @@ function prepareContainer(backendCodeContainer: CodeContainer): CodeContainerWit
 
     return {
         containerId: backendCodeContainer.id,
+        percentage: backendCodeContainer.percentage,
         main,
         subcodes: backendCodeContainer.codes,
     } as CodeContainerWithMain;

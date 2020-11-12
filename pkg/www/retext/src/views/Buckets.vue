@@ -1,8 +1,8 @@
 <template>
     <div class="container">
         <div class="row">
-            <div class="col-md-6 code-container" v-for="code in $store.getters.containers" v-bind:key="code.id">
-                <ToBucket code-container="code"></ToBucket>
+            <div class="col-md-6 code-container" v-for="container in $store.getters.containers" v-bind:key="container.id">
+                <ToBucket :code-container="container"></ToBucket>
             </div>
         </div>
     </div>
