@@ -9,6 +9,7 @@
 
 <script>
     import {API} from "@/core/API.ts";
+    import {actions} from "@/store";
 
     export default {
         name: "UploadFile",
@@ -44,9 +45,13 @@
                 });
 
                 if (this.fileType === "KSOURCE") {
-                    this.$store.dispatch()
+                    this.$store.dispatch(actions.file.postSource, {
+                        project: this.projectId, formData
+                    });
                 } else {
-                    items = API.demo.post(this.projectId, formData);
+                    this.$store.dispatch(actions.file.postDemo, {
+                        project: this.projectId, formData
+                    });
                 }
             },
 
