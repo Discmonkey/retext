@@ -5,6 +5,7 @@ import (
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"github.com/discmonkey/retext/pkg/endpoints/project"
+	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend"
 	"log"
 	"net/http"
@@ -54,9 +55,9 @@ func main() {
 	codeBackend := postgres_backend.NewCodeStore(connection)
 	projectBackend := postgres_backend.NewProjectStore(connection)
 
-	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
-	http.HandleFunc("/file/list", file.ListEndpoint(fileBackend))
-	http.HandleFunc("/file/load", file.DownloadEndpoint(fileBackend))
+	http.HandleFunc("/files", file.FilesEndpoint(fileBackend))
+	http.HandleFunc("/demo", file.FileEndpoint(fileBackend, store.DemoFile))
+	http.HandleFunc("/source", file.FileEndpoint(fileBackend, store.SourceFile))
 
 	http.HandleFunc("/code/container/create", code.CreateContainer(codeBackend))
 	http.HandleFunc("/code/create", code.CreateCode(codeBackend))
