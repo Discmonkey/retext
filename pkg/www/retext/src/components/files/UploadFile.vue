@@ -43,19 +43,11 @@
                     formData.append("files", file);
                 });
 
-                let items;
                 if (this.fileType === "KSOURCE") {
-                    items = API.source.post(this.projectId, formData);
+                    this.$store.dispatch()
                 } else {
                     items = API.demo.post(this.projectId, formData);
                 }
-
-                items.then(
-                    received => this.$emit("success", received)
-                )
-                .catch(
-                    (error) => console.error(error)
-                )
             },
 
             clickFile() {

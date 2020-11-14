@@ -5,6 +5,7 @@ import {getColor, invertColor} from "@/core/Colors";
 import {Id} from "@/model/id";
 import {CodeContainer} from "@/model/codeContainer";
 import {Code} from "@/model/code";
+import * as document from "@/store/modules/file";
 
 Vue.use(Vuex)
 
@@ -14,7 +15,8 @@ export const mutations = {
     ADD_CONTAINER: "addContainer",
     ADD_CODE: "addCode",
     ADD_TEXT: "addText",
-    SET_PROJECT: "setProject"
+    SET_PROJECT: "setProject",
+    file: document.mutations,
 }
 export const actions = {
     INIT_CONTAINERS: "initContainers",
@@ -23,6 +25,7 @@ export const actions = {
     ASSOCIATE_TEXT: "associateText",
     DISASSOCIATE_TEXT: "disassociateText",
     SET_COLOR_ACTIVE: "toggleColorActive",
+    file: document.actions,
 }
 
 
@@ -275,6 +278,7 @@ export const store = new Vuex.Store({
     },
 
     modules: {
-        ProjectModule
+        ProjectModule,
+        DocumentModule: document.Module,
     }
 })

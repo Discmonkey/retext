@@ -38,7 +38,7 @@ interface State {
     },
 }
 
-export const DocumentModule = {
+export const Module = {
 
     state: {
         files: [],
