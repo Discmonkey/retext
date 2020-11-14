@@ -5,8 +5,21 @@ info:
   version: '0.9'
 
 components:
-  schemas:
+  parameters:
+    projectId:
+      in: query
+      name: project_id
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
 
+    fileId:
+      in: query
+      name: file_id
+      schema:
+        $ref: '#/components/schemas/Id'
+
+  schemas:
     Code:
       type: object
       properties:
@@ -84,6 +97,15 @@ components:
         - name
         - ext
 
+    FileUpload:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+
     Project:
       type: object
       properties:
@@ -123,14 +145,20 @@ components:
       type: string
 
     Sentence:
-      type: array
-      items:
-        $ref: '#/components/schemas/Word'
+      type: object
+      properties:
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/Word'
 
     Paragraph:
-      type: array
-      items:
-        $ref: '#/components/schemas/Sentence'
+      type: object
+      properties:
+        sentences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sentence'
 
     Demo:
       type: object
@@ -147,9 +175,12 @@ components:
               type: string
 
     Source:
-      type: array
-      items:
-        $ref: '#/components/schemas/Paragraph'
+      type: object
+      properties:
+        paragraphs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Paragraph'
 
     FileType:
       type: string
@@ -158,8 +189,56 @@ components:
         - demo
 
 paths:
-  /file:
+  /source:
     post:
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        200:
+          description: successful upload, returns uploaded source file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUpload'
+
+    get:
+      parameters:
+        - $ref: '#/components/parameters/fileId'
+      responses:
+        200:
+          description: requested document was successfully parsed and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        400:
+          description: request document file type does not match file type registered for the document
+
+  /sources:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        200:
+          description: returns all source files for teh project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+
+  /demo:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/projectId'
       responses:
         200:
           description: successful upload, returns uploaded file
@@ -174,16 +253,32 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                filetype:
-                  $ref: '#/components/schemas/FileType'
-                projectId:
-                  $ref: '#/components/schemas/Id'
-                files:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
+              $ref: '#/components/schemas/FileUpload'
 
+    get:
+      parameters:
+        - $ref: '#/components/parameters/fileId'
+      responses:
+        200:
+          description: requested document was successfully parsed and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Demo'
+        400:
+          description: request document file type does not match file type registered for the document
+
+  /demos:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        200:
+          description: returns all demo files for the project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
 
