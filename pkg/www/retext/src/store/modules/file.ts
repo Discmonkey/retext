@@ -4,7 +4,7 @@ import {WalkableSource} from "@/core/WalkableSource";
 import {Id} from "@/model/id";
 import vue from 'vue';
 import {ModelFile, ModelFile as File} from "@/model/modelFile";
-import {Commit} from "vuex";
+import {Commit, Dispatch} from "vuex";
 import {API} from "@/core/API";
 
 export const actions = {
@@ -130,6 +130,26 @@ export const DocumentModule = {
             commit(mutations.addFile, {
                 source: parsed, id: payload.fileId
             });
+        },
+
+        async [actions.selectSource]({state, commit, dispatch}: {state: State; commit: Commit; dispatch: Dispatch}, payload: {
+            fileId: Id
+        }) {
+            if (!(payload.fileId in state.sources.map)) {
+                await dispatch(actions.getSource, payload);
+            }
+
+            commit(mutations.selectSource, {source: payload.fileId});
+        },
+
+        async [actions.selectDemo]({state, commit, dispatch}: {state: State; commit: Commit; dispatch: Dispatch}, payload: {
+            fileId: Id
+        }) {
+            if (!(payload.fileId in state.demos.map)) {
+                await dispatch(actions.getDemo, payload);
+            }
+
+            commit(mutations.selectDemo, {source: payload.fileId});
         }
     },
 
