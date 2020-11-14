@@ -11,9 +11,9 @@ import (
 
 type AddResponse []store.File
 
-func AddUploadEndpoint(fileStore store.FileStore, fileType store.FileType) func(w http.ResponseWriter, r *http.Request) {
+func AddFileEndpoint(fileStore store.FileStore, fileType store.FileType) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
+		if r.Method == http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
@@ -48,7 +48,7 @@ func AddUploadEndpoint(fileStore store.FileStore, fileType store.FileType) func(
 			}
 			_ = file.Close()
 
-			uploadedFile, err := fileStore.UploadFile(handle.Filename, data, projectId)
+			uploadedFile, err := fileStore.UploadFile(handle.Filename, data, projectId, fileType)
 
 			response = append(response, uploadedFile)
 		}

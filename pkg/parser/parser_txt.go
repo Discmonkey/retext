@@ -1,16 +1,21 @@
 package parser
 
 import (
+	"errors"
 	"strings"
 )
 
 type TxtParser struct {
 }
 
+func (t TxtParser) ConvertDemo(bytes []byte) (Demo, error) {
+	return Demo{}, errors.New("text par")
+}
+
 // Convert for the TxtParser does not fail since it simply reads from the start of the bytes to the end
 // It makes fairly arbitrary choices for how to handle certain datatypes.
-func (t TxtParser) Convert(unprocessed []byte) (Document, error) {
-	d := Document{
+func (t TxtParser) ConvertSource(unprocessed []byte) (Source, error) {
+	d := Source{
 		Paragraphs: make([]Paragraph, 0, 0)}
 
 	cursor := 0
@@ -61,7 +66,7 @@ func readParagraph(text []byte, position int) (Paragraph, int) {
 
 func readSentence(text []byte, position int) (Sentence, int) {
 	s := Sentence{
-		Parts: []Word{},
+		Words: []string{},
 	}
 
 	for position < len(text) {
@@ -75,9 +80,9 @@ func readSentence(text []byte, position int) (Sentence, int) {
 			position += 1
 		// on any space we go ahead and read a word
 		default:
-			p, newPosition, last := readWord(text, position)
+			w, newPosition, last := readWord(text, position)
 
-			s.Parts = append(s.Parts, p)
+			s.Words = append(s.Words, w)
 
 			position = newPosition
 
@@ -106,44 +111,28 @@ func isTerminating(text []byte, index int) bool {
 
 type isLast = bool
 
-func readWord(text []byte, position int) (Word, int, isLast) {
-
-	word := Word{}
+func readWord(text []byte, position int) (string, int, isLast) {
 
 	builder := strings.Builder{}
 
 	for position < len(text) {
 		switch text[position] {
 
-		// as good as an ending
-		case '\n', '\f', '\r':
-			word.Text = builder.String()
-
-			return word, position, true
-
-		// on any space we go ahead and read a word
-		case '\t', ' ':
-			word.Text = builder.String()
-
-			return word, position, false
-
-		// these are ending characters
+		// non character
+		case '\n', '\f', '\r', '\t', ' ':
+			return builder.String(), position, true
 
 		case '!', '?':
 			builder.WriteByte(text[position])
 			position++
-			word.Text = builder.String()
 
-			return word, position, true
-
+			return builder.String(), position, true
 		case '.':
 			builder.WriteByte(text[position])
 			position++
 
 			if isTerminating(text, position-1) {
-				word.Text = builder.String()
-
-				return word, position, true
+				return builder.String(), position, true
 			}
 
 		default:
@@ -151,10 +140,7 @@ func readWord(text []byte, position int) (Word, int, isLast) {
 			position++
 		}
 	}
-
-	word.Text = builder.String()
-
-	return word, position, true
+	return builder.String(), position, true
 }
 
 var _ Parser = TxtParser{}

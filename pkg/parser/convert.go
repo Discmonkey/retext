@@ -1,6 +1,9 @@
 package parser
 
-import "errors"
+import (
+	"errors"
+	"github.com/discmonkey/retext/pkg/swagger"
+)
 
 type DocumentType int
 
@@ -11,38 +14,18 @@ const (
 	Csv
 )
 
-type Word struct {
-	Text string
-
-	// frontend stuff starting here
-	Selected bool
-}
-
-type Sentence struct {
-	Parts []Word
-}
-
-type Paragraph struct {
-	Sentences []Sentence
-}
-
-type Attributes struct {
-	Columns []string
-	Values  map[string][]string
-}
-
-type Document struct {
-	Attributes Attributes
-	Title      string
-	Paragraphs []Paragraph
-}
+type Sentence = swagger.Sentence
+type Paragraph = swagger.Paragraph
+type Source = swagger.Source
+type Demo = swagger.Demo
 
 type Parser interface {
-	Convert([]byte) (Document, error)
+	ConvertSource([]byte) (Source, error)
+	ConvertDemo([]byte) (Demo, error)
 }
 
 // GetParser returns the matching parser for the filetype or error if there is no correct parser
-func GetParser(t DocumentType) (Parser, error) {
+func NewParser(t DocumentType) (Parser, error) {
 	switch t {
 	case Text:
 		return TxtParser{}, nil
@@ -57,13 +40,23 @@ func GetParser(t DocumentType) (Parser, error) {
 	}
 }
 
-// Convert takes the bytes from a file and the file type and generates a simple intermediate representation
+// ConvertSource takes the bytes from a file and the file type and generates a simple intermediate representation
 // which can be manipulated.
-func Convert(unprocessed []byte, t DocumentType) (Document, error) {
-	p, err := GetParser(t)
+func ConvertSource(unprocessed []byte, t DocumentType) (Source, error) {
+	p, err := NewParser(t)
 	if err != nil {
-		return Document{}, err
+		return Source{}, err
 	}
 
-	return p.Convert(unprocessed)
+	return p.ConvertSource(unprocessed)
+}
+
+/// ConvertDemo
+func ConvertDemo(unprocessed []byte, t DocumentType) (Demo, error) {
+	p, err := NewParser(t)
+	if err != nil {
+		return Demo{}, err
+	}
+
+	return p.ConvertDemo(unprocessed)
 }

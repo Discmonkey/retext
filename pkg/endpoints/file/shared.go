@@ -2,12 +2,12 @@ package file
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/parser"
 	"github.com/discmonkey/retext/pkg/store"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 func fileExtToType(ext string) parser.DocumentType {
@@ -23,47 +23,41 @@ func fileExtToType(ext string) parser.DocumentType {
 	return filetype
 }
 
-func FileEndpoint(store store.FileStore, fileType store.FileType) func(w http.ResponseWriter, r *http.Request) {
-	t := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-		}
-
-		keys, ok := r.URL.Query()["key"]
-
-		if !ok || len(keys) != 1 {
-			w.WriteHeader(400)
-			log.Println("key parameter required for file download request")
-		}
-
-		id, err := strconv.ParseInt(keys[0], 10, 64)
-		if endpoints.HttpNotOk(400, w, "invalid document id", err) {
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		contents, fileSpec, err := store.GetFile(id)
-
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(400)
-		} else {
-
-			filetype := fileExtToType(fileSpec.Ext)
-
-			converted, err := parser.Convert(contents, filetype)
-
-			if err != nil {
-				log.Println(err)
-				w.WriteHeader(500)
-				return
-			}
-
-			_ = json.NewEncoder(w).Encode(converted)
-		}
+func Parse(store store.FileStore, fileType store.FileType, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
 	}
 
-	return t
+	fileId, ok := endpoints.GetInt(r, "file_id")
+	if !ok {
+		endpoints.HttpNotOk(400, w, "file_id not present in query", errors.New("missing file_id key"))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	contents, fileSpec, err := store.GetFile(fileId)
+
+	if endpoints.HttpNotOk(400, w, "could not fetch file", err) {
+		return
+	}
+
+	if fileSpec.Type_ != fileType {
+		err = errors.New("file not registered as " + fileType)
+	}
+
+	if endpoints.HttpNotOk(400, w, "mismatced file type", err) {
+		return
+	}
+
+	converted, err := parser.Convert(contents, fileType)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(500)
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(converted)
+
 }

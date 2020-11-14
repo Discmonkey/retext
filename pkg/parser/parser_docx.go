@@ -15,11 +15,18 @@ import (
 type DocXParser struct {
 }
 
+func (t DocXParser) ConvertDemo(i []byte) (Demo, error) {
+	return Demo{}, errors.New("converting docx files for demographics currently not supported")
+}
+
+func init() {
+	var _ Parser = DocXParser{}
+}
+
 // Convert unzips the docx file, finds the content (document.xml), parses the xml tree, and finally walks the xml
 // tree in a top down fashion
-func (t DocXParser) Convert(unprocessed []byte) (Document, error) {
-	d := Document{
-		Paragraphs: make([]Paragraph, 0, 0)}
+func (t DocXParser) ConvertSource(unprocessed []byte) (Source, error) {
+	d := Source{Paragraphs: make([]Paragraph, 0, 0)}
 
 	reader, err := zip.NewReader(bytes.NewReader(unprocessed), int64(len(unprocessed)))
 	if err != nil {
@@ -79,7 +86,7 @@ type visitor interface {
 }
 
 type documentBuilder struct {
-	doc *Document
+	doc *Source
 }
 
 type debugVisitor struct {
