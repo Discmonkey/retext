@@ -3,13 +3,7 @@
         <div class="col-12">
             <div class="row">
                 <div class="grid">
-                    <div class="item" v-for="text in this.container.">
-                        <div class="item-content">
-                            <!-- Safe zone, enter your custom markup -->
-                            This can be anything.
-                            <!-- Safe zone ends -->
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -22,9 +16,7 @@
 export default {
 
     computed: {
-        texts() {
 
-        }
     },
     name: "Bucket",
     data() {

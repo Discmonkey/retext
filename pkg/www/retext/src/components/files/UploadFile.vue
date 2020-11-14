@@ -8,7 +8,6 @@
 </template>
 
 <script>
-    import {API} from "@/core/API.ts";
     import {actions} from "@/store";
 
     export default {

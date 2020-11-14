@@ -22,15 +22,15 @@
                 </div>
 
 
-                <div v-if="uploadedSourceFiles.length > perPage">
+                <div v-if="slicedSourceFiles.length > perPage">
                     <b-pagination v-model="currentPage"
-                                  :total-rows="uploadedSourceFiles.length"
+                                  :total-rows="slicedSourceFiles.length"
                                   :per-page="perPage"></b-pagination>
                 </div>
 
                 <div>
                     <UploadFile file-type="Source"
-                                v-on:success="addSource($event)" :project-id="projectId"
+                                :project-id="projectId"
                                 accepted-files=".docx,.txt,.text" :multiple=true>Upload New Sources</UploadFile>
                 </div>
 
@@ -38,7 +38,7 @@
 
             <div class="col-6">
                 <h4 class="upload-header"> Demographic Information </h4>
-                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.id">
+                <div class="source-file" v-for="file in demos" v-bind:key="file.id">
                     <div class="mb-3">
                         <ToDocument :document-id="file.id" :document-name="file.name"
                                     :project-id="projectId"
@@ -47,7 +47,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)" :project-id="projectId"
+                    <UploadFile file-type="Demographics" :project-id="projectId"
                                 tooltip="For demographic information, please upload a .xlsx or .csv file in which each participant is a different row (a header row is required)."
                                 accepted-files=".xlsx,.csv">Upload New Demographics</UploadFile>
                 </div>
@@ -74,8 +74,6 @@ export default {
 
     data() {
         return {
-            uploadedSourceFiles: [],
-            uploadedDemoFiles: [],
             currentPage: 1,
             perPage: 4,
         }
@@ -101,21 +99,6 @@ export default {
     mounted() {
         this.$store.dispatch(actions.file.getFiles, this.projectId);
     },
-
-    methods: {
-        addSource(items) {
-            items.forEach((item) => {
-                this.uploadedSourceFiles.push(item.File);
-            });
-        },
-
-        addDemo(items) {
-            items.forEach((item) => {
-                this.uploadedDemoFiles.push(item.File);
-            });
-        },
-
-    }
 }
 </script>
 

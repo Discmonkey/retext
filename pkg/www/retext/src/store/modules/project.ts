@@ -2,12 +2,12 @@ import axios from 'axios';
 import {Project} from "@/model/project";
 import {Id} from "@/model/id";
 
-export const MutationNames = {
+export const mutations = {
     ADD_PROJECT: "addProject",
     SELECT_PROJECT: "selectProject",
 }
 
-export const ActionNames = {
+export const actions = {
     LOAD_PROJECTS: "loadProjects",
     ADD_PROJECT: "addProject",
     SELECT_PROJECT: "projectId",
@@ -28,7 +28,7 @@ export const ProjectModule = {
 
     mutations: {
 
-        [MutationNames.ADD_PROJECT](state: ProjectState, project: Project) {
+        [mutations.ADD_PROJECT](state: ProjectState, project: Project) {
             for (const projectOld of state.projects) {
                 if (project.id === projectOld.id) {
                     return;
@@ -38,7 +38,7 @@ export const ProjectModule = {
             state.projects.push(project);
         },
 
-        [MutationNames.SELECT_PROJECT](state: ProjectState, projectId: Id) {
+        [mutations.SELECT_PROJECT](state: ProjectState, projectId: Id) {
             const index = state.projects.findIndex(project => project.id === projectId);
 
             if (index >= 0) {
@@ -49,28 +49,28 @@ export const ProjectModule = {
     },
 
     actions: {
-        async [ActionNames.ADD_PROJECT]({commit}: {commit: Commit}, payload: Project) {
+        async [mutations.ADD_PROJECT]({commit}: {commit: Commit}, payload: Project) {
             const res = await axios.post("/project/create", payload);
-            commit(MutationNames.ADD_PROJECT, res.data);
+            commit(mutations.ADD_PROJECT, res.data);
         },
 
-        async [ActionNames.LOAD_PROJECTS]({commit}: {commit: Commit}) {
+        async [actions.LOAD_PROJECTS]({commit}: {commit: Commit}) {
             const res = await axios.get("/project/list")
 
-            res.data.forEach((project: Project) => commit(MutationNames.ADD_PROJECT, project));
+            res.data.forEach((project: Project) => commit(mutations.ADD_PROJECT, project));
         },
 
-        async [ActionNames.SELECT_PROJECT]({commit, state}: {commit: Commit; state: ProjectState}, payload: Id) {
+        async [actions.SELECT_PROJECT]({commit, state}: {commit: Commit; state: ProjectState}, payload: Id) {
             if (state.currentProject != null && state.currentProject.id === payload) return;
 
             const index = state.projects.findIndex(project => project.id === payload);
 
             if (index === -1) {
                 const res = await axios.get(`/project?projectId=${payload}`);
-                commit(MutationNames.ADD_PROJECT, res.data);
+                commit(mutations.ADD_PROJECT, res.data);
             }
 
-            commit(MutationNames.SELECT_PROJECT, payload);
+            commit(mutations.SELECT_PROJECT, payload);
 
         }
     },
