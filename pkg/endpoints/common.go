@@ -75,7 +75,7 @@ func GetStringOk(r *http.Request, w http.ResponseWriter, key, message string) (s
 }
 
 func ProjectIdOk(r *http.Request, w http.ResponseWriter, errMessage string) (store.ProjectId, bool) {
-	projectId, ok := GetInt(r, "projectId")
+	projectId, ok := GetInt(r, "project_id")
 	if !ok {
 		err := errors.New(errMessage)
 		HttpNotOk(400, w, err.Error(), err)

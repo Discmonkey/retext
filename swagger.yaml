@@ -185,8 +185,8 @@ components:
     FileType:
       type: string
       enum:
-        - source
-        - demo
+        - KSOURCE
+        - KDEMO
 
 paths:
   /source:
@@ -221,20 +221,6 @@ paths:
         400:
           description: request document file type does not match file type registered for the document
 
-  /sources:
-    get:
-      parameters:
-        - $ref: '#/components/parameters/projectId'
-      responses:
-        200:
-          description: returns all source files for teh project
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/File'
-
   /demo:
     post:
       parameters:
@@ -268,13 +254,13 @@ paths:
         400:
           description: request document file type does not match file type registered for the document
 
-  /demos:
+  /files:
     get:
       parameters:
         - $ref: '#/components/parameters/projectId'
       responses:
         200:
-          description: returns all demo files for the project
+          description: returns all files for the project
           content:
             application/json:
               schema:

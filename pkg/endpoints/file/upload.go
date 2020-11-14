@@ -9,12 +9,9 @@ import (
 	"net/http"
 )
 
-type AddResponse []struct {
-	File store.File
-	Type string
-}
+type AddResponse []store.File
 
-func AddUploadEndpoint(fileStore store.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func AddUploadEndpoint(fileStore store.FileStore, fileType store.FileType) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -34,7 +31,7 @@ func AddUploadEndpoint(fileStore store.FileStore) func(w http.ResponseWriter, r 
 		}
 
 		form := r.MultipartForm
-		files := form.File["file"]
+		files := form.File["files"]
 
 		response := make(AddResponse, 0, len(files))
 		for _, handle := range files {
@@ -53,10 +50,7 @@ func AddUploadEndpoint(fileStore store.FileStore) func(w http.ResponseWriter, r 
 
 			uploadedFile, err := fileStore.UploadFile(handle.Filename, data, projectId)
 
-			response = append(response, struct {
-				File store.File
-				Type string
-			}{File: uploadedFile, Type: "source"})
+			response = append(response, uploadedFile)
 		}
 
 		err = json.NewEncoder(w).Encode(response)

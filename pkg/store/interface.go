@@ -14,8 +14,8 @@ type ContainerId = int64
 type TextId = int64
 
 const (
-	SourceFile FileType = "SOURCE_FILE"
-	DemoFile   FileType = "DEMO_FILE"
+	SourceFile FileType = "KSOURCE"
+	DemoFile   FileType = "KDEMO"
 )
 
 type Project = swagger.Project
@@ -35,7 +35,7 @@ type ProjectStore interface {
 }
 
 type FileStore interface {
-	UploadFile(filename string, contents []byte, id ProjectId) (File, error)
+	UploadFile(filename string, contents []byte, id ProjectId, fileType FileType) (File, error)
 	GetFile(id FileId) ([]byte, File, error)
 	GetFiles(id ProjectId) ([]File, error)
 }

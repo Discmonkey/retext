@@ -12,7 +12,7 @@ type ListResponse struct {
 	Files []store.File `json:"files"`
 }
 
-func ListEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func FilesEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

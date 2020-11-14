@@ -23,7 +23,7 @@ func fileExtToType(ext string) parser.DocumentType {
 	return filetype
 }
 
-func DownloadEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
+func FileEndpoint(store store.FileStore, fileType store.FileType) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
