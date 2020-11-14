@@ -61,6 +61,7 @@
 <script>
 import UploadFile from "../components/files/UploadFile";
 import ToDocument from "../components/nav/ToDocument";
+import {actions} from "@/store";
 
 export default {
     components: {UploadFile, ToDocument},
@@ -82,10 +83,14 @@ export default {
 
     computed: {
         slicedSourceFiles() {
-            return this.uploadedSourceFiles.slice(
+            return this.$store.getters.sources.slice(
                 (this.currentPage - 1) * this.perPage,
                 this.currentPage * this.perPage
             );
+        },
+
+        demos() {
+            return this.$store.getters.demos;
         },
 
         projectId() {
@@ -94,15 +99,7 @@ export default {
     },
 
     mounted() {
-        this.axios.get(`/file/list?projectId=${this.$route.params.projectId}`).then((res) => {
-            for (let f of res.data.files) {
-                if (f.type === "SOURCE_FILE") {
-                    this.uploadedSourceFiles.push(f)
-                } else if (f.type === "DEMO_FILE") {
-                    this.uploadedDemoFiles.push(f)
-                }
-            }
-        })
+        this.$store.dispatch(actions.file.getFiles, this.projectId);
     },
 
     methods: {

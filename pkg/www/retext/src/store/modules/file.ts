@@ -21,6 +21,7 @@ export const mutations = {
     addFile: "addFile",
     addSource: "addSource",
     addDemo: "addDemo",
+    clearFiles: "clearFiles",
     selectSource: "selectSource",
     selectDemo: "selectDemo",
 }
@@ -75,6 +76,12 @@ export const Module = {
             }
 
             vue.set(state.sources.map, payload.id, payload.source);
+        },
+
+        [mutations.clearFiles](state: State) {
+            while (state.files.length > 0) {
+                state.files.pop();
+            }
         },
 
         [mutations.selectSource](state: State, payload: {source: Id}) {
