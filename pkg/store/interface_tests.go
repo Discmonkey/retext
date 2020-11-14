@@ -23,7 +23,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, projectId ProjectId) {
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	file, err := fileBackend.UploadFile(testFileName, contents, projectId)
+	file, err := fileBackend.UploadFile(testFileName, contents, projectId, SourceFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 
 	testCodeName := "test"
 	someBytes := []byte("hello")
-	testFile, err := fileBackend.UploadFile("temp.txt", someBytes, projectId)
+	testFile, err := fileBackend.UploadFile("temp.txt", someBytes, projectId, SourceFile)
 	if err != nil {
 		log.Println(err)
 		t.Fatalf("failed to upload file")

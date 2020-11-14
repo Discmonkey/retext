@@ -15,13 +15,13 @@ func TestConvertCsv(t *testing.T) {
 	t.Run("all good", func(t *testing.T) {
 		parser := CsvParser{}
 
-		document, err := parser.Convert(b)
+		document, err := parser.ConvertDemo(b)
 
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		for col, values := range document.Attributes.Values {
+		for col, values := range document.Values {
 			fmt.Println(col, values)
 		}
 	})

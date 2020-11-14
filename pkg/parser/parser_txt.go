@@ -119,9 +119,11 @@ func readWord(text []byte, position int) (string, int, isLast) {
 		switch text[position] {
 
 		// non character
-		case '\n', '\f', '\r', '\t', ' ':
+		case '\n', '\f', '\r':
 			return builder.String(), position, true
 
+		case '\t', ' ':
+			return builder.String(), position, false
 		case '!', '?':
 			builder.WriteByte(text[position])
 			position++

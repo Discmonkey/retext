@@ -15,7 +15,7 @@ func TestConvertDocX(t *testing.T) {
 
 	parser := DocXParser{}
 
-	document, err := parser.Convert(b)
+	document, err := parser.ConvertSource(b)
 
 	if err != nil {
 		t.Fatal(err)
@@ -26,8 +26,8 @@ func TestConvertDocX(t *testing.T) {
 
 		for _, sentence := range paragraph.Sentences {
 
-			for _, part := range sentence.Parts {
-				fmt.Print(part.Text, " ")
+			for _, word := range sentence.Words {
+				fmt.Print(word, " ")
 			}
 		}
 	}

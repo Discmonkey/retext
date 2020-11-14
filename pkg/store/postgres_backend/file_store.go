@@ -161,7 +161,7 @@ func logFileToDb(con connection, filename, location, hash string, project store.
 
 	var id int64
 
-	row := con.QueryRow(insert, filename, location, hash, project)
+	row := con.QueryRow(insert, filename, location, hash, project, fileType)
 
 	err := row.Scan(&id)
 

@@ -15,13 +15,13 @@ func TestConvertXlsx(t *testing.T) {
 
 	parser := XlsxParser{}
 
-	document, err := parser.Convert(b)
+	document, err := parser.ConvertDemo(b)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for column := range document.Attributes.Columns {
+	for column := range document.Columns {
 		fmt.Println(column)
 	}
 

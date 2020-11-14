@@ -9,61 +9,61 @@ func TestConvert(t *testing.T) {
 
 	text := []byte("This is a short sentence. \n\n\r\t And another one. Two in this one... oh no? \n\tWith different spacing!!!\n")
 
-	expected := Document{
+	expected := Source{
 		Paragraphs: []Paragraph{
 			{
 				Sentences: []Sentence{
 					{
-						Parts: []Word{
-							{Text: "This"},
-							{Text: "is"},
-							{Text: "a"},
-							{Text: "short"},
-							{Text: "sentence."},
+						Words: []string{
+							"This",
+							"is",
+							"a",
+							"short",
+							"sentence.",
 						},
 					},
 				},
 			}, {
 				Sentences: []Sentence{
 					{
-						Parts: []Word{
-							{Text: "And"},
-							{Text: "another"},
-							{Text: "one."},
+						Words: []string{
+							"And",
+							"another",
+							"one.",
 						},
 					},
 					{
-						Parts: []Word{
-							{Text: "Two"},
-							{Text: "in"},
-							{Text: "this"},
-							{Text: "one..."},
+						Words: []string{
+							"Two",
+							"in",
+							"this",
+							"one...",
 						},
 					},
 					{
-						Parts: []Word{
-							{Text: "oh"},
-							{Text: "no?"},
+						Words: []string{
+							"oh",
+							"no?",
 						},
 					},
 				},
 			}, {
 				Sentences: []Sentence{
 					{
-						Parts: []Word{
-							{Text: "With"},
-							{Text: "different"},
-							{Text: "spacing!"},
+						Words: []string{
+							"With",
+							"different",
+							"spacing!",
 						},
 					},
 					{
-						Parts: []Word{
-							{Text: "!"},
+						Words: []string{
+							"!",
 						},
 					},
 					{
-						Parts: []Word{
-							{Text: "!"},
+						Words: []string{
+							"!",
 						},
 					},
 				},
@@ -71,7 +71,7 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	converted, err := Convert(text, Text)
+	converted, err := ConvertSource(text, Text)
 
 	if err != nil {
 		t.Fatal(err.Error())
@@ -92,15 +92,15 @@ func TestConvert(t *testing.T) {
 
 			sentenceConverted := paragraphConverted.Sentences[numS]
 
-			if len(sentenceConverted.Parts) != len(sentence.Parts) {
+			if len(sentenceConverted.Words) != len(sentence.Words) {
 				t.Fatal("word length does not match in sentence")
 			}
 
-			for numW, word := range sentence.Parts {
-				textConverted := sentenceConverted.Parts[numW].Text
+			for numW, word := range sentence.Words {
+				textConverted := sentenceConverted.Words[numW]
 
-				if textConverted != word.Text {
-					t.Fatal(textConverted, "does not match", word.Text)
+				if textConverted != word {
+					t.Fatal(textConverted, " does not match ", word)
 				}
 			}
 		}
@@ -120,7 +120,7 @@ func TestIsLastWord(t *testing.T) {
 	}
 
 	if !isTerminating(asSentence, len(asSentence)-1) {
-		t.Fatalf("failed on actual sentene")
+		t.Fatalf("failed on actual sentence")
 	}
 
 	if isTerminating(ellipsis, 0) {

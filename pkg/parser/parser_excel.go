@@ -16,15 +16,11 @@ func (x XlsxParser) ConvertSource(i []byte) (Source, error) {
 	return Source{}, errors.New("excel files currently not supported as source files")
 }
 
-func (x XlsxParser) ConvertDemo(i []byte) (Demo, error) {
-	panic("implement me")
-}
-
 func check() {
 	var _ Parser = XlsxParser{}
 }
 
-func (x XlsxParser) Convert(unprocessed []byte) (Demo, error) {
+func (x XlsxParser) ConvertDemo(unprocessed []byte) (Demo, error) {
 	demo := Demo{
 		Columns: nil,
 		Values:  nil,
