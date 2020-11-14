@@ -73,10 +73,7 @@ components:
         id:
           $ref: '#/components/schemas/Id'
         type:
-          type: string
-          enum:
-            - SOURCE_FILE
-            - DEMO_FILE
+          $ref: '#/components/schemas/FileType'
         name:
           type: string
         ext:
@@ -107,6 +104,7 @@ components:
         - month
         - name
         - description
+
     WordCoordinate:
       type: object
       properties:
@@ -121,18 +119,71 @@ components:
         - sentence
         - word
 
+    Word:
+      type: string
+
+    Sentence:
+      type: array
+      items:
+        $ref: '#/components/schemas/Word'
+
+    Paragraph:
+      type: array
+      items:
+        $ref: '#/components/schemas/Sentence'
+
+    Demo:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+        values:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    Source:
+      type: array
+      items:
+        $ref: '#/components/schemas/Paragraph'
+
+    FileType:
+      type: string
+      enum:
+        - source
+        - demo
 
 paths:
   /file:
     post:
       responses:
         200:
-          description: successful upload, returns uplaoded file
+          description: successful upload, returns uploaded file
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/File'
+
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                filetype:
+                  $ref: '#/components/schemas/FileType'
+                projectId:
+                  $ref: '#/components/schemas/Id'
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
 
 

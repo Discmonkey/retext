@@ -7,6 +7,7 @@ import Home from "@/Home";
 import Project from "@/views/Project";
 import ProjectHub from "@/views/ProjectHub";
 import Buckets from "@/views/Buckets";
+import Bucket from "@/views/Bucket";
 
 Vue.use(VueRouter);
 
@@ -37,6 +38,11 @@ const routes = [
                 path: 'demo/:documentId',
                 name: 'Demo',
                 component: Demo
+            },
+
+            {
+                path: 'view/:codeId',
+                component: Bucket,
             },
             {
                 path: 'upload',

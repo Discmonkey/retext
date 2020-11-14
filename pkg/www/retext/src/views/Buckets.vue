@@ -1,7 +1,9 @@
 <template>
     <div class="container">
         <div class="row">
-            <div class="col-md-6 code-container" v-for="container in $store.getters.containers" v-bind:key="container.id">
+            <div class="col-md-6 code-container"
+                 v-for="container in $store.getters.containers"
+                 v-bind:key="container.id">
                 <ToBucket :code-container="container"></ToBucket>
             </div>
         </div>

@@ -36,7 +36,7 @@ export default {
     props: ["codeContainer"],
     methods: {
         goto(id) {
-            console.log(id);
+            this.$router.push(`/project/${this.$route.params.projectId}/view/${id}`);
         }
     }
 }
