@@ -4,13 +4,10 @@ import (
 	"encoding/json"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/store"
-	"log"
 	"net/http"
 )
 
-type ListResponse struct {
-	Files []store.File `json:"files"`
-}
+type ListResponse = []store.File
 
 func FilesEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
@@ -26,17 +23,13 @@ func FilesEndpoint(store store.FileStore) func(w http.ResponseWriter, r *http.Re
 
 		w.Header().Set("Content-Type", "application/json")
 
-		l := ListResponse{}
-
 		files, err := store.GetFiles(projectId)
 
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(400)
-		} else {
-			l.Files = files
-			_ = json.NewEncoder(w).Encode(l)
+		if endpoints.HttpNotOk(400, w, "could not load files for project", err) {
+			return
 		}
+
+		_ = json.NewEncoder(w).Encode(files)
 	}
 
 	return t
