@@ -29,7 +29,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Source"
+                    <UploadFile file-type="KSOURCE"
                                 :project-id="projectId"
                                 accepted-files=".docx,.txt,.text" :multiple=true>Upload New Sources</UploadFile>
                 </div>
@@ -47,7 +47,7 @@
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" :project-id="projectId"
+                    <UploadFile file-type="KDEMO" :project-id="projectId"
                                 tooltip="For demographic information, please upload a .xlsx or .csv file in which each participant is a different row (a header row is required)."
                                 accepted-files=".xlsx,.csv">Upload New Demographics</UploadFile>
                 </div>

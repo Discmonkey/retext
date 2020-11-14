@@ -107,7 +107,8 @@ export const Module = {
         }) {
             const uploaded = await API.source.post(payload.project, payload.formData);
 
-            commit(mutations.addFile, uploaded);
+            uploaded.forEach(f => commit(mutations.addFile, f));
+
         },
 
         async [actions.postDemo]({commit}: {commit: Commit}, payload: {
@@ -115,7 +116,7 @@ export const Module = {
         }) {
             const uploaded = await API.demo.post(payload.project, payload.formData);
 
-            commit(mutations.addFile, uploaded);
+            uploaded.forEach(f => commit(mutations.addFile, f));
         },
 
         async [actions.getDemo]({commit}: {commit: Commit}, payload: {

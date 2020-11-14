@@ -66,7 +66,7 @@ export const Module = {
             const index = state.projects.findIndex(project => project.id === payload);
 
             if (index === -1) {
-                const res = await axios.get(`/project?projectId=${payload}`);
+                const res = await axios.get(`/project?project_id=${payload}`);
                 commit(mutations.ADD_PROJECT, res.data);
             }
 
