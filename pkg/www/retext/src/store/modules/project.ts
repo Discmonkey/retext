@@ -20,7 +20,7 @@ interface ProjectState {
 
 type Commit = (s: string, a: any) => void;
 
-export const ProjectModule = {
+export const Module = {
     state: {
         projects: [],
         currentProject: null,

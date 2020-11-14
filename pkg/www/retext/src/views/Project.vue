@@ -37,7 +37,8 @@
 
 <script>
 import ToProject from "@/components/nav/ToProject";
-import {ProjectActions} from "@/store/modules/project";
+import {actions} from "@/store";
+
 export default {
     name: "Project",
     data() {
@@ -50,13 +51,14 @@ export default {
     },
 
     mounted() {
-        this.$store.dispatch(ProjectActions.LOAD_PROJECTS);
+        this.$store.dispatch(actions.project.LOAD_PROJECTS);
     },
 
     methods: {
         createProject() {
             const [year, month] = this.date.split("-").map(i => parseInt(i))
-            this.$store.dispatch(ProjectActions.ADD_PROJECT, ProjectActions.makeAddProjectPayload(this.name, this.description, year, month));
+            this.$store.dispatch(actions.project.ADD_PROJECT,
+                {name: this.name, description: this.description, year, month});
         },
     },
 

@@ -1,6 +1,6 @@
 import Vue from "vue"
 import Vuex from "vuex";
-import {ProjectModule} from "@/store/modules/project";
+import * as project from "@/store/modules/project";
 import {getColor, invertColor} from "@/core/Colors";
 import {Id} from "@/model/id";
 import {CodeContainer} from "@/model/codeContainer";
@@ -17,6 +17,7 @@ export const mutations = {
     ADD_TEXT: "addText",
     SET_PROJECT: "setProject",
     file: document.mutations,
+    project: project.mutations,
 }
 export const actions = {
     INIT_CONTAINERS: "initContainers",
@@ -26,6 +27,7 @@ export const actions = {
     DISASSOCIATE_TEXT: "disassociateText",
     SET_COLOR_ACTIVE: "toggleColorActive",
     file: document.actions,
+    project: project.actions,
 }
 
 
@@ -278,7 +280,7 @@ export const store = new Vuex.Store({
     },
 
     modules: {
-        ProjectModule,
+        ProjectModule: project.Module,
         DocumentModule: document.Module,
     }
 })
