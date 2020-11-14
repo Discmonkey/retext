@@ -8,6 +8,8 @@
 </template>
 
 <script>
+    import {API} from "@/core/API.ts";
+
     export default {
         name: "UploadFile",
         props: {
@@ -38,19 +40,18 @@
 
                 let formData = new FormData();
                 this.$refs.form.files.forEach((file) => {
-                    formData.append("file", file);
+                    formData.append("files", file);
                 });
 
-                this.axios.post(`/file/upload?projectId=${this.projectId}`,
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type": 'multipart/form-data'
-                        }
-                    }
-                )
-                .then(
-                    received => this.$emit("success", received.data)
+                let items;
+                if (this.fileType === "KSOURCE") {
+                    items = API.source.post(this.projectId, formData);
+                } else {
+                    items = API.demo.post(this.projectId, formData);
+                }
+
+                items.then(
+                    received => this.$emit("success", received)
                 )
                 .catch(
                     (error) => console.error(error)

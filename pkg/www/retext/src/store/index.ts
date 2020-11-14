@@ -24,7 +24,7 @@ export const actions = {
     DISASSOCIATE_TEXT: "disassociateText",
     SET_COLOR_ACTIVE: "toggleColorActive",
 }
-type Commit = (s: string, a: any) => void;
+
 
 /*
  * Takes a container object returned from the backend and turns it into an object usable by the front-end

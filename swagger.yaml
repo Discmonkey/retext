@@ -151,7 +151,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Word'
-
+      required:
+        - words
     Paragraph:
       type: object
       properties:
@@ -159,6 +160,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Sentence'
+      required:
+        - sentences
 
     Demo:
       type: object
@@ -181,6 +184,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Paragraph'
+      required:
+        - paragraphs
 
     FileType:
       type: string
