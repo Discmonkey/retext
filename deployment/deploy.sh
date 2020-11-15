@@ -10,5 +10,5 @@ docker save -o ${release_dir}/qode.tar qode
 scp -i $pem_location $release_dir/qode.tar ec2-user@18.223.164.85:/home/ec2-user/
 
 ${ssh} "docker load -i qode.tar"
-${ssh} "pushd retext/deployment/qode && docker-compose down --volumes && docker-compose up -d"
+${ssh} "pushd retext/deployment/qode && docker-compose down && docker-compose up -d"
 
