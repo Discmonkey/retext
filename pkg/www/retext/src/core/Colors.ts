@@ -48,8 +48,8 @@ export function hexToRgb(hex: string): [number, number, number] {
     return [r, g, b]
 }
 
-export function blend(colorArray: Array<string>): string {
-    const numeric = colorArray.map(hexToRgb).reduce((a, b) => {
+export function blend(colorArray: Array<string>): [number, number, number] {
+    return colorArray.map(hexToRgb).reduce((a, b) => {
         a[0] += b[0];
         a[1] += b[1];
         a[2] += b[2];
@@ -57,7 +57,6 @@ export function blend(colorArray: Array<string>): string {
         return a;
     }, [0, 0, 0]).map(val => Math.floor(val / colorArray.length)) as [number, number, number];
 
-    return rgbToHex(...numeric);
 }
 
 /**

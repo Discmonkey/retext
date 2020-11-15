@@ -152,7 +152,8 @@ import {blend} from "@/core/Colors.ts";
                 })
 
                 if (backgroundColors.length > 0) {
-                    return {backgroundColor: blend(backgroundColors)};
+                    const colors = blend(backgroundColors);
+                    return {backgroundColor: `rgba(${colors[0]}, ${colors[1]}, ${colors[2]}, .7)`};
                 } else {
                     return {};
                 }
