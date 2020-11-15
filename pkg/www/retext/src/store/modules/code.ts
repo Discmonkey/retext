@@ -31,10 +31,14 @@ type State =  {
     containers: Array<CodeContainerWithMain>;
     idToContainer: {[key: number]: CodeContainerWithMain};
     idToCode: {[key: number]: Code};
-    project: number;
 }
 
 export const Module = {
+    state: {
+        containers: [],
+        idToContainer: {},
+        idToCode: {}
+    } as State,
 
     getters: {
         containers(state: State) {
@@ -77,7 +81,7 @@ export const Module = {
 
             const convertedContainer = prepareContainer(container);
 
-            if(convertedContainer.containerId in state.idToContainer) {
+            if(!(convertedContainer.containerId in state.idToContainer)) {
                 convertedContainer.colorInfo = {
                     activeClick: false,
                     activeHover: false,
@@ -101,7 +105,7 @@ export const Module = {
             }
 
             // override the map values with the values from the new container
-            Vue.set(state.idToContainer, convertedContainer.containerId, container);
+            Vue.set(state.idToContainer, convertedContainer.containerId, convertedContainer);
 
             if (convertedContainer.main !== null) {
                 Vue.set(state.idToCode, convertedContainer.main.id as number, convertedContainer.main)

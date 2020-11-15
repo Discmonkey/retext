@@ -28,7 +28,7 @@ export const API = {
         },
 
         async post(code: Code): Promise<Code> {
-            const res = await axios.post(url("/code", code));
+            const res = await axios.post(url("/code"), code);
 
             return res.data;
         }
