@@ -1,6 +1,9 @@
 <template>
     <div class="container">
-        <div class="grid" v-if="container !== null">
+        <div class="insights">
+            <textarea class="form-control" placeholder="insights here, no saving for now"></textarea>
+        </div>
+        <div class="grid" v-if="container !== null" ref="container">
             <div class="item" v-for="(item, index) in texts" v-bind:key="index">
                 <div class="item-header">
 
@@ -90,7 +93,7 @@ h4 {
     position: absolute;
     width: 500px;
     height: 250px;
-    margin: 5px;
+    margin: 20px;
     z-index: 1;
     border-radius: 10px;
     border: 2px solid var(--blue );
@@ -110,6 +113,13 @@ h4 {
     z-index: 0;
 }
 
+.insights {
+    width: 100%;
+}
+
+textarea {
+    width: 100%;
+}
 .item-content {
     position: relative;
     width: 100%;
