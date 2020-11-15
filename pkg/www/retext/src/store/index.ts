@@ -180,7 +180,7 @@ export const store = new Vuex.Store({
         [mutations.ADD_TEXT](state, {codeId, text}) {
             state.idToCode[codeId].texts.push({
                 text: text.text,
-                document_id: text.key,
+                document_id: text.documentId,
                 first_word: text.anchor,
                 last_word: text.last,
             });
