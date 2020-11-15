@@ -70,7 +70,7 @@ async function createCode(containerId: Id, name: string): Promise<Code> {
 }
 
 function makeId(context: any) {
-    return `projectId=${context.state.ProjectModule.currentProject.id}`
+    return `project_id=${context.state.ProjectModule.currentProject.id}`
 }
 
 interface StoreState {

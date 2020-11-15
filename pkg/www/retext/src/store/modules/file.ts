@@ -133,9 +133,11 @@ export const Module = {
         async [actions.getSource]({commit}: {commit: Commit}, payload: {
             fileId: Id
         }) {
+
+
             const parsed = await API.source.get(payload.fileId);
 
-            commit(mutations.addFile, {
+            commit(mutations.addSource, {
                 source: parsed, id: payload.fileId
             });
         },
