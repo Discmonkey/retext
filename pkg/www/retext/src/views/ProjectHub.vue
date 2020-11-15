@@ -21,8 +21,8 @@
 
     <div class="row">
         <div class="col-8 offset-2 layout">
-            <button v-for="link in links" @click="goto(link.link)" v-bind:key="link.name" class="btn btn-primary">
-                {{link.name}}
+            <button v-for="link in links" @click="goto(link.link, link.disabled)" v-bind:key="link.name" class="btn btn-primary">
+                {{link.name}} {{l}}
             </button>
         </div>
     </div>
@@ -47,18 +47,22 @@ export default {
     data() {
         return {
             links: [
-                {name: "Upload Sources", link: "upload"},
-                {name: "Upload Demographics", link: "demo"},
-                {name: "Code Sources", link: "code"},
-                {name: "View Coding Buckets", link: "buckets"},
-                {name: "View Insights", link: "insights"},
-                {name: "Export Insights", link: "insights"}
+                {name: "Upload Sources", link: "upload", disabled: false},
+                {name: "Upload Demographics", link: "demo", disabled: true,},
+                {name: "Code Sources", link: "code", disabled: false},
+                {name: "View Coding Buckets", link: "buckets", disabled: false},
+                {name: "View Insights", link: "insights", disabled: true},
+                {name: "Export Insights", link: "insights", disabled: true}
             ]
         }
     },
 
     methods: {
-        goto(destination) {
+        goto(destination, isDisabled) {
+            if (isDisabled) {
+                alert("not currently implemented!");
+                return;
+            }
             const maybeSlash = this.$route.fullPath.endsWith("/") ? "" : "/";
 
             this.$router.push(this.$route.fullPath + maybeSlash + destination);
