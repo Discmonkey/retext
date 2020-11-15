@@ -1,5 +1,6 @@
 import {Source} from "@/model/source";
 import {Word} from "@/model/word";
+import {WordCoordinate} from "@/model/wordCoordinate";
 
 
 export interface WordWithAttributes {
@@ -10,20 +11,13 @@ export interface WordWithAttributes {
     }
 }
 
-export type coord = {
-    paragraph: number;
-    sentence: number;
-    word: number;
-};
+export type coord = WordCoordinate;
 
 
 type WordWithPointers = {
     coord: coord;
     word: WordWithAttributes;
 }
-
-
-type maybeCoord = [coord, boolean];
 
 /**
  *
