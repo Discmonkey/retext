@@ -109,6 +109,7 @@ import 'vue-context/dist/css/vue-context.css';
 
     export default {
         name: "TextRenderer",
+        props: ['documentId'],
         data: function() {
             return {
                 path: [],
@@ -178,37 +179,6 @@ import 'vue-context/dist/css/vue-context.css';
             deleteTexts(codedTexts) {
                 this.$store.dispatch(actions.DISASSOCIATE_TEXT, {codedTexts});
             },
-
-            // associateSelectedText(codeId, {p, s, w}) {
-            //     let words = getSelectedRegion(this, p, s, w);
-            //
-            //     this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId, words}).then(() => {
-            //         // todo: "success" toast or something
-            //     }, () => {
-            //         // todo: "an error occurred" toast or something
-            //     });
-            // },
-            // wordStyle(p, s, w) {
-            //     if (!this.activeContainerId) {
-            //         return;
-            //     }
-            //
-            //     if(
-            //         p in this.wordCoordTextMap &&
-            //         s in this.wordCoordTextMap[p].s &&
-            //         w in this.wordCoordTextMap[p].s[s].w &&
-            //         "texts" in this.wordCoordTextMap[p].s[s].w[w]
-            //     ) {
-            //         let texts = this.wordCoordTextMap[p].s[s].w[w].texts;
-            //         if (this.activeContainerId in texts) {
-            //             let ci = this.idToContainer[this.activeContainerId].colorInfo;
-            //             return {
-            //                 backgroundColor: ci.bg + " !important",
-            //                 color: ci.fg,
-            //             };
-            //         }
-            //     }
-            // },
 
             paragraphStyle(containerId) {
                 let c = this.idToContainer[containerId];
