@@ -107,7 +107,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		Word:      3,
 	}
 
-	err = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
+	_, err = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
 	if err != nil {
 		t.Fatalf("failed to codify text: %s", err)
 	}
@@ -127,7 +127,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 
-	err = codeBackend.UncodeText([]int64{firstCode.Texts[0].Id})
+	err = codeBackend.DeleteText(firstCode.Texts[0].Id)
 
 	if err != nil {
 		t.Fatalf("failed to uncode text: %s", err)
