@@ -8,22 +8,17 @@ import (
 	"net/http"
 )
 
-type createRequest struct {
-	CodeName    string            `json:"code"`
-	ContainerId store.ContainerId `json:"containerId"`
-}
-
-func CreateCode(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func CreateCode(codeBackend store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
-		var req createRequest
+		var req store.Code
 		err := json.NewDecoder(r.Body).Decode(&req)
 
-		if len(req.CodeName) == 0 {
+		if len(req.Name) == 0 {
 			err := errors.New("code parameter required")
 			endpoints.HttpNotOk(400, w, err.Error(), err)
 			return
@@ -31,19 +26,12 @@ func CreateCode(store store.CodeStore) func(w http.ResponseWriter, r *http.Reque
 
 		w.Header().Set("Content-Type", "application/json")
 
-		codeId, err := store.CreateCode(req.CodeName, req.ContainerId)
-
+		req.Id, err = codeBackend.CreateCode(req.Name, req.Container)
 		if endpoints.HttpNotOk(400, w, "An error occurred while trying to create the new code.", err) {
 			return
 		}
 
-		encoder := json.NewEncoder(w)
-		newCode, err := store.GetCode(codeId)
-
-		if endpoints.HttpNotOk(400, w, "An error occurred while trying to get the new code.", err) {
-			return
-		}
-		_ = encoder.Encode(newCode)
+		endpoints.LogIf(json.NewEncoder(w).Encode(req))
 	}
 
 	return t

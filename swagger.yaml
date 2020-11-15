@@ -19,6 +19,18 @@ components:
       schema:
         $ref: '#/components/schemas/Id'
 
+    codeId:
+      in: query
+      name: code_id
+      schema:
+        $ref: '#/components/schemas/Id'
+
+    textId:
+      in: query
+      name: text_id
+      schema:
+        $ref: '#/components/schemas/Id'
+
   schemas:
     Code:
       type: object
@@ -194,38 +206,58 @@ components:
         - KDEMO
 
 paths:
-  /source:
+  /code:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/codeId'
+      responses:
+        200:
+          description: returns the requested code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Code'
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Code'
+      responses:
+        200:
+          description: returns the newly created code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Code'
+
+  /code_container:
     post:
       parameters:
         - $ref: '#/components/parameters/projectId'
       responses:
         200:
-          description: successful upload, returns uploaded source file
+          description: creates an empty code container on the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeContainer'
+
+
+  /code_containers:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+
+      responses:
+        200:
+          description: returns all code containers for the specified project
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/File'
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FileUpload'
-
-    get:
-      parameters:
-        - $ref: '#/components/parameters/fileId'
-      responses:
-        200:
-          description: requested document was successfully parsed and returned
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Source'
-        400:
-          description: request document file type does not match file type registered for the document
-
+                  $ref: '#/components/schemas/CodeContainer'
   /demo:
     post:
       parameters:
@@ -272,4 +304,61 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/File'
+
+  /source:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/projectId'
+      responses:
+        200:
+          description: successful upload, returns uploaded source file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUpload'
+
+    get:
+      parameters:
+        - $ref: '#/components/parameters/fileId'
+      responses:
+        200:
+          description: requested document was successfully parsed and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        400:
+          description: request document file type does not match file type registered for the document
+
+  /document_text:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/codeId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentText'
+      responses:
+        200:
+          description: returns the newly created document text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentText'
+    delete:
+      parameters:
+        - $ref: '#/components/parameters/textId'
+      responses:
+        200:
+          description: text was successfully deleted
+
+
 
