@@ -3,6 +3,9 @@ import {ModelFile} from "@/model/modelFile";
 import {Id} from "@/model/id";
 import {Demo} from "@/model/demo";
 import {Source} from "@/model/source";
+import {Code} from "@/model/code";
+import {CodeContainer} from "@/model/codeContainer";
+import {DocumentText} from "@/model/documentText";
 
 
 const url = (endpoint: string, params: {[key: string]: any} = {}) => {
@@ -17,9 +20,31 @@ const url = (endpoint: string, params: {[key: string]: any} = {}) => {
 
 export const API = {
 
-    files: {
-        async get(project_id: Id): Promise<Array<ModelFile>> {
-            const res = await axios.get(url("/files", {project_id}));
+    code: {
+        async get(code_id: Id): Promise<Code> {
+            const res = await axios.get(url("/code", {code_id}));
+
+            return res.data;
+        },
+
+        async post(code: Code): Promise<Code> {
+            const res = await axios.post(url("/code", code));
+
+            return res.data;
+        }
+    },
+
+    code_container: {
+        async post(project_id: Id): Promise<CodeContainer> {
+            const res = await axios.post(url("/code_container", {project_id}));
+
+            return res.data;
+        }
+    },
+
+    code_containers: {
+        async get(project_id: Id): Promise<Array<CodeContainer>> {
+            const res = await axios.get(url("/code_containers", {project_id}));
 
             return res.data;
         }
@@ -45,6 +70,28 @@ export const API = {
             return res.data;
         }
     },
+
+    document_text: {
+        async post(code_id: Id, text: DocumentText): Promise<DocumentText> {
+            const res = await axios.post(url("/document_text", {code_id}), text);
+
+            return res.data;
+        },
+
+        async delete(text_id: Id) {
+            await axios.delete(url("/document_text", {text_id}));
+        }
+    },
+
+    files: {
+        async get(project_id: Id): Promise<Array<ModelFile>> {
+            const res = await axios.get(url("/files", {project_id}));
+
+            return res.data;
+        }
+    },
+
+
 
     source: {
         async get(file_id: Id): Promise<Source> {
