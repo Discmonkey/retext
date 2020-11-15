@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 as staging
 
 # install git for downloading go dependencies
 RUN apt-get update && apt-get install -y git gcc openjdk-8-jre make
@@ -39,5 +39,12 @@ RUN cd pkg/www/retext && npm run build
 
 # build the backend
 RUN mkdir -p bin && go build -o bin/server cmd/server/main.go
+
+FROM ubuntu:18.04 as deploy
+
+COPY --from=staging /retext/bin/server /retext/bin/server
+COPY --from=staging /retext/pkg/www/retext/dist /retext/pkg/www/retext/dist
+
+WORKDIR /retext
 
 CMD ["./bin/server"]
