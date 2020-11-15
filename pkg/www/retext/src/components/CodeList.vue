@@ -100,14 +100,11 @@ import {mapGetters} from "vuex";
                 e.stopPropagation(); // stop the event
 
                 // unless an error happens, this function will get called
-                let associate = (code) => {
-                    if (typeof code === "boolean" || !code)
-                        return;
 
-                    this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
-                };
+                if (typeof code === "boolean" || !code)
+                    return;
 
-                associate(code);
+                this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
             },
 
             createCode: async function (containerId) {

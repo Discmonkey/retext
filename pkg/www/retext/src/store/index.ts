@@ -178,7 +178,12 @@ export const store = new Vuex.Store({
             state.idToCode[code.id] = code;
         },
         [mutations.ADD_TEXT](state, {codeId, text}) {
-            state.idToCode[codeId].texts.push(text);
+            state.idToCode[codeId].texts.push({
+                text: text.text,
+                document_id: text.key,
+                first_word: text.anchor,
+                last_word: text.last,
+            });
         },
 
         [mutations.TOGGLE_CLICK](state: StoreState, {container}) {

@@ -212,8 +212,7 @@ import 'vue-context/dist/css/vue-context.css';
                         detail: {
                             data: {words: region},
                             callback: () => {
-                                // todo: add code-specific color-class
-                                console.log(`sample: ${JSON.stringify(words)}`);
+                                console.log("callback called");
                             }
                         }
                     })
