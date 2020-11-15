@@ -2,9 +2,7 @@
     <div>
         <div class="scroll-container flip">
             <div class="text-display flip" v-if="document !== null">
-                <div v-for="(paragraph, parIndex) in document.source" v-bind:key="parIndex" draggable="false"
-                     class="clearfix">
-                    <p class="paragraph">
+                    <p class="paragraph" v-for="(paragraph, parIndex) in document.source" v-bind:key="parIndex" draggable="false">
                     <span v-for="(sentence, senIndex) in paragraph" v-bind:key="senIndex">
                         <span
                             v-for="(word, wordIndex) in sentence" v-bind:key="wordIndex"
@@ -19,7 +17,6 @@
                         </span>
                     </span>
                     </p>
-                </div>
             </div>
         </div>
     </div>
