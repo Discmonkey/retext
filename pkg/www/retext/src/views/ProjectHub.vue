@@ -48,11 +48,7 @@ export default {
         return {
             links: [
                 {name: "Upload Sources", link: "upload", disabled: false},
-                {name: "Upload Demographics", link: "demo", disabled: true,},
-                {name: "Code Sources", link: "code", disabled: false},
                 {name: "View Coding Buckets", link: "buckets", disabled: false},
-                {name: "View Insights", link: "insights", disabled: true},
-                {name: "Export Insights", link: "insights", disabled: true}
             ]
         }
     },
