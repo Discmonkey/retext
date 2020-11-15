@@ -22,7 +22,7 @@ export default {
         }
     },
     components: {ToBucket},
-    beforeCreate() {
+    mounted() {
         this.$store.dispatch(actions.code.INIT_CONTAINERS, this.projectId);
     },
 
