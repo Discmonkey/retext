@@ -13,7 +13,9 @@
             <div v-for="container in containers"
                  :key="container.containerId"
                  @text-drop="textDrop(container.main, $event.detail, $event)"
-                 @click="toggleColor(container)"
+                 @mouseenter="codeHover(container.containerId)"
+                 @mouseout="codeHover(container.containerId)"
+                 @click="codeClick(container.containerId)"
             >
                 <div class="spacer">
                     <div :style="style(container)">
@@ -86,9 +88,14 @@ import {mapGetters} from "vuex";
             this.$store.dispatch(actions.INIT_CONTAINERS)
         },
         methods: {
-            toggleColor(container) {
-                this.$store.dispatch(actions.SET_COLOR_ACTIVE, container);
+            codeHover(container) {
+                this.$store.commit(mutations.TOGGLE_HOVER, {container});
             },
+
+            codeClick(container) {
+                this.$store.commit(mutations.TOGGLE_CLICK, {container});
+            },
+
             textDrop: async function (code, packet, e) {
                 e.stopPropagation(); // stop the event
 

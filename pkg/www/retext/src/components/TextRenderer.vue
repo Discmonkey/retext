@@ -12,52 +12,21 @@
                             v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
                             v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
 
-                            :class="{active: isHighlighted(word)}"
+                            :style="color(word)"
                             class="border-on-hover word non-selectable"
                         >
                             {{ word.text }}
                         </span>
                     </span>
                     </p>
-
-<!--                    <div class="done" v-if="wordCoordTextMap[parIndex]">-->
-<!--                        <div-->
-<!--                            v-for="(containerId) in wordCoordTextMap[parIndex].cIds" :key="containerId"-->
-<!--                            :style="paragraphStyle(containerId)"-->
-<!--                            @click="toggleColor(containerId)"-->
-<!--                        ></div>-->
-<!--                    </div>-->
                 </div>
             </div>
         </div>
-<!--        <vue-context ref="deleteMenu" v-slot="{data: codedTexts}">-->
-<!--            <template v-if="codedTexts">-->
-<!--                <li><a @click="deleteTexts(codedTexts)">Delete</a></li>-->
-<!--            </template>-->
-<!--        </vue-context>-->
-<!--        <vue-context ref="associateMenu" v-slot="{data}">-->
-<!--            <template>-->
-<!--            <li style="margin-left:10px"><h5>Associate</h5></li>-->
-<!--            <li-->
-<!--                v-for="(container) in containers"-->
-<!--                :key="container.containerId"-->
-<!--                :class="{'v-context__sub': container.subcodes.length}"-->
-<!--            >-->
-<!--                <a @click.prevent="associateSelectedText(container.main.id, data)">{{ container.main.name }}</a>-->
-<!--                <ul class="v-context" v-if="container.subcodes.length">-->
-<!--                    <li v-for="(subcode) in container.subcodes" :key="subcode.id">-->
-<!--                        <a @click.prevent="associateSelectedText(container.main.id, data)">{{ subcode.name }}</a>-->
-<!--                    </li>-->
-<!--                </ul>-->
-<!--            </li>-->
-<!--            </template>-->
-<!--        </vue-context>-->
     </div>
 </template>
 
 <script>
 import {actions} from "@/store";
-import {mapGetters} from "vuex";
 import vue from 'vue';
 // import VueContext from 'vue-context';
 // the default styling relies on <li> elements and specific classes.
@@ -135,64 +104,63 @@ import 'vue-context/dist/css/vue-context.css';
         // components: {VueContext},
         computed: {
             document() {
-                console.log(this.$store.getters.source);
                 return this.$store.getters.source;
             },
 
-
-            activeContainerId() {
-                let containers = this.containers;
-
-                for(let c of containers) {
-                    if(c.colorInfo.active) {
-                        return c.containerId
-                    }
-                }
-
-                return false;
+            containers() {
+                return this.$store.getters.containers;
             },
-            ...mapGetters(["containers", "idToContainer", "idToCode"]),
         },
+
+        watch: {
+            containers: {
+                deep: true,
+                handler(containers) {
+                    if (this.document === null) return;
+
+                    containers.forEach(container => {
+                        const on = container.colorInfo.activeHover || container.colorInfo.activeClick;
+
+                        [container.main, ...container.subcodes].forEach(code => {
+                            code.texts.forEach(text => {
+                                this.document.walk(text.first_word, text.last_word, word => {
+                                    vue.set(word.attributes, container.colorInfo.bg, on);
+                                })
+                            })
+                        })
+                    })
+                },
+            }
+        },
+
         methods: {
 
             isHighlighted,
-            // chooseMenu(e, p, s, w) {
-            //     if(this.activeContainerId) {
-            //         // check if the word is part of an excerpt in the active container
-            //         if(this.activeContainerId && this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId]) {
-            //             if(
-            //                 p in this.wordCoordTextMap &&
-            //                 s in this.wordCoordTextMap[p].s &&
-            //                 w in this.wordCoordTextMap[p].s[s].w &&
-            //                 "texts" in this.wordCoordTextMap[p].s[s].w[w] &&
-            //                 this.activeContainerId in this.wordCoordTextMap[p].s[s].w[w].texts
-            //             ) {
-            //                 let codedTexts = this.wordCoordTextMap[p].s[s].w[w].texts[this.activeContainerId];
-            //                 this.$refs.deleteMenu.open(e, codedTexts);
-            //             }
-            //         }
-            //     } else if(this.text.Paragraphs[p].Sentences[s].Parts[w].Selected) {
-            //         this.$refs.associateMenu.open(e, {data: {p, s, w}});
-            //     }
-            // },
 
             deleteTexts(codedTexts) {
                 this.$store.dispatch(actions.DISASSOCIATE_TEXT, {codedTexts});
             },
 
-            paragraphStyle(containerId) {
-                let c = this.idToContainer[containerId];
-                return {
-                    backgroundColor: c.colorInfo.bg,
-                    borderRadius: "50% !important",
-                    padding: ".5em !important",
-                    marginLeft: "50% !important",
-                    marginRight: "50% !important",
-                };
-            },
+            color(word) {
+                let colorOn = false;
+                let backgroundColor = "";
 
-            toggleColor(containerId) {
-                this.$store.dispatch(actions.SET_COLOR_ACTIVE, {containerId});
+                Object.keys(word.attributes).forEach(color =>  {
+                    if (word.attributes[color] && backgroundColor !== highlighted) {
+                        colorOn = true;
+                        if (color === highlighted) {
+                            backgroundColor = "palegreen";
+                        } else {
+                            backgroundColor = color;
+                        }
+                    }
+                })
+
+                if (colorOn) {
+                    return {backgroundColor};
+                } else {
+                    return {};
+                }
             },
 
             start: function(paragraph, sentence, word, e) {

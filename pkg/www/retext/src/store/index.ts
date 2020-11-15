@@ -1,5 +1,5 @@
 import Vue from "vue"
-import Vuex from "vuex";
+import Vuex, {Store} from "vuex";
 import * as project from "@/store/modules/project";
 import {getColor, invertColor} from "@/core/Colors";
 import {Id} from "@/model/id";
@@ -16,6 +16,8 @@ export const mutations = {
     ADD_CODE: "addCode",
     ADD_TEXT: "addText",
     SET_PROJECT: "setProject",
+    TOGGLE_HOVER: "toggleHover",
+    TOGGLE_CLICK: "toggleClick",
     file: document.mutations,
     project: project.mutations,
 }
@@ -43,7 +45,8 @@ export interface CodeContainerWithMain {
     colorInfo: {
         bg: string;
         fg: string;
-        active: boolean;
+        activeHover: boolean;
+        activeClick: boolean;
     };
 }
 
@@ -127,7 +130,8 @@ export const store = new Vuex.Store({
         [mutations.ADD_CONTAINER](state: StoreState, container: CodeContainerWithMain) {
             if(!(container.containerId in state.idToContainer)) {
                 container.colorInfo = {
-                    active: false,
+                    activeClick: false,
+                    activeHover: false,
                     bg: getColor(state.containers.length),
                     fg: "",
                 };
@@ -175,7 +179,18 @@ export const store = new Vuex.Store({
         },
         [mutations.ADD_TEXT](state, {codeId, text}) {
             state.idToCode[codeId].texts.push(text);
+        },
+
+        [mutations.TOGGLE_CLICK](state: StoreState, {container}) {
+            Vue.set(state.idToContainer[container].colorInfo, "activeClick",
+                !state.idToContainer[container].colorInfo.activeClick);
+        },
+
+        [mutations.TOGGLE_HOVER](state: StoreState, {container}) {
+            Vue.set(state.idToContainer[container].colorInfo, "activeHover",
+                !state.idToContainer[container].colorInfo.activeHover);
         }
+
     },
     actions: {
         async [actions.CREATE_CONTAINER](context, {name}) {
