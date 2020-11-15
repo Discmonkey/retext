@@ -117,7 +117,6 @@ export class WalkableSource {
      */
     search(coord: coord, f: (word: WordWithAttributes) => boolean): [Array<WordWithAttributes>, coord, coord] {
         const anchor = this.word(coord).index;
-        const ret = [];
         let start = anchor;
         let idx = anchor;
         let end = anchor;
@@ -135,12 +134,9 @@ export class WalkableSource {
             idx++;
         }
 
-        while (start <= end) {
-            ret.push(this.flatSource[start].word);
-            start++;
-        }
+        const l = this.flatSource.slice(start, end + 1).map(word => word.word)
 
-        return [ret, this.flatSource[start].coord, this.flatSource[end].coord];
+        return [l, this.flatSource[start].coord, this.flatSource[end].coord];
 
     }
 
