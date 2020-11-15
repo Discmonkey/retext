@@ -6,6 +6,7 @@ import Demo from "@/views/Demo";
 import Home from "@/Home";
 import Project from "@/views/Project";
 import ProjectHub from "@/views/ProjectHub";
+import NotFound from "@/components/nav/NotFound";
 import Buckets from "@/views/Buckets";
 import Bucket from "@/views/Bucket";
 
@@ -61,6 +62,14 @@ const routes = [
             }
         ],
     },
+    {
+        path: '/404',
+        component: NotFound
+    },
+    {
+        path: '*',
+        component: NotFound
+    }
 ];
 
 
