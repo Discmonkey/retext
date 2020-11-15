@@ -39,6 +39,28 @@ export function getColor(index: number): string {
  */
 const rgbToHex = (r: number, g: number, b: number): string => '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
 
+export function hexToRgb(hex: string): [number, number, number] {
+
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+
+    return [r, g, b]
+}
+
+export function blend(colorArray: Array<string>): string {
+    const numeric = colorArray.map(hexToRgb).reduce((a, b) => {
+        a[0] += b[0];
+        a[1] += b[1];
+        a[2] += b[2];
+
+        return a;
+    }, [0, 0, 0]).map(val => Math.floor(val / colorArray.length)) as [number, number, number];
+
+    return rgbToHex(...numeric);
+}
+
 /**
  * Creates a color based on the values passed in
  * h, s, v values must be in [0..1[

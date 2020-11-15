@@ -31,6 +31,7 @@ import vue from 'vue';
 // import VueContext from 'vue-context';
 // the default styling relies on <li> elements and specific classes.
 import 'vue-context/dist/css/vue-context.css';
+import {blend} from "@/core/Colors.ts";
 // eslint-disable-next-line no-unused-vars
     let TextType = {
         Paragraphs: [{
@@ -43,7 +44,7 @@ import 'vue-context/dist/css/vue-context.css';
         }]
     };
 
-    const highlighted = "highlighted";
+    const highlighted = "#98FB98";
 
     const updateToTrue = word => vue.set(word.attributes, highlighted, true);
     const updateToFalse = word => vue.set(word.attributes, highlighted, false);
@@ -142,22 +143,16 @@ import 'vue-context/dist/css/vue-context.css';
             },
 
             color(word) {
-                let colorOn = false;
-                let backgroundColor = "";
+                let backgroundColors = [];
 
                 Object.keys(word.attributes).forEach(color =>  {
-                    if (word.attributes[color] && backgroundColor !== highlighted) {
-                        colorOn = true;
-                        if (color === highlighted) {
-                            backgroundColor = "palegreen";
-                        } else {
-                            backgroundColor = color;
-                        }
+                    if (word.attributes[color]) {
+                        backgroundColors.push(color)
                     }
                 })
 
-                if (colorOn) {
-                    return {backgroundColor};
+                if (backgroundColors.length > 0) {
+                    return {backgroundColor: blend(backgroundColors)};
                 } else {
                     return {};
                 }
@@ -256,7 +251,7 @@ import 'vue-context/dist/css/vue-context.css';
 
     /*noinspection CssUnusedSymbol*/
     .active {
-        background-color: palegreen;
+        background-color: #98fb98;
     }
 
     .flip {

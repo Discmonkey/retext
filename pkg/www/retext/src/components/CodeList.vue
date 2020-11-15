@@ -13,8 +13,6 @@
             <div v-for="container in containers"
                  :key="container.containerId"
                  @text-drop="textDrop(container.main, $event.detail, $event)"
-                 @mouseenter="codeHover(container.containerId)"
-                 @mouseout="codeHover(container.containerId)"
                  @click="codeClick(container.containerId)"
             >
                 <div class="spacer">
