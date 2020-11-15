@@ -22,7 +22,7 @@
     <div class="row">
         <div class="col-8 offset-2 layout">
             <button v-for="link in links" @click="goto(link.link, link.disabled)" v-bind:key="link.name" class="btn btn-primary">
-                {{link.name}} {{l}}
+                {{link.name}}
             </button>
         </div>
     </div>

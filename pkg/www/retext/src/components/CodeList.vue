@@ -88,15 +88,12 @@ import {mapGetters} from "vuex";
             ...mapGetters(["idToContainer"])
         },
         mounted() {
-            this.$store.dispatch(actions.INIT_CONTAINERS)
+            this.$store.dispatch(actions.code.INIT_CONTAINERS)
         },
         methods: {
-            codeHover(container) {
-                this.$store.commit(mutations.TOGGLE_HOVER, {container});
-            },
 
             codeClick(container) {
-                this.$store.commit(mutations.TOGGLE_CLICK, {container});
+                this.$store.commit(mutations.code.TOGGLE_CLICK, {container});
             },
 
             textDrop: async function (code, packet, e) {

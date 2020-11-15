@@ -15,7 +15,6 @@ export const mutations = {
     ADD_TEXT: "addText",
     DELETE_TEXT: "deleteText",
     SET_PROJECT: "setProject",
-    TOGGLE_HOVER: "toggleHover",
     TOGGLE_CLICK: "toggleClick",
 }
 
@@ -160,11 +159,6 @@ export const Module = {
             Vue.set(state.idToContainer[container].colorInfo, "activeClick",
                 !state.idToContainer[container].colorInfo.activeClick);
         },
-
-        [mutations.TOGGLE_HOVER](state: State, {container}: {container: Id}) {
-            Vue.set(state.idToContainer[container].colorInfo, "activeHover",
-                !state.idToContainer[container].colorInfo.activeHover);
-        }
 
     },
     actions: {
