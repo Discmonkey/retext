@@ -180,16 +180,16 @@ import {blend} from "@/core/Colors.ts";
             },
 
             pickupStart: function(coord, e) {
-                const [words, anchor, last] = this.document.search(coord, isHighlighted);
+                const [words, first_word, last_word] = this.document.search(coord, isHighlighted);
 
-                const region = {
-                    anchor, last,
+                const documentText = {
+                    first_word, last_word,
                     text: words.map(w => w.text).join(" "),
-                    documentId: this.documentId
+                    document_id: this.documentId
                 }
 
                 let div = createDiv(e.clientX, e.clientY);
-                div.innerText = `"${region.text}"`;
+                div.innerText = `"${documentText.text}"`;
 
                 document.body.appendChild(div);
 
@@ -206,7 +206,7 @@ import {blend} from "@/core/Colors.ts";
                     let textDropEvent = new CustomEvent("text-drop", {
                         bubbles: true, cancelable: true,
                         detail: {
-                            data: {words: region},
+                            data: {words: documentText},
                             callback: () => {
                                 console.log("callback called");
                             }

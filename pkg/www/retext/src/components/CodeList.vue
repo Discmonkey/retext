@@ -77,7 +77,7 @@ import {mapGetters} from "vuex";
                     return this.$store.getters.containers;
                 },
                 set(c) {
-                    this.$store.commit(mutations.SET_CONTAINERS, c)
+                    this.$store.commit(mutations.code.SET_CONTAINERS, c)
                 },
             },
 
@@ -88,7 +88,7 @@ import {mapGetters} from "vuex";
             ...mapGetters(["idToContainer"])
         },
         mounted() {
-            this.$store.dispatch(actions.code.INIT_CONTAINERS)
+            this.$store.dispatch(actions.code.INIT_CONTAINERS, this.projectId);
         },
         methods: {
 
@@ -117,14 +117,14 @@ import {mapGetters} from "vuex";
                 }
 
                 if (!containerId) {
-                    this.$store.dispatch(actions.CREATE_CONTAINER, {name}).then(() => {});
+                    await this.$store.dispatch(actions.code.CREATE_CONTAINER, {projectId: this.projectId, codeName: name});
                 } else {
-                    this.$store.dispatch(actions.CREATE_CODE, {containerId, name}).then(() => {});
+                    await this.$store.dispatch(actions.code.CREATE_CODE, {containerId, name});
                 }
             },
 
-            _actuallyAssociate: function (code, words, callback) {
-                this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId: code.id, words}).then(() => {
+            _actuallyAssociate: function (code, text, callback) {
+                this.$store.dispatch(actions.code.ASSOCIATE_TEXT, {codeId: code.id, text}).then(() => {
                     callback();
                     // todo: "success" toast or something
                 }, () => {

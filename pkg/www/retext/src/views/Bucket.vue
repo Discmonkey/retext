@@ -64,7 +64,7 @@ export default {
             if (this.container === null) {
                 // files are needed to get the file names
                 await this.$store.dispatch(actions.file.getFiles, this.projectId);
-                await this.$store.dispatch(actions.INIT_CONTAINERS);
+                await this.$store.dispatch(actions.code.INIT_CONTAINERS, this.projectId);
             }
 
             setTimeout(() => this.grid = new Muuri('.grid', {

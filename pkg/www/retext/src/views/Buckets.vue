@@ -16,9 +16,14 @@ import {actions} from "@/store";
 import ToBucket from "@/components/nav/ToBucket";
 
 export default {
+    computed: {
+        projectId() {
+            return parseInt(this.$route.params.projectId);
+        }
+    },
     components: {ToBucket},
     beforeCreate() {
-        this.$store.dispatch(actions.INIT_CONTAINERS);
+        this.$store.dispatch(actions.code.INIT_CONTAINERS, this.projectId);
     },
 
     name: "Buckets"
