@@ -19,7 +19,7 @@
                     <div :style="style(container)">
                         <code-drop-zone :code="container.main">
                             <div class="top-container margined">
-                                <h5 class="code-title">{{container.main.name}}</h5>
+                                <router-link class="route-link" :to="`/project/${projectId}/view/${container.containerId}`"> {{container.main.name}}</router-link>
 
                                 <div class="btn btn-primary float-right no-events just-number self-right">
                                     {{getContainerTextsLength(container)}}
@@ -80,6 +80,11 @@ import {mapGetters} from "vuex";
                     this.$store.commit(mutations.SET_CONTAINERS, c)
                 },
             },
+
+            projectId() {
+                return parseInt(this.$route.params.projectId);
+            },
+
             ...mapGetters(["idToContainer"])
         },
         mounted() {
@@ -234,6 +239,11 @@ import {mapGetters} from "vuex";
 
     .rborder {
         border-right: 1px solid gray;
+    }
+
+    .route-link {
+        font-size: 1.2em;
+        text-transform: capitalize;
     }
 
     .subcode {
