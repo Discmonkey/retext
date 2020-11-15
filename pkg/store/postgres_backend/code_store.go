@@ -7,7 +7,6 @@ import (
 	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend/builders"
 	"github.com/discmonkey/retext/pkg/version"
-	"github.com/lib/pq"
 )
 
 type CodeStore struct {
@@ -53,7 +52,7 @@ func (c CodeStore) CreateCode(name string, containerId store.ContainerId) (store
 	return id, err
 }
 
-func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
+func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) (store.TextId, error) {
 	if firstWord.Paragraph > lastWord.Paragraph ||
 		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence > lastWord.Sentence ||
 		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence == lastWord.Sentence && firstWord.Word > lastWord.Word {
@@ -64,22 +63,26 @@ func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text
 	}
 
 	// TODO grab parser id from environment variable (or something similar)
-	_, err := c.db.Exec(`
+	row := c.db.QueryRow(`
 		INSERT INTO qode.text (start, stop, value, parser_id, code_id, source_file_id) VALUES 
 		(ROW($1, $2, $3), ROW($4, $5, $6), $7, (
 		    SELECT id from qode.parser WHERE version = $10
 		), $8, $9) 
+		RETURNING id 
 	`, firstWord.Paragraph, firstWord.Sentence, firstWord.Word,
 		lastWord.Paragraph, lastWord.Sentence, lastWord.Word,
 		text, codeId, documentId, version.Version)
 
-	return err
+	var textId store.TextId
+	err := row.Scan(&textId)
+
+	return textId, err
 }
 
-func (c CodeStore) UncodeText(textIds []store.TextId) error {
+func (c CodeStore) DeleteText(textId store.TextId) error {
 	_, err := c.db.Exec(`
-		DELETE FROM qode.text WHERE id = ANY($1)
-	`, pq.Array(textIds))
+		DELETE FROM qode.text WHERE id = $1
+	`, textId)
 
 	return err
 }

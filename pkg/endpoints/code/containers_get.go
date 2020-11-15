@@ -10,7 +10,7 @@ import (
 
 type CodesResponse = []store.CodeContainer
 
-func ListEndpoint(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func Containers(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 	t := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

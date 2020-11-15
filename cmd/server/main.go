@@ -108,12 +108,10 @@ func main() {
 	http.HandleFunc("/demo", file.FileEndpoint(fileBackend, store.DemoFile))
 	http.HandleFunc("/source", file.FileEndpoint(fileBackend, store.SourceFile))
 
-	http.HandleFunc("/code/container/create", code.CreateContainer(codeBackend))
-	http.HandleFunc("/code/create", code.CreateCode(codeBackend))
-	http.HandleFunc("/code/get", code.GetEndpoint(codeBackend))
-	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
-	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
-	http.HandleFunc("/code/disassociate", code.DisassociateText(codeBackend))
+	http.HandleFunc("/container", code.Container(codeBackend))
+	http.HandleFunc("/containers", code.Containers(codeBackend))
+	http.HandleFunc("/code", code.Code(codeBackend))
+	http.HandleFunc("/text", code.Text(codeBackend))
 
 	http.HandleFunc("/project", project.GetEndpoint(projectBackend))
 	http.HandleFunc("/project/create", project.CreateProject(projectBackend))

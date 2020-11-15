@@ -358,7 +358,7 @@ paths:
         - $ref: '#/components/parameters/textId'
       responses:
         200:
-          description: text was successfully deleted
+          description: object was successfully deleted
 
 
 

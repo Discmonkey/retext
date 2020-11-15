@@ -43,8 +43,8 @@ type FileStore interface {
 type CodeStore interface {
 	CreateContainer(id ProjectId) (ContainerId, error)
 	CreateCode(name string, containerId ContainerId) (CodeId, error)
-	CodifyText(codeId CodeId, documentId FileId, text string, firstWord WordCoordinate, lastWord WordCoordinate) error
-	UncodeText(textIds []TextId) error
+	CodifyText(codeId CodeId, documentId FileId, text string, firstWord WordCoordinate, lastWord WordCoordinate) (TextId, error)
+	DeleteText(textId TextId) error
 	GetCode(codeId CodeId) (Code, error)
 	GetContainer(codeId ContainerId) (CodeContainer, error)
 	GetContainers(id ProjectId) ([]CodeContainer, error)
