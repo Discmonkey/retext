@@ -8,6 +8,8 @@
 </template>
 
 <script>
+    import {actions} from "@/store";
+
     export default {
         name: "UploadFile",
         props: {
@@ -38,23 +40,18 @@
 
                 let formData = new FormData();
                 this.$refs.form.files.forEach((file) => {
-                    formData.append("file", file);
+                    formData.append("files", file);
                 });
 
-                this.axios.post(`/file/upload?projectId=${this.projectId}`,
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type": 'multipart/form-data'
-                        }
-                    }
-                )
-                .then(
-                    received => this.$emit("success", received.data)
-                )
-                .catch(
-                    (error) => console.error(error)
-                )
+                if (this.fileType === "KSOURCE") {
+                    this.$store.dispatch(actions.file.postSource, {
+                        project: this.projectId, formData
+                    });
+                } else {
+                    this.$store.dispatch(actions.file.postDemo, {
+                        project: this.projectId, formData
+                    });
+                }
             },
 
             clickFile() {

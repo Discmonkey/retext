@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"io"
 )
 
@@ -14,48 +15,49 @@ type CsvRow struct {
 type CsvParser struct {
 }
 
-func (x CsvParser) Convert(unprocessed []byte) (Document, error) {
-	doc := Document{
-		Attributes: Attributes{
-			Columns: make([]string, 0, 0),
-			Values:  make(map[string][]string),
-		},
+func (x CsvParser) ConvertSource(i []byte) (Source, error) {
+	return Source{}, errors.New("csv parsing currently not supported for source files")
+}
+
+func init() {
+	var _ Parser = CsvParser{}
+}
+
+func (x CsvParser) ConvertDemo(unprocessed []byte) (Demo, error) {
+	demo := Demo{
+		Columns: nil,
+		Values:  make(map[string][]string),
 	}
 
 	rowChannel := getCsvRows(bytes.NewReader(unprocessed))
 	headerRow := <-rowChannel
 
 	if headerRow.err != nil {
-		return doc, headerRow.err
+		return demo, headerRow.err
 	}
 
-	a := Attributes{
-		Columns: headerRow.values,
-		Values:  make(map[string][]string),
-	}
+	demo.Columns = headerRow.values
 
-	numCols := len(a.Columns)
-	for _, columnName := range a.Columns {
-		a.Values[columnName] = make([]string, 0)
+	numCols := len(demo.Columns)
+	for _, columnName := range demo.Columns {
+		demo.Values[columnName] = make([]string, 0)
 	}
 
 	for csvRow := range rowChannel {
 		if csvRow.err != nil {
-			return doc, csvRow.err
+			return demo, csvRow.err
 		}
 		if len(csvRow.values) != numCols {
 			continue
 		}
 
 		for j, val := range csvRow.values {
-			columnName := a.Columns[j]
-			a.Values[columnName] = append(a.Values[columnName], val)
+			columnName := demo.Columns[j]
+			demo.Values[columnName] = append(demo.Values[columnName], val)
 		}
 	}
 
-	doc.Attributes = a
-
-	return doc, nil
+	return demo, nil
 }
 
 // mostly https://stackoverflow.com/questions/32027590/efficient-read-and-write-csv-in-go

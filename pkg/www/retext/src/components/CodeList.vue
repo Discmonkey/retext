@@ -13,13 +13,13 @@
             <div v-for="container in containers"
                  :key="container.containerId"
                  @text-drop="textDrop(container.main, $event.detail, $event)"
-                 @click="toggleColor(container)"
+                 @click="codeClick(container.containerId)"
             >
                 <div class="spacer">
                     <div :style="style(container)">
                         <code-drop-zone :code="container.main">
                             <div class="top-container margined">
-                                <h5 class="code-title">{{container.main.name}}</h5>
+                                <router-link class="route-link" :to="`/project/${projectId}/view/${container.containerId}`"> {{container.main.name}}</router-link>
 
                                 <div class="btn btn-primary float-right no-events just-number self-right">
                                     {{getContainerTextsLength(container)}}
@@ -55,7 +55,7 @@
 <script>
 import Draggable from 'vuedraggable';
 import CodeDropZone from "@/components/CodeDropZone";
-import {actions, getters, mutations} from "@/store"
+import {actions, mutations} from "@/store"
 import {mapGetters} from "vuex";
 // eslint-disable-next-line no-unused-vars
     let codeTypes = {
@@ -72,35 +72,39 @@ import {mapGetters} from "vuex";
         name: 'codeList',
         components: {Draggable, CodeDropZone},
         computed: {
-            [getters.CONTAINERS]: {
+            containers: {
                 get() {
-                    return this.$store.getters[getters.CONTAINERS];
+                    return this.$store.getters.containers;
                 },
                 set(c) {
-                    this.$store.commit(mutations.SET_CONTAINERS, c)
+                    this.$store.commit(mutations.code.SET_CONTAINERS, c)
                 },
             },
-            ...mapGetters([getters.ID_TO_CONTAINER])
+
+            projectId() {
+                return parseInt(this.$route.params.projectId);
+            },
+
+            ...mapGetters(["idToContainer"])
         },
         mounted() {
-            this.$store.dispatch(actions.INIT_CONTAINERS)
+            this.$store.dispatch(actions.code.INIT_CONTAINERS, this.projectId);
         },
         methods: {
-            toggleColor(container) {
-                this.$store.dispatch(actions.SET_COLOR_ACTIVE, container);
+
+            codeClick(container) {
+                this.$store.commit(mutations.code.TOGGLE_CLICK, {container});
             },
+
             textDrop: async function (code, packet, e) {
                 e.stopPropagation(); // stop the event
 
                 // unless an error happens, this function will get called
-                let associate = (code) => {
-                    if (typeof code === "boolean" || !code)
-                        return;
 
-                    this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
-                };
+                if (typeof code === "boolean" || !code)
+                    return;
 
-                associate(code);
+                this._actuallyAssociate(e.detail.data.code, packet.data.words, packet.callback);
             },
 
             createCode: async function (containerId) {
@@ -113,14 +117,14 @@ import {mapGetters} from "vuex";
                 }
 
                 if (!containerId) {
-                    this.$store.dispatch(actions.CREATE_CONTAINER, {name}).then(() => {});
+                    await this.$store.dispatch(actions.code.CREATE_CONTAINER, {projectId: this.projectId, codeName: name});
                 } else {
-                    this.$store.dispatch(actions.CREATE_CODE, {containerId, name}).then(() => {});
+                    await this.$store.dispatch(actions.code.CREATE_CODE, {containerId, name});
                 }
             },
 
-            _actuallyAssociate: function (code, words, callback) {
-                this.$store.dispatch(actions.ASSOCIATE_TEXT, {codeId: code.id, words}).then(() => {
+            _actuallyAssociate: function (code, text, callback) {
+                this.$store.dispatch(actions.code.ASSOCIATE_TEXT, {codeId: code.id, text}).then(() => {
                     callback();
                     // todo: "success" toast or something
                 }, () => {
@@ -128,7 +132,7 @@ import {mapGetters} from "vuex";
                 });
             },
             getContainerTextsLength(container) {
-                return this.$store.getters[getters.GET_TEXTS_LENGTH](container.containerId)
+                return this.$store.getters.textLength(container.containerId);
             },
 
 
@@ -232,6 +236,11 @@ import {mapGetters} from "vuex";
 
     .rborder {
         border-right: 1px solid gray;
+    }
+
+    .route-link {
+        font-size: 1.2em;
+        text-transform: capitalize;
     }
 
     .subcode {

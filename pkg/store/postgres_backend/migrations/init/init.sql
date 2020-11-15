@@ -18,18 +18,11 @@ CREATE TABLE IF NOT EXISTS file(
     project_id int,
     name text,
     uploaded timestamp with time zone,
-
+    file_type text,
     CONSTRAINT fk_project
         FOREIGN KEY (project_id)
             REFERENCES project(id)
 );
-
--- source file is used for primary documents such as interviews
-CREATE TABLE IF NOT EXISTS source_file() inherits (file);
-
--- demo files are usually tabular data related to linking multiple source files to a set
--- of attributes.
-CREATE TABLE IF NOT EXISTS demo_file() inherits (file);
 
 -- store the columns with associated column name, ie age, gender, conditions
 CREATE TABLE IF NOT EXISTS attribute_column(

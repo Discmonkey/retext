@@ -12,17 +12,23 @@ import (
 type XlsxParser struct {
 }
 
-func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
-	d := Document{
-		Attributes: Attributes{
-			Columns: make([]string, 0, 0),
-			Values:  make(map[string][]string),
-		},
+func (x XlsxParser) ConvertSource(i []byte) (Source, error) {
+	return Source{}, errors.New("excel files currently not supported as source files")
+}
+
+func check() {
+	var _ Parser = XlsxParser{}
+}
+
+func (x XlsxParser) ConvertDemo(unprocessed []byte) (Demo, error) {
+	demo := Demo{
+		Columns: nil,
+		Values:  nil,
 	}
 
 	reader, err := zip.NewReader(bytes.NewReader(unprocessed), int64(len(unprocessed)))
 	if err != nil {
-		return d, err
+		return demo, err
 	}
 
 	var sheet *zip.File = nil
@@ -37,27 +43,26 @@ func (x XlsxParser) Convert(unprocessed []byte) (Document, error) {
 	}
 
 	if sheet == nil {
-		return d, errors.New("could not find content in excel file")
+		return demo, errors.New("could not find content in excel file")
 	}
 
 	contentsSheet, err := readZipFile(sheet)
 	if err != nil {
-		return d, err
+		return demo, err
 	}
 
 	contentsStrings, err := readZipFile(sharedStrings)
 	if err != nil {
-		return d, err
+		return demo, err
 	}
 
 	commonStrings, err := parseStrings(contentsStrings)
 	if err != nil {
-		return d, err
+		return demo, err
 	}
 
-	d.Attributes, err = parseSheet(contentsSheet, commonStrings)
+	return parseSheet(contentsSheet, commonStrings)
 
-	return d, err
 }
 
 type arrayVisitor struct {
@@ -118,15 +123,15 @@ func getValue(element xmltree.Element, values []string) string {
 	return values[tableEntry]
 }
 
-func parseSheet(contents []byte, values []string) (Attributes, error) {
-	a := Attributes{}
+func parseSheet(contents []byte, values []string) (Demo, error) {
+	demo := Demo{}
 	root, err := xmltree.Parse(contents)
 	if err != nil {
-		return a, err
+		return demo, err
 	}
 
 	if root.Children == nil {
-		return a, errors.New("root excel sheet element does not have any children")
+		return demo, errors.New("root excel sheet element does not have any children")
 	}
 
 	var rowsCols *xmltree.Element = nil
@@ -138,17 +143,17 @@ func parseSheet(contents []byte, values []string) (Attributes, error) {
 	}
 
 	if rowsCols == nil {
-		return a, errors.New("could not find rows/cols child of root")
+		return demo, errors.New("could not find rows/cols child of root")
 	}
 
 	numCols := len(rowsCols.Children[0].Children)
-	a.Columns = make([]string, numCols, numCols)
-	a.Values = make(map[string][]string)
+	demo.Columns = make([]string, numCols, numCols)
+	demo.Values = make(map[string][]string)
 
 	for i := 0; i < numCols; i++ {
 		columnName := getValue(rowsCols.Children[0].Children[i], values)
-		a.Columns[i] = columnName
-		a.Values[columnName] = make([]string, 0, 0)
+		demo.Columns[i] = columnName
+		demo.Values[columnName] = make([]string, 0, 0)
 	}
 
 	for i := 1; i < len(rowsCols.Children); i++ {
@@ -159,11 +164,9 @@ func parseSheet(contents []byte, values []string) (Attributes, error) {
 		}
 
 		for j := 0; j < numCols; j++ {
-			a.Values[a.Columns[j]] = append(a.Values[a.Columns[j]], getValue(row.Children[j], values))
+			demo.Values[demo.Columns[j]] = append(demo.Values[demo.Columns[j]], getValue(row.Children[j], values))
 		}
 	}
 
-	return a, nil
+	return demo, nil
 }
-
-var _ Parser = XlsxParser{}

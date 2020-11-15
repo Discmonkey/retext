@@ -23,7 +23,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, projectId ProjectId) {
 
 	contents := []byte("hello")
 	testFileName := "test1.txt"
-	file, err := fileBackend.UploadFile(testFileName, contents, projectId)
+	file, err := fileBackend.UploadFile(testFileName, contents, projectId, SourceFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 
 	testCodeName := "test"
 	someBytes := []byte("hello")
-	testFile, err := fileBackend.UploadFile("temp.txt", someBytes, projectId)
+	testFile, err := fileBackend.UploadFile("temp.txt", someBytes, projectId, SourceFile)
 	if err != nil {
 		log.Println(err)
 		t.Fatalf("failed to upload file")
@@ -107,7 +107,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		Word:      3,
 	}
 
-	err = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
+	_, err = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
 	if err != nil {
 		t.Fatalf("failed to codify text: %s", err)
 	}
@@ -127,7 +127,7 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 		t.Fatalf("incorrect number of codes; got: %d", numCodes)
 	}
 
-	err = codeBackend.UncodeText([]int{firstCode.Texts[0].Id})
+	err = codeBackend.DeleteText(firstCode.Texts[0].Id)
 
 	if err != nil {
 		t.Fatalf("failed to uncode text: %s", err)

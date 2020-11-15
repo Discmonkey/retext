@@ -1,12 +1,12 @@
 <template><router-view v-if="projectLoaded"/></template>
 
 <script>
-import {ProjectActions} from "@/store/modules/project";
+import {actions} from "@/store";
 
 export default {
     name: "Home",
     mounted() {
-        this.$store.dispatch(ProjectActions.SELECT_PROJECT, this.$route.params.projectId)
+        this.$store.dispatch(actions.project.SELECT_PROJECT, parseInt(this.$route.params.projectId))
     },
 
     computed: {

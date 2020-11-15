@@ -37,7 +37,7 @@ type FileStore struct {
 	writeDir string
 }
 
-func (c FileStore) UploadFile(filename string, contents []byte, projectId store.ProjectId) (store.File, error) {
+func (c FileStore) UploadFile(filename string, contents []byte, projectId store.ProjectId, fileType store.FileType) (store.File, error) {
 
 	// generate has for file contents
 	hash := hashContents(contents)
@@ -62,25 +62,25 @@ func (c FileStore) UploadFile(filename string, contents []byte, projectId store.
 		}
 	}
 
-	id, err := logFileToDb(c.db, filename, location, hash, projectId)
+	id, err := logFileToDb(c.db, filename, location, hash, projectId, fileType)
 	if err != nil {
 		return store.File{}, err
 	}
 
-	name, ext, err := getNameAndExtension(filename)
+	name, _, err := getNameAndExtension(filename)
 	if err != nil {
 		return store.File{}, err
 	}
 
 	return store.File{
-		Id:   id,
-		Type: assignTypeFromExtension(ext),
-		Name: name,
+		Id:    id,
+		Type_: fileType,
+		Name:  name,
 	}, nil
 }
 
 func (c FileStore) GetFile(id store.FileId) ([]byte, store.File, error) {
-	query := `SELECT id, name, location as string FROM qode.file WHERE id = $1`
+	query := `SELECT id, name, location, file_type as string FROM qode.file WHERE id = $1`
 	var location string
 	row := c.db.QueryRow(query, id)
 
@@ -152,16 +152,16 @@ func getLocationFromId(con connection, id store.FileId) (string, error) {
 	return fmt.Sprintf("%s", location), err
 }
 
-func logFileToDb(con connection, filename, location, hash string, project store.ProjectId) (store.FileId, error) {
+func logFileToDb(con connection, filename, location, hash string, project store.ProjectId, fileType store.FileType) (store.FileId, error) {
 	insert := `
-		INSERT INTO qode.file (name, uploaded, location, file_hash, project_id) 
-		VALUES ($1, NOW(), $2, $3, $4)
+		INSERT INTO qode.file (name, uploaded, location, file_hash, project_id, file_type) 
+		VALUES ($1, NOW(), $2, $3, $4, $5)
 		RETURNING id 
 		`
 
-	var id int
+	var id int64
 
-	row := con.QueryRow(insert, filename, location, hash, project)
+	row := con.QueryRow(insert, filename, location, hash, project, fileType)
 
 	err := row.Scan(&id)
 
@@ -178,18 +178,9 @@ func getNameAndExtension(filename string) (string, string, error) {
 	return nameAndExtension[0], nameAndExtension[1], nil
 }
 
-func assignTypeFromExtension(ext string) store.FileType {
-	type_ := store.SourceFile
-	if ext == "xlsx" || ext == "csv" {
-		type_ = store.DemoFile
-	}
-
-	return type_
-}
-
 func listFiles(con connection, project store.ProjectId) ([]store.File, error) {
 	query := `
-		SELECT id, name, location as string FROM qode.file
+		SELECT id, name, location, file_type as string FROM qode.file
 		WHERE project_id = $1
 	`
 
@@ -224,9 +215,9 @@ type rowLike interface {
 
 func parseFileRow(row rowLike, location *string) (store.File, error) {
 	var filename string
-	var id int
-
-	err := row.Scan(&id, &filename, location)
+	var id int64
+	var fileType store.FileType
+	err := row.Scan(&id, &filename, location, &fileType)
 
 	if err != nil {
 		return store.File{}, err
@@ -241,7 +232,7 @@ func parseFileRow(row rowLike, location *string) (store.File, error) {
 	f := store.File{}
 	f.Id = id
 	f.Name = name
-	f.Type = assignTypeFromExtension(ext)
+	f.Type_ = fileType
 	f.Ext = ext
 
 	return f, nil

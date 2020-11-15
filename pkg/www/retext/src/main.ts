@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+// @ts-ignore
 import VueContext from 'vue-context';
 import App from './App.vue'
-import router from './router'
+import router from './router/index'
 import 'bootstrap'; import 'bootstrap/dist/css/bootstrap.min.css'
 import 'colors.css/css/colors.min.css';
 import {BootstrapVue} from 'bootstrap-vue'

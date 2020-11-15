@@ -21,7 +21,7 @@
 
     <div class="row">
         <div class="col-8 offset-2 layout">
-            <button v-for="link in links" @click="goto(link.link)" v-bind:key="link.name" class="btn btn-primary">
+            <button v-for="link in links" @click="goto(link.link, link.disabled)" v-bind:key="link.name" class="btn btn-primary">
                 {{link.name}}
             </button>
         </div>
@@ -39,25 +39,26 @@ export default {
         },
 
         stringDate() {
-            return moment(this.project.timeTag).add(1, "days").format("MMM YYYY");
+
+            return moment().date(1).month(this.project.month).year(this.project.year).format("MMM YYYY");
         },
     },
 
     data() {
         return {
             links: [
-                {name: "Upload Sources", link: "upload"},
-                {name: "Upload Demographics", link: "demo"},
-                {name: "Code Sources", link: "code"},
-                {name: "View Coding Buckets", link: "buckets"},
-                {name: "View Insights", link: "insights"},
-                {name: "Export Insights", link: "insights"}
+                {name: "Upload Sources", link: "upload", disabled: false},
+                {name: "View Coding Buckets", link: "buckets", disabled: false},
             ]
         }
     },
 
     methods: {
-        goto(destination) {
+        goto(destination, isDisabled) {
+            if (isDisabled) {
+                alert("not currently implemented!");
+                return;
+            }
             const maybeSlash = this.$route.fullPath.endsWith("/") ? "" : "/";
 
             this.$router.push(this.$route.fullPath + maybeSlash + destination);

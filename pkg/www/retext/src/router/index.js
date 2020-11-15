@@ -7,6 +7,8 @@ import Home from "@/Home";
 import Project from "@/views/Project";
 import ProjectHub from "@/views/ProjectHub";
 import NotFound from "@/components/nav/NotFound";
+import Buckets from "@/views/Buckets";
+import Bucket from "@/views/Bucket";
 
 Vue.use(VueRouter);
 
@@ -38,6 +40,11 @@ const routes = [
                 name: 'Demo',
                 component: Demo
             },
+
+            {
+                path: 'view/:codeId',
+                component: Bucket,
+            },
             {
                 path: 'upload',
                 name: 'Upload',
@@ -47,6 +54,11 @@ const routes = [
                 path: '',
                 name: HubName,
                 component: ProjectHub
+            },
+            {
+                path: 'buckets',
+                name: 'Coding Buckets',
+                component: Buckets
             }
         ],
     },

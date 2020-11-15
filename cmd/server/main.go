@@ -5,6 +5,7 @@ import (
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
 	"github.com/discmonkey/retext/pkg/endpoints/project"
+	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend"
 	"log"
 	"net/http"
@@ -103,16 +104,14 @@ func main() {
 	codeBackend := postgres_backend.NewCodeStore(connection)
 	projectBackend := postgres_backend.NewProjectStore(connection)
 
-	http.HandleFunc("/file/upload", file.AddUploadEndpoint(fileBackend))
-	http.HandleFunc("/file/list", file.ListEndpoint(fileBackend))
-	http.HandleFunc("/file/load", file.DownloadEndpoint(fileBackend))
+	http.HandleFunc("/files", file.FilesEndpoint(fileBackend))
+	http.HandleFunc("/demo", file.FileEndpoint(fileBackend, store.DemoFile))
+	http.HandleFunc("/source", file.FileEndpoint(fileBackend, store.SourceFile))
 
-	http.HandleFunc("/code/container/create", code.CreateContainer(codeBackend))
-	http.HandleFunc("/code/create", code.CreateCode(codeBackend))
-	http.HandleFunc("/code/get", code.GetEndpoint(codeBackend))
-	http.HandleFunc("/code/list", code.ListEndpoint(codeBackend))
-	http.HandleFunc("/code/associate", code.AssociateEndpoint(codeBackend))
-	http.HandleFunc("/code/disassociate", code.DisassociateText(codeBackend))
+	http.HandleFunc("/code_container", code.Container(codeBackend))
+	http.HandleFunc("/code_containers", code.Containers(codeBackend))
+	http.HandleFunc("/code", code.Code(codeBackend))
+	http.HandleFunc("/document_text", code.Text(codeBackend))
 
 	http.HandleFunc("/project", project.GetEndpoint(projectBackend))
 	http.HandleFunc("/project/create", project.CreateProject(projectBackend))

@@ -3,7 +3,7 @@
 
         <div class="row">
             <div class="col-md-12 document-display">
-                <TextRenderer :text="currentText" :document-id="selected"></TextRenderer>
+                <TextRenderer :document-id="documentId"></TextRenderer>
             </div>
         </div>
     </div>
@@ -11,7 +11,16 @@
 
 <script>
     import TextRenderer from "./TextRenderer";
+    import {actions} from "@/store";
+
     export default {
+
+        computed: {
+            documentId() {
+                return parseInt(this.$route.params.documentId);
+            },
+        },
+
         name: "DocumentDisplay",
 
         components: {
@@ -27,34 +36,10 @@
         },
 
         mounted() {
-            this.loadDocument(this.$route.params.documentId);
+            this.$store.dispatch(actions.file.selectSource, {
+                fileId: this.documentId
+            });
         },
-
-        methods: {
-            loadDocument: function(documentName) {
-                this.axios.get(`/file/load?key=${documentName}`).then(res => {
-                    this.currentText = res.data;
-                    this.selected = documentName;
-                })
-            },
-        },
-
-        watch: {
-            // easy way to inform the user that new stuff got uploaded
-            files: function (newFiles) {
-                for (let obj of newFiles) {
-                    if (typeof(obj.response) === "string") {
-
-                        let file = obj.response;
-
-                        if (!this.uploadedFiles.includes(file)) {
-                            this.uploadedFiles.push(file);
-                        }
-                    }
-                }
-            }
-        },
-
 
     }
 </script>

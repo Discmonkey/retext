@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"github.com/discmonkey/retext/pkg/endpoints"
 	"github.com/discmonkey/retext/pkg/store"
-	"log"
 	"net/http"
 )
 
-func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
+func Container(codeStore store.CodeStore) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		projectId, ok := endpoints.ProjectIdOk(r, w, "projectId required to create code")
@@ -16,7 +15,7 @@ func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.
 			return
 		}
 
-		containerId, err := store.CreateContainer(projectId)
+		containerId, err := codeStore.CreateContainer(projectId)
 		if endpoints.HttpNotOk(500, w, "could not create code", err) {
 			return
 		}
@@ -25,12 +24,11 @@ func CreateContainer(store store.CodeStore) func(w http.ResponseWriter, r *http.
 
 		w.Header().Set("Content-Type", "application/json")
 
-		err = encoder.Encode(struct {
-			ContainerId int
-		}{ContainerId: containerId})
-
-		if err != nil {
-			log.Println(err)
-		}
+		endpoints.LogIf(encoder.Encode(store.CodeContainer{
+			Id:         containerId,
+			Order:      0,
+			Codes:      make([]store.Code, 0, 0),
+			Percentage: 0,
+		}))
 	}
 }

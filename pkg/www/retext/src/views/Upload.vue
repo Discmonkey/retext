@@ -12,25 +12,25 @@
                 <h4 class="upload-header">Source Files </h4>
 
 
-                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.Id">
+                <div class="source-file" v-for="file in slicedSourceFiles" v-bind:key="file.id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.Id"
-                                    :document-name="file.Name"
+                        <ToDocument :document-id="file.id"
+                                    :document-name="file.name"
                                     :project-id="projectId"
                                     button-text="Code" path="/code"></ToDocument>
                     </div>
                 </div>
 
 
-                <div v-if="uploadedSourceFiles.length > perPage">
+                <div v-if="slicedSourceFiles.length > perPage">
                     <b-pagination v-model="currentPage"
-                                  :total-rows="uploadedSourceFiles.length"
+                                  :total-rows="slicedSourceFiles.length"
                                   :per-page="perPage"></b-pagination>
                 </div>
 
                 <div>
-                    <UploadFile file-type="Source"
-                                v-on:success="addSource($event)" :project-id="projectId"
+                    <UploadFile file-type="KSOURCE"
+                                :project-id="projectId"
                                 accepted-files=".docx,.txt,.text" :multiple=true>Upload New Sources</UploadFile>
                 </div>
 
@@ -38,16 +38,16 @@
 
             <div class="col-6">
                 <h4 class="upload-header"> Demographic Information </h4>
-                <div class="source-file" v-for="file in uploadedDemoFiles" v-bind:key="file.Id">
+                <div class="source-file" v-for="file in demos" v-bind:key="file.id">
                     <div class="mb-3">
-                        <ToDocument :document-id="file.Id" :document-name="file.Name"
+                        <ToDocument :document-id="file.id" :document-name="file.name"
                                     :project-id="projectId"
                                     button-text="Modify" path="/demo"></ToDocument>
                     </div>
                 </div>
 
                 <div>
-                    <UploadFile file-type="Demographics" v-on:success="addDemo($event)" :project-id="projectId"
+                    <UploadFile file-type="KDEMO" :project-id="projectId"
                                 tooltip="For demographic information, please upload a .xlsx or .csv file in which each participant is a different row (a header row is required)."
                                 accepted-files=".xlsx,.csv">Upload New Demographics</UploadFile>
                 </div>
@@ -61,6 +61,7 @@
 <script>
 import UploadFile from "../components/files/UploadFile";
 import ToDocument from "../components/nav/ToDocument";
+import {actions} from "@/store";
 
 export default {
     components: {UploadFile, ToDocument},
@@ -73,8 +74,6 @@ export default {
 
     data() {
         return {
-            uploadedSourceFiles: [],
-            uploadedDemoFiles: [],
             currentPage: 1,
             perPage: 4,
         }
@@ -82,10 +81,14 @@ export default {
 
     computed: {
         slicedSourceFiles() {
-            return this.uploadedSourceFiles.slice(
+            return this.$store.getters.sources.slice(
                 (this.currentPage - 1) * this.perPage,
                 this.currentPage * this.perPage
             );
+        },
+
+        demos() {
+            return this.$store.getters.demos;
         },
 
         projectId() {
@@ -94,31 +97,8 @@ export default {
     },
 
     mounted() {
-        this.axios.get(`/file/list?projectId=${this.$route.params.projectId}`).then((res) => {
-            for (let f of res.data.Files) {
-                if (f.Type === "SourceFile") {
-                    this.uploadedSourceFiles.push(f)
-                } else if (f.Type === "DemoFile") {
-                    this.uploadedDemoFiles.push(f)
-                }
-            }
-        })
+        this.$store.dispatch(actions.file.getFiles, this.projectId);
     },
-
-    methods: {
-        addSource(items) {
-            items.forEach((item) => {
-                this.uploadedSourceFiles.push(item.File);
-            });
-        },
-
-        addDemo(items) {
-            items.forEach((item) => {
-                this.uploadedDemoFiles.push(item.File);
-            });
-        },
-
-    }
 }
 </script>
 

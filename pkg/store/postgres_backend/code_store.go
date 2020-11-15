@@ -7,7 +7,6 @@ import (
 	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend/builders"
 	"github.com/discmonkey/retext/pkg/version"
-	"github.com/lib/pq"
 )
 
 type CodeStore struct {
@@ -25,14 +24,14 @@ func (c CodeStore) CreateContainer(id store.ProjectId) (store.ContainerId, error
 		RETURNING id  
 	`, id)
 
-	var containerId int
+	var containerId int64
 
 	err := row.Scan(&containerId)
 
 	return containerId, err
 }
 
-func IdDoesNotExistError(objectName string, id int) error {
+func IdDoesNotExistError(objectName string, id int64) error {
 	return errors.New(fmt.Sprintf("%s with id: <%d> does not exist", objectName, id))
 }
 
@@ -46,14 +45,14 @@ func (c CodeStore) CreateCode(name string, containerId store.ContainerId) (store
 		RETURNING id;
 	`, containerId, name)
 
-	var id int
+	var id int64
 
 	err := row.Scan(&id)
 
 	return id, err
 }
 
-func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) error {
+func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text string, firstWord store.WordCoordinate, lastWord store.WordCoordinate) (store.TextId, error) {
 	if firstWord.Paragraph > lastWord.Paragraph ||
 		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence > lastWord.Sentence ||
 		firstWord.Paragraph == lastWord.Paragraph && firstWord.Sentence == lastWord.Sentence && firstWord.Word > lastWord.Word {
@@ -64,22 +63,26 @@ func (c CodeStore) CodifyText(codeId store.CodeId, documentId store.FileId, text
 	}
 
 	// TODO grab parser id from environment variable (or something similar)
-	_, err := c.db.Exec(`
+	row := c.db.QueryRow(`
 		INSERT INTO qode.text (start, stop, value, parser_id, code_id, source_file_id) VALUES 
 		(ROW($1, $2, $3), ROW($4, $5, $6), $7, (
 		    SELECT id from qode.parser WHERE version = $10
 		), $8, $9) 
+		RETURNING id 
 	`, firstWord.Paragraph, firstWord.Sentence, firstWord.Word,
 		lastWord.Paragraph, lastWord.Sentence, lastWord.Word,
 		text, codeId, documentId, version.Version)
 
-	return err
+	var textId store.TextId
+	err := row.Scan(&textId)
+
+	return textId, err
 }
 
-func (c CodeStore) UncodeText(textIds []store.TextId) error {
+func (c CodeStore) DeleteText(textId store.TextId) error {
 	_, err := c.db.Exec(`
-		DELETE FROM qode.text WHERE id = ANY($1)
-	`, pq.Array(textIds))
+		DELETE FROM qode.text WHERE id = $1
+	`, textId)
 
 	return err
 }
@@ -99,7 +102,7 @@ func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 	}
 
 	row := builders.CodeRow{}
-	var codeContainerId int
+	var codeContainerId int64
 	empty := true
 
 	for rows.Next() {
@@ -122,6 +125,15 @@ func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 }
 
 func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContainer, error) {
+	var numFilesInProject int
+
+	row := c.db.QueryRow(`SELECT count(*) FROM qode.file 
+			WHERE project_id = (
+    			SELECT project_id FROM qode.code_container WHERE id = $1 LIMIT 1 
+			)`, containerId)
+
+	err := row.Scan(&numFilesInProject)
+
 	rows, err := c.db.Query(`
 		SELECT c.name, c.display_order, c.id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
 		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id FROM qode.code c
@@ -134,22 +146,29 @@ func (c CodeStore) GetContainer(containerId store.ContainerId) (store.CodeContai
 		return store.CodeContainer{}, err
 	}
 
-	builder := builders.NewContainerBuilder(containerId)
+	builder := builders.NewContainerBuilder(containerId, numFilesInProject)
 
-	row := builders.ContainerRow{}
+	builderRow := builders.ContainerRow{}
 
 	for rows.Next() {
-		err = rows.Scan(&row.CodeRow.Name, &row.CodeDisplayOrder, &row.CodeId, &row.CodeRow.P1,
-			&row.CodeRow.S1, &row.CodeRow.W1,
-			&row.CodeRow.P2, &row.CodeRow.S2, &row.CodeRow.W2, &row.CodeRow.Text, &row.CodeRow.SourceId)
+		err = rows.Scan(&builderRow.CodeRow.Name, &builderRow.CodeDisplayOrder, &builderRow.CodeId, &builderRow.CodeRow.P1,
+			&builderRow.CodeRow.S1, &builderRow.CodeRow.W1,
+			&builderRow.CodeRow.P2, &builderRow.CodeRow.S2, &builderRow.CodeRow.W2,
+			&builderRow.CodeRow.Text, &builderRow.CodeRow.SourceId)
 
-		builder.Push(row)
+		builder.Push(builderRow)
 	}
 
 	return builder.Finish(), nil
 }
 
 func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, error) {
+	var numFilesInProject int
+
+	numFilesRow := c.db.QueryRow(`SELECT count(*) FROM qode.file 
+			WHERE project_id = $1`, id)
+
+	err := numFilesRow.Scan(&numFilesInProject)
 
 	rows, err := c.db.Query(`
 		SELECT container.display_order as container_display_order,
@@ -166,7 +185,7 @@ func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, err
 		return nil, err
 	}
 
-	builder := builders.NewContainerListBuilder()
+	builder := builders.NewContainerListBuilder(numFilesInProject)
 	row := builders.ContainerListRow{}
 
 	for rows.Next() {

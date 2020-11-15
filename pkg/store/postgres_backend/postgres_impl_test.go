@@ -62,7 +62,7 @@ func TestCodeStoreList(t *testing.T) {
 	projectId, err := createTestProject(projects)
 	fatalIf(err, t)
 
-	_, err = files.UploadFile("test.txt", []byte("TestCodeStoreList"), projectId)
+	_, err = files.UploadFile("test.txt", []byte("TestCodeStoreList"), projectId, store.SourceFile)
 	fatalIf(err, t)
 
 	containerId, err := codes.CreateContainer(projectId)
@@ -71,7 +71,7 @@ func TestCodeStoreList(t *testing.T) {
 	containerId2, err := codes.CreateContainer(projectId)
 	fatalIf(err, t)
 
-	assertContainerID := func(codeId store.CodeId, containerId int) {
+	assertContainerID := func(codeId store.CodeId, containerId int64) {
 		code, err := codes.GetCode(codeId)
 		if err != nil {
 			t.Fail()

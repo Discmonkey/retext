@@ -42,13 +42,13 @@ func NewCodeBuilder() CodeBuilder {
 	return CodeBuilder{code: &store.Code{Texts: make([]store.DocumentText, 0)}}
 }
 
-func (c *CodeBuilder) SetCodeId(id int) *CodeBuilder {
+func (c *CodeBuilder) SetCodeId(id int64) *CodeBuilder {
 	c.code.Id = id
 
 	return c
 }
 
-func (c *CodeBuilder) SetContainerId(id int) *CodeBuilder {
+func (c *CodeBuilder) SetContainerId(id int64) *CodeBuilder {
 	c.code.Container = id
 
 	return c
@@ -61,14 +61,16 @@ func (c *CodeBuilder) Push(row CodeRow) {
 
 	if row.Text.Valid {
 		c.code.Texts = append(c.code.Texts, store.DocumentText{
-			DocumentId: int(row.SourceId.Int32), Text: row.Text.String, FirstWord: store.WordCoordinate{
-				Paragraph: int(row.P1.Int32), Sentence: int(row.S1.Int32), Word: int(row.W1.Int32)},
-			LastWord: store.WordCoordinate{
-				Paragraph: int(row.P2.Int32),
-				Sentence:  int(row.S2.Int32),
-				Word:      int(row.W2.Int32),
+			DocumentId: int64(row.SourceId.Int32), Text: row.Text.String,
+			FirstWord: &store.WordCoordinate{
+				Paragraph: row.P1.Int32, Sentence: row.S1.Int32, Word: row.W1.Int32},
+
+			LastWord: &store.WordCoordinate{
+				Paragraph: row.P2.Int32,
+				Sentence:  row.S2.Int32,
+				Word:      row.W2.Int32,
 			},
-			Id: int(row.TextId.Int32),
+			Id: int64(row.TextId.Int32),
 		})
 	}
 }
@@ -81,18 +83,22 @@ func (c *CodeBuilder) Finish() store.Code {
 }
 
 type ContainerBuilder struct {
-	container      *store.CodeContainer
-	currentDisplay int
-	codeBuilder    *CodeBuilder
+	container        *store.CodeContainer
+	currentDisplay   int
+	totalFiles       int
+	representedFiles []int32
+	codeBuilder      *CodeBuilder
 }
 
-func NewContainerBuilder(containerId int) ContainerBuilder {
+func NewContainerBuilder(containerId int64, totalFiles int) ContainerBuilder {
 	return ContainerBuilder{
 		container: &store.CodeContainer{
 			Id:    containerId,
 			Codes: make([]store.Code, 0),
 		},
-		currentDisplay: math.MaxInt64,
+		currentDisplay:   math.MaxInt64,
+		totalFiles:       totalFiles,
+		representedFiles: make([]int32, 0, 0),
 	}
 }
 
@@ -105,7 +111,18 @@ func (c *ContainerBuilder) Push(row ContainerRow) {
 		}
 
 		codeBuilder := NewCodeBuilder()
-		c.codeBuilder = codeBuilder.SetContainerId(c.container.Id).SetCodeId(row.CodeId)
+		c.codeBuilder = codeBuilder.SetContainerId(c.container.Id).SetCodeId(int64(row.CodeId))
+	}
+
+	found := false
+	for _, fileId := range c.representedFiles {
+		if fileId == row.CodeRow.SourceId.Int32 {
+			found = true
+		}
+	}
+
+	if !found {
+		c.representedFiles = append(c.representedFiles, row.CodeRow.SourceId.Int32)
 	}
 
 	c.codeBuilder.Push(row.CodeRow)
@@ -115,6 +132,8 @@ func (c *ContainerBuilder) Finish() store.CodeContainer {
 	if c.codeBuilder != nil {
 		c.container.Codes = append(c.container.Codes, c.codeBuilder.Finish())
 	}
+
+	c.container.Percentage = float32(len(c.representedFiles)) / float32(c.totalFiles)
 
 	container := c.container
 
@@ -126,22 +145,24 @@ func (c *ContainerBuilder) Finish() store.CodeContainer {
 type ContainerListBuilder struct {
 	containers       []store.CodeContainer
 	containerBuilder *ContainerBuilder
+	totalFiles       int
 }
 
-func NewContainerListBuilder() ContainerListBuilder {
+func NewContainerListBuilder(totalFiles int) ContainerListBuilder {
 	return ContainerListBuilder{
 		containers: make([]store.CodeContainer, 0, 0),
+		totalFiles: totalFiles,
 	}
 }
 
 func (c *ContainerListBuilder) Push(row ContainerListRow) {
-	if c.containerBuilder != nil && c.containerBuilder.container.Id != row.ContainerId {
+	if c.containerBuilder != nil && c.containerBuilder.container.Id != int64(row.ContainerId) {
 		c.containers = append(c.containers, c.containerBuilder.Finish())
 		c.containerBuilder = nil
 	}
 
 	if c.containerBuilder == nil {
-		builder := NewContainerBuilder(row.ContainerId)
+		builder := NewContainerBuilder(int64(row.ContainerId), c.totalFiles)
 		c.containerBuilder = &builder
 	}
 

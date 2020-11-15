@@ -2,8 +2,10 @@ bin
 .idea
 pkg/www/retext/dist
 pkg/www/retext/node_modules
-
+pkg/www/retext/src/model
+pkg/swagger
 # Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+deployment/releases
