@@ -1,9 +1,5 @@
 import Vue from "vue"
-import Vuex, {Store} from "vuex";
-import {getColor, invertColor} from "@/core/Colors";
-import {Id} from "@/model/id";
-import {CodeContainer} from "@/model/codeContainer";
-import {Code} from "@/model/code";
+import Vuex from "vuex";
 import * as project from "@/store/modules/project";
 import * as document from "@/store/modules/file";
 import * as code from "@/store/modules/code";
