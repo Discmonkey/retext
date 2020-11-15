@@ -123,7 +123,7 @@ import {blend} from "@/core/Colors.ts";
                         const on = container.colorInfo.activeHover || container.colorInfo.activeClick;
 
                         [container.main, ...container.subcodes].forEach(code => {
-                            code.texts.forEach(text => {
+                            code.texts.filter(t => t.document_id === this.documentId).forEach(text => {
                                 this.document.walk(text.first_word, text.last_word, word => {
                                     vue.set(word.attributes, container.colorInfo.bg, on);
                                 })

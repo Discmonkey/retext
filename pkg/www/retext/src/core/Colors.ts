@@ -1,14 +1,13 @@
 // a list of colors that are pleasing to the eye (taken from some website)
 let allColors = [
     "#FFDC00",
-    "#F012BE",
-    "#aaa",
     "#FF4136",
     "#2ECC40",
     "#111",
     "#7FDBFF",
     "#001F3F",
-    "#FF851B", "#0074D9", "#85144B", "#3D9970", "#39CCCC", "#01FF70", "#ddd", "#B10DC9", "#fff"];
+    "#FF851B", "#0074D9", "#85144B", "#3D9970", "#39CCCC", "#01FF70", "#ddd", "#B10DC9", "#fff", "#F012BE",
+    "#aaa",];
 
 /**
  * Get a unique color based on the index you pass in. The color returned for a
