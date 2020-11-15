@@ -1,8 +1,10 @@
 import {Source} from "@/model/source";
+import {Word} from "@/model/word";
 
 
 export interface WordWithAttributes {
     text: string;
+    index: number;
     attributes: {
         [key: string]: boolean;
     }
@@ -13,6 +15,13 @@ export type coord = {
     sentence: number;
     word: number;
 };
+
+
+type WordWithPointers = {
+    coord: coord;
+    word: WordWithAttributes;
+}
+
 
 type maybeCoord = [coord, boolean];
 
@@ -54,6 +63,7 @@ function comp(a: coord, b: coord) {
 export class WalkableSource {
     // Array<Paragraph<Sentence<WordWithAttributes>>>
     source: Array<Array<Array<WordWithAttributes>>>;
+    private flatSource: Array<WordWithPointers> = [];
 
     constructor(source: Source) {
 
@@ -64,9 +74,23 @@ export class WalkableSource {
                     word => {
                         return {
                             text: word,
-                            attributes: {}
+                            attributes: {},
+                            index: 0,
                         }
                     })))
+
+        for (let paragraph = 0; paragraph < this.source.length; paragraph++) {
+            for (let sentence = 0; sentence < this.source[paragraph].length; sentence++) {
+                for (let word = 0; word < this.source[paragraph][sentence].length; word++) {
+                    this.source[paragraph][sentence][word].index = this.flatSource.length;
+
+                    this.flatSource.push({
+                        coord: {paragraph, sentence, word},
+                        word: this.source[paragraph][sentence][word],
+                    })
+                }
+            }
+        }
     }
 
     walk(a: coord, b: coord, callback: (word: WordWithAttributes) => void) {
@@ -83,42 +107,50 @@ export class WalkableSource {
 
     }
 
+    word(coord: coord): WordWithAttributes {
+        return this.source[coord.paragraph][coord.sentence][coord.word];
+    }
+
+    /**
+     * Search returns an ordered list of text which satisfy the given method, the returned words are contiguous
+     * and contain the given coordinate
+     */
+    search(coord: coord, f: (word: WordWithAttributes) => boolean): [Array<WordWithAttributes>, coord, coord] {
+        const anchor = this.word(coord).index;
+        const ret = [];
+        let start = anchor;
+        let idx = anchor;
+        let end = anchor;
+
+        // search back while the condition is true
+        while (idx > 0 && f(this.flatSource[idx].word)) {
+            start = idx;
+            idx--;
+        }
+
+        idx = anchor + 1;
+        //search forward while the condition is true
+        while (idx < this.flatSource.length && f(this.flatSource[idx].word)) {
+            end = idx;
+            idx++;
+        }
+
+        while (start <= end) {
+            ret.push(this.flatSource[start].word);
+            start++;
+        }
+
+        return [ret, this.flatSource[start].coord, this.flatSource[end].coord];
+
+    }
+
     // a is always less than b
     private iterate(a: coord, b: coord, callback: (word: WordWithAttributes) => void) {
-        let valid = true
-        let current = a;
-        while (valid && comp(current, b) != 1) {
-            callback(this.word(current));
+        const end = this.word(b).index;
 
-            [current, valid] = this.next(current)
-
+        for (let start = this.word(a).index; start <= end; start++) {
+            callback(this.flatSource[start].word);
         }
-    }
-
-    private next(coord: coord): maybeCoord {
-        let paragraph = coord.paragraph;
-        let sentence = coord.sentence;
-        let word = coord.word + 1;
-
-        if (word < this.source[paragraph][sentence].length) {
-            return [{paragraph, sentence, word}, true];
-        }
-
-        word = 0;
-        sentence += 1;
-
-        if (sentence < this.source[paragraph].length) {
-            return [{paragraph, sentence, word}, true];
-        }
-
-        sentence = 0;
-        paragraph += 1;
-
-        return [{paragraph, sentence, word}, paragraph < this.source.length]
-    }
-
-    private word(coord: coord): WordWithAttributes {
-        return this.source[coord.paragraph][coord.sentence][coord.word];
     }
 
 }

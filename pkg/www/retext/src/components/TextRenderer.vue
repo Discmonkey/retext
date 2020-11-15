@@ -12,7 +12,7 @@
                             v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
                             v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
 
-                            :class="{active: highlighted in word.attributes && word.attributes[highlighted]}"
+                            :class="{active: isHighlighted(word)}"
                             class="border-on-hover word non-selectable"
                         >
                             {{ word.text }}
@@ -79,31 +79,33 @@ import 'vue-context/dist/css/vue-context.css';
     const updateToTrue = word => vue.set(word.attributes, highlighted, true);
     const updateToFalse = word => vue.set(word.attributes, highlighted, false);
 
-    // let createDiv = (x, y) => {
-    //     let div = document.createElement("div")
-    //     div.style.maxWidth = "400px";
-    //     div.style.zIndex = "9999";
-    //
-    //     // to give floating effect
-    //     div.style.boxShadow = "0px 0px 43px -8px rgba(52,179,128,1)"
-    //
-    //     // otherwise its see through
-    //     div.style.backgroundColor = "rgba(255, 255, 255, 1)"
-    //
-    //     // #styling
-    //     div.style.padding = "10px"
-    //
-    //     // if its a lot of text, let's just cut it off
-    //     div.style.overflowY = "hidden"
-    //
-    //     // so that it follows the cursor
-    //     div.style.position = "absolute";
-    //     div.style.left = x + "px";
-    //     div.style.top = y + "px"
-    //     div.style.pointerEvents = "none";
-    //
-    //     return div;
-    // };
+    const isHighlighted = word => highlighted in word.attributes && word.attributes[highlighted];
+
+    let createDiv = (x, y) => {
+        let div = document.createElement("div")
+        div.style.maxWidth = "400px";
+        div.style.zIndex = "9999";
+
+        // to give floating effect
+        div.style.boxShadow = "0px 0px 43px -8px rgba(52,179,128,1)"
+
+        // otherwise its see through
+        div.style.backgroundColor = "rgba(255, 255, 255, 1)"
+
+        // #styling
+        div.style.padding = "10px"
+
+        // if its a lot of text, let's just cut it off
+        div.style.overflowY = "hidden"
+
+        // so that it follows the cursor
+        div.style.position = "absolute";
+        div.style.left = x + "px";
+        div.style.top = y + "px"
+        div.style.pointerEvents = "none";
+
+        return div;
+    };
 
     export default {
         name: "TextRenderer",
@@ -151,6 +153,8 @@ import 'vue-context/dist/css/vue-context.css';
             ...mapGetters(["containers", "idToContainer", "idToCode"]),
         },
         methods: {
+
+            isHighlighted,
             // chooseMenu(e, p, s, w) {
             //     if(this.activeContainerId) {
             //         // check if the word is part of an excerpt in the active container
@@ -224,108 +228,68 @@ import 'vue-context/dist/css/vue-context.css';
             start: function(paragraph, sentence, word, e) {
                 this.dragTool.shift = e.shiftKey;
 
-                this.dragStart(paragraph, sentence, word);
+                const coord = {paragraph, sentence, word};
 
-                // else {
-                //     this.pickupStart(paragraph, sentence, word, e);
-                // }
+                if (isHighlighted(this.document.word(coord))) {
+                    this.pickupStart(coord, e);
+                } else {
+                    this.dragStart(coord);
+                }
             },
 
-            dragStart: function(paragraph, sentence, word) {
+            dragStart: function(coord) {
                 this.dragging = true;
-                this.dragTool.anchor.paragraph = paragraph;
-                this.dragTool.anchor.sentence = sentence;
-                this.dragTool.anchor.word = word;
-
-                this.dragTool.last.paragraph = paragraph;
-                this.dragTool.last.sentence = sentence;
-                this.dragTool.last.word = word;
+                this.dragTool.anchor = coord;
+                this.dragTool.last = coord;
 
                 document.addEventListener("mouseup", this.dragStop);
             },
 
-            // pickupStart: function(paragraph, sentence, word, e) {
-            //     let words = getSelectedRegion(this, paragraph, sentence, word);
-            //
-            //     let div = createDiv(e.clientX, e.clientY);
-            //     div.innerText = `"${words.text}"`;
-            //
-            //     document.body.appendChild(div);
-            //
-            //     let move = (e) => {
-            //         div.style.left = (1 + e.clientX) + "px";
-            //         div.style.top = e.clientY + "px";
-            //     }
-            //     const documentId = this.documentId;
-            //     let remove = (e) => {
-            //         div.remove()
-            //         document.removeEventListener("mouseup", remove);
-            //         document.removeEventListener("mousemove", move);
-            //
-            //         words.documentId = documentId;
-            //
-            //         let textDropEvent = new CustomEvent("text-drop", {
-            //             bubbles: true, cancelable: true,
-            //             detail: {
-            //                 data: {words},
-            //                 callback: () => {
-            //                     // todo: add code-specific color-class
-            //                     console.log(`sample: ${JSON.stringify(words)}`);
-            //                 }
-            //             }
-            //         })
-            //
-            //         e.target.dispatchEvent(textDropEvent);
-            //     }
-            //
-            //     document.addEventListener("mousemove", move);
-            //     document.addEventListener("mouseup", remove);
-            // },
+            pickupStart: function(coord, e) {
+                const [words, anchor, last] = this.document.search(coord, isHighlighted);
+
+                const region = {
+                    anchor, last,
+                    text: words.map(w => w.text).join(" "),
+                    documentId: this.documentId
+                }
+
+                let div = createDiv(e.clientX, e.clientY);
+                div.innerText = `"${region.text}"`;
+
+                document.body.appendChild(div);
+
+                let move = (e) => {
+                    div.style.left = (1 + e.clientX) + "px";
+                    div.style.top = e.clientY + "px";
+                }
+
+                let remove = (e) => {
+                    div.remove()
+                    document.removeEventListener("mouseup", remove);
+                    document.removeEventListener("mousemove", move);
+
+                    let textDropEvent = new CustomEvent("text-drop", {
+                        bubbles: true, cancelable: true,
+                        detail: {
+                            data: {words: region},
+                            callback: () => {
+                                // todo: add code-specific color-class
+                                console.log(`sample: ${JSON.stringify(words)}`);
+                            }
+                        }
+                    })
+
+                    e.target.dispatchEvent(textDropEvent);
+                }
+
+                document.addEventListener("mousemove", move);
+                document.addEventListener("mouseup", remove);
+            },
 
             dragStop: function() {
                 this.dragging = false;
                 document.removeEventListener("mouseup", this.dragStop)
-            },
-
-
-            // returns true if point set 2 is greater than equal to point set 1
-            greaterEqual: function(i2, j2, k2, i, j, k) {
-                if (i2 > i) {
-                    return true;
-                }
-
-                if (i2 < i) {
-                    return false;
-                }
-
-                if (j2 > j) {
-                    return true;
-                }
-
-                if (j2 < j) {
-                    return false;
-                }
-
-                return k2 >= k;
-            },
-
-            inside: function(i, j, k, iStart, jStart, kStart, iEnd, jEnd, kEnd) {
-                // quick swap just in case
-                if (this.greaterEqual(iStart, jStart, kStart, iEnd, jEnd, kEnd)) {
-                    let a = iStart;
-                    let b = jStart;
-                    let c = kStart;
-
-                    iStart = iEnd;
-                    jStart = jEnd;
-                    kStart = kEnd;
-
-                    iEnd = a;
-                    jEnd = b;
-                    kEnd = c;
-                }
-
-                return this.greaterEqual(i, j, k, iStart, jStart, kStart) && this.greaterEqual(iEnd, jEnd, kEnd, i, j, k);
             },
 
             dragged: function(paragraph, sentence, word) {
