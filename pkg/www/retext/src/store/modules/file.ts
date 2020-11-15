@@ -28,6 +28,7 @@ export const mutations = {
 
 interface State {
     files: Array<File>,
+    fileNames: {[key: number]: string}
     demos: {
         map: {[key: number]: Demo};
         current: Demo | null;
@@ -43,6 +44,7 @@ export const Module = {
 
     state: {
         files: [],
+        fileNames: {},
         sources: {
             map: {},
             current: null,
@@ -66,6 +68,7 @@ export const Module = {
             const index = state.files.findIndex((f: File) => f.id == file.id);
 
             if (index == -1) {
+                state.fileNames[file.id] = file.name;
                 state.files.push(file);
             }
         },
@@ -170,6 +173,10 @@ export const Module = {
 
         demo(state: State) {
             return state.demos.current;
+        },
+
+        fileNames(state: State) {
+            return state.fileNames;
         },
 
         sources(state: State): Array<ModelFile> {
