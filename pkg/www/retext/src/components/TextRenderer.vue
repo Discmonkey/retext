@@ -24,7 +24,7 @@
         <vue-context ref="deleteMenu" v-slot="{data: activeTexts}">
             <template v-if="activeTexts && activeTexts.length" class="delete-menu">
                 <li><h5 class="header">Delete</h5></li>
-                <li v-for="t of activeTexts" :key="t.id">
+                <li v-for="t of activeTexts" :key="t.id" class="pointer">
                     <a @click="deleteText(t.id)"
                        :title="t.text"
                        class="delete-menu-active-text"
@@ -294,6 +294,10 @@ const highlighted = "#98FB98";
         -moz-user-select: none;
         -webkit-user-select: none;
         -ms-user-select: none;
+    }
+
+    .pointer {
+        cursor: pointer;
     }
 
     .paragraph {
