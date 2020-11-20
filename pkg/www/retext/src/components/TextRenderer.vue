@@ -9,6 +9,7 @@
 
                             v-on:mousedown.left.stop="start(parIndex, senIndex, wordIndex, $event)"
                             v-on:mouseenter="dragged(parIndex, senIndex, wordIndex)"
+                            @contextmenu.prevent="chooseMenu($event, parIndex, senIndex, wordIndex)"
 
                             :style="color(word)"
                             class="border-on-hover word non-selectable"
@@ -19,34 +20,38 @@
                     </p>
             </div>
         </div>
+
+        <vue-context ref="deleteMenu" v-slot="{data: activeTexts}">
+            <template v-if="activeTexts && activeTexts.length" class="delete-menu">
+                <li><h5 class="header">Delete</h5></li>
+                <li v-for="t of activeTexts" :key="t.id">
+                    <a @click="deleteText(t.id)"
+                       :title="t.text"
+                       class="delete-menu-active-text"
+                       :style="getContainerColor(t.code_id)"
+                    >
+                        {{ t.text }}
+                    </a>
+                </li>
+            </template>
+        </vue-context>
     </div>
 </template>
 
 <script>
 import {actions} from "@/store";
 import vue from 'vue';
-// import VueContext from 'vue-context';
+import VueContext from 'vue-context'
 // the default styling relies on <li> elements and specific classes.
 import 'vue-context/dist/css/vue-context.css';
 import {blend} from "@/core/Colors.ts";
-// eslint-disable-next-line no-unused-vars
-    let TextType = {
-        Paragraphs: [{
-            Sentences: {
-                Parts: [{
-                    Text: "",
-                    Selected: false
-                }]
-            }
-        }]
-    };
 
-    const highlighted = "#98FB98";
+const highlighted = "#98FB98";
 
-    const updateToTrue = word => vue.set(word.attributes, highlighted, true);
-    const updateToFalse = word => vue.set(word.attributes, highlighted, false);
+    const updateToTrue = word => vue.set(word.attributes.colors, highlighted, true);
+    const updateToFalse = word => vue.set(word.attributes.colors, highlighted, false);
 
-    const isHighlighted = word => highlighted in word.attributes && word.attributes[highlighted];
+    const isHighlighted = word => highlighted in word.attributes.colors && word.attributes.colors[highlighted];
 
     let createDiv = (x, y) => {
         let div = document.createElement("div")
@@ -99,7 +104,7 @@ import {blend} from "@/core/Colors.ts";
                 }
             }
         },
-        // components: {VueContext},
+        components: {VueContext},
         computed: {
             document() {
                 return this.$store.getters.source;
@@ -122,7 +127,8 @@ import {blend} from "@/core/Colors.ts";
                         [container.main, ...container.subcodes].forEach(code => {
                             code.texts.filter(t => t.document_id === this.documentId).forEach(text => {
                                 this.document.walk(text.first_word, text.last_word, word => {
-                                    vue.set(word.attributes, container.colorInfo.bg, on);
+                                    vue.set(word.attributes.colors, container.colorInfo.bg, on);
+                                    vue.set(word.attributes.textIds, text.id, on);
                                 })
                             })
                         })
@@ -135,15 +141,43 @@ import {blend} from "@/core/Colors.ts";
 
             isHighlighted,
 
-            deleteTexts(codedTexts) {
-                this.$store.dispatch(actions.DISASSOCIATE_TEXT, {codedTexts});
+            chooseMenu(e, paragraph, sentence, word) {
+                let allIds = this.document.word({paragraph, sentence, word}).attributes.textIds;
+                let activeTexts = Object.keys(allIds).filter(id => allIds[id]).map(id => {
+                    return this.$store.getters.idToText[id];
+                });
+
+                if(activeTexts.length) {
+                    this.$refs.deleteMenu.open(e, activeTexts);
+                }
+            },
+
+            getContainerColor(codeId) {
+                const code = this.$store.getters.idToCode[codeId];
+                const container = this.$store.getters.idToContainer[code.container];
+                return {borderColor: container.colorInfo.bg};
+            },
+
+            async deleteText(textId) {
+                const text = this.$store.getters.idToText[textId];
+
+
+                await this.$store.dispatch(actions.code.DELETE_TEXT, {textId, codeId: text.code_id});
+
+                const code = this.$store.getters.idToCode[text.code_id];
+                const container = this.$store.getters.idToContainer[code.container];
+
+                this.document.walk(text.first_word, text.last_word, word => {
+                    vue.set(word.attributes.colors, container.colorInfo.bg, false);
+                    vue.set(word.attributes.textIds, text.id, false);
+                })
             },
 
             color(word) {
                 let backgroundColors = [];
 
-                Object.keys(word.attributes).forEach(color =>  {
-                    if (word.attributes[color]) {
+                Object.keys(word.attributes.colors).forEach(color =>  {
+                    if (word.attributes.colors[color]) {
                         backgroundColors.push(color)
                     }
                 })
@@ -287,6 +321,23 @@ import {blend} from "@/core/Colors.ts";
         padding-bottom: .25em;
     }
 
+    .v-context {
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.65),0 3px 1px -2px rgba(0, 0, 0, 0.65),0 1px 5px 0 rgba(0, 0, 0, 0.65);
+    }
+
+    .v-context .header {
+        text-align: center;
+    }
+
+    .delete-menu-active-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+        border: 1px solid;
+        border-radius: .25em;
+        margin: 5px;
+    }
     /*
     used to give the parent div of .paragraph+.done some height.
     without the height, the "list" of container-color-drops starts overlapping(try it out)

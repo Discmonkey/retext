@@ -65,6 +65,7 @@ func postText(w http.ResponseWriter, r *http.Request, codeStore store.CodeStore)
 	}
 
 	req.Id = textId
+	req.CodeId = codeId
 
 	endpoints.LogIf(json.NewEncoder(w).Encode(req))
 }

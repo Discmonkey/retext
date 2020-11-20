@@ -75,6 +75,8 @@ components:
           $ref: '#/components/schemas/Id'
         document_id:
           $ref: '#/components/schemas/Id'
+        code_id:
+          $ref: '#/components/schemas/Id'
         text:
           type: string
         first_word:
@@ -83,6 +85,7 @@ components:
           $ref: '#/components/schemas/WordCoordinate'
       required:
         - document_id
+        - code_id
         - text
         - first_word
         - last_word

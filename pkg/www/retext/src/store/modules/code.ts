@@ -23,7 +23,7 @@ export const actions = {
     CREATE_CONTAINER: "createContainer",
     CREATE_CODE: "createCode",
     ASSOCIATE_TEXT: "associateText",
-    DISASSOCIATE_TEXT: "disassociateText",
+    DELETE_TEXT: "deleteText",
     SET_COLOR_ACTIVE: "toggleColorActive",
 }
 
@@ -31,13 +31,15 @@ type State =  {
     containers: Array<CodeContainerWithMain>;
     idToContainer: {[key: number]: CodeContainerWithMain};
     idToCode: {[key: number]: Code};
+    idToText: {[key: number]: DocumentText};
 }
 
 export const Module = {
     state: {
         containers: [],
         idToContainer: {},
-        idToCode: {}
+        idToCode: {},
+        idToText: {},
     } as State,
 
     getters: {
@@ -49,6 +51,9 @@ export const Module = {
         },
         idToCode(state: State) {
             return state.idToCode;
+        },
+        idToText(state: State) {
+            return state.idToText;
         },
 
         textLength(state: State): (containerId: number) => number {
@@ -109,10 +114,16 @@ export const Module = {
 
             if (convertedContainer.main !== null) {
                 Vue.set(state.idToCode, convertedContainer.main.id as number, convertedContainer.main)
+                for(let text of convertedContainer.main.texts) {
+                    Vue.set(state.idToText, text.id as number, text);
+                }
             }
 
             for(const code of convertedContainer.subcodes) {
                 Vue.set(state.idToCode, code.id as number, code);
+                for(let text of code.texts) {
+                    Vue.set(state.idToText, text.id as number, text);
+                }
             }
         },
 
@@ -146,6 +157,7 @@ export const Module = {
 
             if (index < 0) {
                 texts.push(text);
+                Vue.set(state.idToText, text.id as number, text);
             }
         },
 
@@ -155,7 +167,8 @@ export const Module = {
             const index = texts.findIndex(t => t.id === payload.textId);
 
             if (index >= 0) {
-                texts.splice(index, 1);
+                state.idToCode[payload.codeId].texts.splice(index, 1);
+                delete state.idToText[payload.textId];
             }
         },
 
@@ -204,7 +217,7 @@ export const Module = {
             commit(mutations.ADD_TEXT, {codeId: payload.codeId, text});
         },
 
-        async [actions.DISASSOCIATE_TEXT]({commit}: {commit: Commit}, payload: {textId: Id, codeId: Id}) {
+        async [actions.DELETE_TEXT]({commit}: {commit: Commit}, payload: {textId: Id, codeId: Id}) {
 
             await API.document_text.delete(payload.textId);
 
