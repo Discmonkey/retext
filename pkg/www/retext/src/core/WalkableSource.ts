@@ -7,7 +7,12 @@ export interface WordWithAttributes {
     text: string;
     index: number;
     attributes: {
-        [key: string]: boolean;
+        colors: {
+            [key: string]: boolean;
+        }
+        textIds: {
+            [key: number]: boolean
+        }
     }
 }
 
@@ -68,7 +73,10 @@ export class WalkableSource {
                     word => {
                         return {
                             text: word,
-                            attributes: {},
+                            attributes: {
+                                colors: {},
+                                textIds: {},
+                            },
                             index: 0,
                         }
                     })))

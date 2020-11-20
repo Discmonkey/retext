@@ -171,9 +171,9 @@ func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, err
 	err := numFilesRow.Scan(&numFilesInProject)
 
 	rows, err := c.db.Query(`
-		SELECT container.display_order as container_display_order,
-		       c.name, c.display_order, c.id, c.code_container_id, (t.start).paragraph, (t.start).sentence, (t.start).word, 
-		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id, t.id 
+		SELECT container.id, container.display_order as container_display_order,
+		       c.id, c.display_order, c.name, (t.start).paragraph, (t.start).sentence, (t.start).word, 
+		       (t.stop).paragraph, (t.stop).sentence, (t.stop).word, t.value, t.source_file_id, t.id, t.code_id
 		FROM qode.code_container container  
 	    LEFT JOIN qode.code c on c.code_container_id = container.id
 		LEFT JOIN qode.text t on c.id = t.code_id
@@ -189,10 +189,12 @@ func (c CodeStore) GetContainers(id store.ProjectId) ([]store.CodeContainer, err
 	row := builders.ContainerListRow{}
 
 	for rows.Next() {
-		err = rows.Scan(&row.ContainerOrder, &row.ContainerRow.CodeRow.Name, &row.ContainerRow.CodeDisplayOrder,
-			&row.ContainerRow.CodeId, &row.ContainerId, &row.ContainerRow.CodeRow.P1, &row.ContainerRow.CodeRow.S1,
-			&row.ContainerRow.CodeRow.W1,
-			&row.ContainerRow.CodeRow.P2, &row.ContainerRow.CodeRow.S2, &row.ContainerRow.CodeRow.W2, &row.ContainerRow.CodeRow.Text, &row.ContainerRow.CodeRow.SourceId, &row.ContainerRow.CodeRow.TextId)
+		err = rows.Scan(&row.ContainerId, &row.ContainerOrder,
+			&row.ContainerRow.CodeId, &row.ContainerRow.CodeDisplayOrder, &row.ContainerRow.CodeRow.Name,
+			&row.ContainerRow.CodeRow.P1, &row.ContainerRow.CodeRow.S1, &row.ContainerRow.CodeRow.W1,
+			&row.ContainerRow.CodeRow.P2, &row.ContainerRow.CodeRow.S2, &row.ContainerRow.CodeRow.W2,
+			&row.ContainerRow.CodeRow.Text, &row.ContainerRow.CodeRow.SourceId, &row.ContainerRow.CodeRow.TextId,
+			&row.ContainerRow.CodeRow.CodeId)
 
 		builder.Push(row)
 	}
