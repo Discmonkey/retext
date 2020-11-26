@@ -91,6 +91,21 @@ export const API = {
         }
     },
 
+    insight: {
+        async post(value: string, text_ids: Array<Id>) {
+            const res = await axios.post(url("/insight"), {value, text_ids});
+
+            return res.data;
+        },
+    },
+
+    insights: {
+        async get(project_id: Id) {
+            const res = await axios.get(url("/insights", {project_id}));
+
+            return res.data;
+        },
+    },
 
 
     source: {

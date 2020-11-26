@@ -1,10 +1,19 @@
 <template>
     <div class="container">
-        <div class="insights">
-            <textarea class="form-control" placeholder="insights here, no saving for now"></textarea>
+        <div class="row">
+            <div class="col-md-9 insights">
+                <textarea class="form-control" v-model="insightText" placeholder="insights here, no saving for now"></textarea>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary bold" id="add-button"
+                        @click="createInsight()">
+                    Add a New Code
+                </button>
+            </div>
         </div>
         <div class="grid" v-if="container !== null" ref="container">
-            <div class="item" v-for="(item, index) in texts" v-bind:key="index">
+
+            <div class="item" v-for="(item, index) in texts" v-bind:key="index" :class="{'item-selected': item.selected}"><label style="height: 100%; width: 100%">
                 <div class="item-header">
 
                 </div>
@@ -13,9 +22,10 @@
                 </div>
 
                 <div class="item-footer">
+                    <div style="float:left"><input v-model="item.selected" type="checkbox" :value="item.id"> Insight</div>
                     <router-link :to="`/project/${projectId}/code/${item.document_id}`"> {{names[item.document_id]}}</router-link>
                 </div>
-            </div>
+            </label></div>
         </div>
     </div>
 </template>
@@ -24,6 +34,7 @@
 
 import Muuri from 'muuri';
 import {actions} from "@/store";
+import {API} from "@/core/API.ts";
 
 export default {
 
@@ -48,6 +59,10 @@ export default {
             return [this.container.main, ...this.container.subcodes].reduce((a, b) => a.concat(b.texts), []);
         },
 
+        selectedTexts() {
+            return this.texts.filter(i => i.selected);
+        },
+
         projectId() {
             return parseInt(this.$route.params.projectId);
         }
@@ -56,6 +71,7 @@ export default {
     data() {
         return {
             grid: null,
+            insightText: "",
         }
     },
 
@@ -70,7 +86,18 @@ export default {
             setTimeout(() => this.grid = new Muuri('.grid', {
                 dragHandle: 'item-header', dragEnabled: true
             }), 50);
-        }
+        },
+
+        async createInsight() {
+            const textIds = this.selectedTexts.map(t => t.id);
+
+            await API.insight.post(this.insightText, textIds);
+            // clear text after saving it
+            this.insightText = "";
+            for(const text of this.texts) {
+                text.selected = false;
+            }
+        },
     },
 
     mounted() {
@@ -149,6 +176,10 @@ textarea {
     margin-top: 5px;
     height: 1em;
     text-align: right;
+}
+
+.item-selected {
+    box-shadow: 5px 5px 5px var(--blue);
 }
 
 </style>

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/discmonkey/retext/pkg/endpoints/code"
 	"github.com/discmonkey/retext/pkg/endpoints/file"
+	"github.com/discmonkey/retext/pkg/endpoints/insight"
 	"github.com/discmonkey/retext/pkg/endpoints/project"
 	"github.com/discmonkey/retext/pkg/store"
 	"github.com/discmonkey/retext/pkg/store/postgres_backend"
@@ -103,6 +104,7 @@ func main() {
 	fileBackend := postgres_backend.NewFileStore(retextLocation, connection)
 	codeBackend := postgres_backend.NewCodeStore(connection)
 	projectBackend := postgres_backend.NewProjectStore(connection)
+	insightBackend := postgres_backend.NewInsightStore(connection)
 
 	http.HandleFunc("/files", file.FilesEndpoint(fileBackend))
 	http.HandleFunc("/demo", file.FileEndpoint(fileBackend, store.DemoFile))
@@ -112,6 +114,8 @@ func main() {
 	http.HandleFunc("/code_containers", code.Containers(codeBackend))
 	http.HandleFunc("/code", code.Code(codeBackend))
 	http.HandleFunc("/document_text", code.Text(codeBackend))
+	http.HandleFunc("/insight", insight.Insight(insightBackend))
+	http.HandleFunc("/insights", insight.Insights(insightBackend))
 
 	http.HandleFunc("/project", project.GetEndpoint(projectBackend))
 	http.HandleFunc("/project/create", project.CreateProject(projectBackend))

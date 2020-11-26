@@ -25,11 +25,6 @@ func deleteText(w http.ResponseWriter, r *http.Request, codeStore store.CodeStor
 	_, _ = fmt.Fprint(w, "")
 }
 
-func handleError(message string, w http.ResponseWriter) {
-	err := errors.New(message)
-	endpoints.HttpNotOk(400, w, err.Error(), err)
-}
-
 func postText(w http.ResponseWriter, r *http.Request, codeStore store.CodeStore) {
 	codeId, ok := endpoints.GetInt(r, "code_id")
 
@@ -45,17 +40,17 @@ func postText(w http.ResponseWriter, r *http.Request, codeStore store.CodeStore)
 	}
 
 	if req.DocumentId <= 0 {
-		handleError("invalid document_id", w)
+		endpoints.HandleError("invalid document_id", w)
 		return
 	}
 
 	if len(req.Text) == 0 {
-		handleError("text is required to associate", w)
+		endpoints.HandleError("text is required to associate", w)
 		return
 	}
 
 	if req.FirstWord == nil || req.LastWord == nil {
-		handleError("text is required to associate", w)
+		endpoints.HandleError("text is required to associate", w)
 		return
 	}
 

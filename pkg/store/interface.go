@@ -12,6 +12,7 @@ type FileType = string
 type CodeId = int64
 type ContainerId = int64
 type TextId = int64
+type InsightId = int64
 
 const (
 	SourceFile FileType = "KSOURCE"
@@ -24,6 +25,7 @@ type WordCoordinate = swagger.WordCoordinate
 type DocumentText = swagger.DocumentText
 type Code = swagger.Code
 type CodeContainer = swagger.CodeContainer
+type Insight = swagger.Insight
 
 type CodeParentIdMap = map[CodeId][]CodeId
 type CodeMap = map[CodeId]Code
@@ -48,4 +50,9 @@ type CodeStore interface {
 	GetCode(codeId CodeId) (Code, error)
 	GetContainer(codeId ContainerId) (CodeContainer, error)
 	GetContainers(id ProjectId) ([]CodeContainer, error)
+}
+
+type InsightStore interface {
+	CreateInsight(projectId ProjectId, insightText string, textIds []TextId) (InsightId, error)
+	GetInsights(projectId ProjectId) ([]Insight, error)
 }
