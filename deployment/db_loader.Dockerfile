@@ -1,4 +1,4 @@
-FROM golang:1.14-buster
+FROM golang:1.14-buster as staging
 
 RUN mkdir retext
 
@@ -14,6 +14,10 @@ COPY pkg/store/postgres_backend/connection.go ./pkg/store/postgres_backend/conne
 COPY pkg/store/credentials/credentials.go ./pkg/store/credentials/credentials.go
 COPY pkg/version/version.go ./pkg/version/version.go
 
-RUN go build -o main ./cmd/db_setup/main.go
+RUN go build -o /main ./cmd/db_setup/main.go
 
-CMD ["./main", "-migration_dir=/pkg/store/postgres_backend/migrations"]
+FROM ubuntu:18.04 as deploy
+
+COPY --from=staging /main /main
+
+CMD ["/main", "-migration_dir=/pkg/store/postgres_backend/migrations"]

@@ -1,15 +1,16 @@
 pem_location=$1
 ip=$2
-release_dir=deployment/releases/$(date -I)
-ssh="ssh -i $pem_location ec2-user@18.223.164.85"
+ssh="ssh -i $pem_location ec2-user@${ip}"
+release_dir=deployment/releases/$(date "+%F-%T")
 
+rm -rf $release_dir ${release_dir}.tar
 make docker_server
 mkdir $release_dir
 
 docker save -o ${release_dir}/qode.tar qode
 
-scp -i $pem_location $release_dir/qode.tar ec2-user@${ip}:/home/ec2-user/
+scp -r -i $pem_location $release_dir/qode.tar ec2-user@${ip}:/home/ec2-user/release/
 
-${ssh} "docker load -i qode.tar"
-${ssh} "pushd retext/deployment/qode && docker-compose down && docker-compose up -d"
+${ssh} "docker load -i ./release/qode.tar"
+${ssh} "pushd release/deployment && docker-compose down && docker-compose up -d"
 
