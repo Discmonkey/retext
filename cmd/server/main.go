@@ -116,6 +116,7 @@ func main() {
 	http.HandleFunc("/document_text", code.Text(codeBackend))
 	http.HandleFunc("/insight", insight.Insight(insightBackend))
 	http.HandleFunc("/insights", insight.Insights(insightBackend))
+	http.HandleFunc("/insight_text", insight.Text(insightBackend))
 
 	http.HandleFunc("/project", project.GetEndpoint(projectBackend))
 	http.HandleFunc("/project/create", project.CreateProject(projectBackend))

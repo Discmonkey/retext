@@ -13,6 +13,7 @@ type CodeId = int64
 type ContainerId = int64
 type TextId = int64
 type InsightId = int64
+type InsightTextId = int64
 
 const (
 	SourceFile FileType = "KSOURCE"
@@ -54,5 +55,6 @@ type CodeStore interface {
 
 type InsightStore interface {
 	CreateInsight(projectId ProjectId, insightText string, textIds []TextId) (InsightId, error)
+	DeleteInsightText(insightId InsightId, textId TextId) error
 	GetInsights(projectId ProjectId) ([]Insight, error)
 }

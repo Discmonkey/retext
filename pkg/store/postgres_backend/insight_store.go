@@ -59,4 +59,14 @@ func (s InsightStore) GetInsights(projectId store.ProjectId) ([]store.Insight, e
 	return builder.Finish(), err
 }
 
+func (s InsightStore) DeleteInsightText(insightId store.InsightId, textId store.TextId) error {
+	_, err := s.db.Query("DELETE FROM qode.insight_text WHERE insight_id = $1 AND text_id = $2", insightId, textId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var _ store.InsightStore = InsightStore{}

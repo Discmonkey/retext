@@ -10,7 +10,7 @@ create table qode.insight
 
 create table qode.insight_text
 (
-    rowId      SERIAL PRIMARY KEY,
+    row_id      SERIAL PRIMARY KEY,
     insight_id int,
     text_id    int,
     CONSTRAINT fk_insight_id

@@ -1,19 +1,27 @@
 <template>
     <div class="container">
         <div class="row">
+            <div class="col-md-12">
+                <router-link :to="{name: 'Insights'}" style="float:right">Go to Insights list</router-link>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-9 insights">
                 <textarea class="form-control" v-model="insightText" placeholder="insights here, no saving for now"></textarea>
             </div>
             <div class="col-md-3">
                 <button class="btn btn-primary bold" id="add-button"
                         @click="createInsight()">
-                    Add a New Code
+                    Save Insight
                 </button>
             </div>
         </div>
         <div class="grid" v-if="container !== null" ref="container">
 
-            <div class="item" v-for="(item, index) in texts" v-bind:key="index" :class="{'item-selected': item.selected}"><label style="height: 100%; width: 100%">
+            <div class="item" v-for="(item, index) in texts" v-bind:key="index"
+                 :class="{'item-selected': item.selected}"
+                 @click="toggleSelected(item)"
+            >
                 <div class="item-header">
 
                 </div>
@@ -22,10 +30,9 @@
                 </div>
 
                 <div class="item-footer">
-                    <div style="float:left"><input v-model="item.selected" type="checkbox" :value="item.id"> Insight</div>
-                    <router-link :to="`/project/${projectId}/code/${item.document_id}`"> {{names[item.document_id]}}</router-link>
+                    <router-link :to="{name: 'Code', params: {documentId: item.document_id}}"> {{names[item.document_id]}}</router-link>
                 </div>
-            </label></div>
+            </div>
         </div>
     </div>
 </template>
@@ -91,12 +98,16 @@ export default {
         async createInsight() {
             const textIds = this.selectedTexts.map(t => t.id);
 
-            await API.insight.post(this.insightText, textIds);
+            await API.insight.post(this.projectId, this.insightText, textIds);
             // clear text after saving it
             this.insightText = "";
-            for(const text of this.texts) {
+            for(let text of this.texts) {
                 text.selected = false;
             }
+        },
+
+        toggleSelected(item) {
+            this.$set(item, "selected", !item.selected);
         },
     },
 
