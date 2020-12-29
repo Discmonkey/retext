@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import {actions} from "@/store";
+import {actions, mutations} from "@/store";
 import vue from 'vue';
 import VueContext from 'vue-context'
 // the default styling relies on <li> elements and specific classes.
@@ -162,7 +162,16 @@ const highlighted = "#98FB98";
                 const text = this.$store.getters.idToText[textId];
 
 
-                await this.$store.dispatch(actions.code.DELETE_TEXT, {textId, codeId: text.code_id});
+                try {
+                    await this.$store.dispatch(actions.code.DELETE_TEXT, {textId, codeId: text.code_id});
+                } catch (e) {
+                    this.$store.commit(mutations.notification.add, {
+                        title: "Error",
+                        text: e.response.data,
+                    })
+
+                    return;
+                }
 
                 const code = this.$store.getters.idToCode[text.code_id];
                 const container = this.$store.getters.idToContainer[code.container];

@@ -92,7 +92,8 @@ func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 
 	rows, err := c.db.Query(`
 		SELECT code.name, code.code_container_id, (text.start).paragraph, (text.start).sentence, (text.start).word, 
-		       (text.stop).paragraph, (text.stop).sentence, (text.stop).word, text.value, text.source_file_id FROM qode.code code
+		       (text.stop).paragraph, (text.stop).sentence, (text.stop).word, text.value, text.source_file_id,
+		       text.id as text_id, text.code_id FROM qode.code code
 		LEFT JOIN qode.text text on code.id = text.code_id
 		WHERE code.id = $1 
 	`, codeId)
@@ -108,7 +109,7 @@ func (c CodeStore) GetCode(codeId store.CodeId) (store.Code, error) {
 	for rows.Next() {
 		empty = false
 		err = rows.Scan(&row.Name, &codeContainerId, &row.P1, &row.S1, &row.W1,
-			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceId)
+			&row.P2, &row.S2, &row.W2, &row.Text, &row.SourceId, &row.TextId, &row.CodeId)
 
 		if err != nil {
 			return builder.Finish(), err

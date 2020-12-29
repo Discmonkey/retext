@@ -37,6 +37,7 @@
     </nav>
       <nav>
           <breadcrumbs></breadcrumbs>
+          <notifications id="notificationBox"/>
       </nav>
     <router-view/>
   </div>
@@ -44,11 +45,17 @@
 
 <script>
 import Breadcrumbs from "@/components/nav/Breadcrumbs";
+import Notifications from "@/components/Notifications";
 export default {
-    components: {Breadcrumbs},
+    components: {Breadcrumbs, Notifications},
 }
 </script>
 <style>
+:root {
+    --bg-prim: white;
+    --fg-prim: black;
+    --button-prim: #0069d9;
+}
 
 @font-face {
     font-family: Roboto;
@@ -63,6 +70,13 @@ export default {
 
 #logo {
   height: 3em;
+}
+
+#notificationBox {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    z-index: 20;
 }
 
 /*#nav {*/

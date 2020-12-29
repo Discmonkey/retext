@@ -49,7 +49,7 @@ func StubTestStore(t *testing.T, fileBackend FileStore, projectId ProjectId) {
 	}
 }
 
-func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStore, projectId ProjectId) {
+func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStore, insightsBackend InsightStore, projectId ProjectId) {
 
 	testCodeName := "test"
 	someBytes := []byte("hello")
@@ -131,5 +131,27 @@ func StubTestCodeStore(t *testing.T, codeBackend CodeStore, fileBackend FileStor
 
 	if err != nil {
 		t.Fatalf("failed to uncode text: %s", err)
+	}
+
+	// insights test
+	_, _ = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
+	_, _ = codeBackend.CodifyText(firstCodeId, testFile.Id, testText, anchor, lastWord)
+	insightCode, _ := codeBackend.GetCode(firstCodeId)
+	textIds := make([]TextId, 0)
+	for _, text := range insightCode.Texts {
+		textIds = append(textIds, text.Id)
+	}
+
+	_, err = insightsBackend.CreateInsight(projectId, "test", textIds)
+	if err != nil {
+		t.Fatalf("failed to create insight: %s", err)
+	}
+
+	insights, err := insightsBackend.GetInsights(projectId)
+
+	if err != nil {
+		t.Fatalf("failed to get insights list: %s", err)
+	} else if len(insights) != 1 {
+		t.Fatalf("failed to get the right number of insights")
 	}
 }
