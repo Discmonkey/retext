@@ -67,9 +67,8 @@ export default {
                 await this.$store.dispatch(actions.code.INIT_CONTAINERS, this.projectId);
             }
 
-            setTimeout(() => this.grid = new Muuri('.grid', {
-                dragHandle: 'item-header', dragEnabled: true
-            }), 50);
+            this.grid = new Muuri('.grid', {
+                dragHandle: '.item-header', dragEnabled: true});
         }
     },
 
@@ -86,13 +85,13 @@ h4 {
 }
 
 .grid {
+    width: 100%;
     position: relative;
 }
 .item {
     display: block;
     position: absolute;
-    width: 500px;
-    height: 250px;
+    width: calc(50% - 40px);
     margin: 20px;
     z-index: 1;
     border-radius: 10px;
@@ -115,6 +114,8 @@ h4 {
 
 .insights {
     width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 textarea {
@@ -123,7 +124,6 @@ textarea {
 .item-content {
     position: relative;
     width: 100%;
-    height: calc(100% - 2em);
     display: flex;
     flex-direction: column;
     overflow-y: scroll;
