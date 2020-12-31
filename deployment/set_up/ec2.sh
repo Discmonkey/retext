@@ -1,8 +1,8 @@
 # run this file from the project root
 pem_location=$1
 ip=$2
-release_name=$(date "+%F-%T")
-release_dir=deployment/releases/${release_name}
+release_dir_name=deployment/releases/$(date "+%F-%T")
+release_dir=${release_dir_name}/release
 
 ssh="ssh -i ${pem_location} ec2-user@${ip}"
 
@@ -19,7 +19,7 @@ ${ssh} "sudo chmod +x /usr/local/bin/docker-compose"
 
 rm -rf $release_dir ${release_dir}.tar
 make all
-mkdir $release_dir
+mkdir -p $release_dir
 
 docker save -o ${release_dir}/qode.tar qode
 docker save -o ${release_dir}/qode_db_loader.tar qode_db_loader
@@ -28,10 +28,11 @@ docker save -o ${release_dir}/postgres.tar postgres
 cp -r deployment/qode ${release_dir}/deployment
 mv ${release_dir}/deployment/docker-compose.yml.release ${release_dir}/deployment/docker-compose.yml
 
-scp -r -i $pem_location $release_dir ec2-user@${ip}:/home/ec2-user/release
+cd $release_dir_name
+scp -r -i $pem_location * ec2-user@${ip}:/home/ec2-user/
 
-${ssh} "docker load -i release/${release_name}/qode.tar"
-${ssh} "docker load -i release/${release_name}/qode_db_loader.tar"
-${ssh} "docker load -i release/${release_name}/postgres.tar"
+${ssh} "docker load -i release/qode.tar"
+${ssh} "docker load -i release/qode_db_loader.tar"
+${ssh} "docker load -i release/postgres.tar"
 
-${ssh} "cd release/${release_name}/deployment && docker-compose up -d"
+${ssh} "cd release/deployment && docker-compose up -d"
