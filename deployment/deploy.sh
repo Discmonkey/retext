@@ -11,7 +11,7 @@ mkdir $release_dir
 docker save -o ${release_dir}/qode.tar qode
 
 scp -r -i $pem_location $release_dir/qode.tar ec2-user@${ip}:/home/ec2-user/release/
-scr -r -i $pem_location deployment/qode/migrations/* ec2-user@${ip}:/home/ec2-user/release/migrations/
+scp -r -i $pem_location deployment/qode/migrations/* ec2-user@${ip}:/home/ec2-user/release/migrations/
 ${ssh} "docker load -i ./release/qode.tar"
 ${ssh} "pushd release/deployment && docker-compose down && docker-compose up -d"
 

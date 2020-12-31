@@ -1,7 +1,8 @@
 # run this file from the project root
 pem_location=$1
 ip=$2
-release_dir=deployment/releases/$(date "+%F-%T")
+release_name=$(date "+%F-%T")
+release_dir=deployment/releases/${release_name}
 
 ssh="ssh -i ${pem_location} ec2-user@${ip}"
 
@@ -29,8 +30,8 @@ mv ${release_dir}/deployment/docker-compose.yml.release ${release_dir}/deploymen
 
 scp -r -i $pem_location $release_dir ec2-user@${ip}:/home/ec2-user/release
 
-${ssh} "docker load -i release/qode.tar"
-${ssh} "docker load -i release/qode_db_loader.tar"
-${ssh} "docker load -i release/postgres.tar"
+${ssh} "docker load -i release/${release_name}/qode.tar"
+${ssh} "docker load -i release/${release_name}/qode_db_loader.tar"
+${ssh} "docker load -i release/${release_name}/postgres.tar"
 
-${ssh} "cd release/deployment && docker-compose up -d"
+${ssh} "cd release/${release_name}/deployment && docker-compose up -d"
