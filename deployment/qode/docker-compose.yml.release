@@ -33,6 +33,6 @@ services:
     environment:
       - QODE_DB_HOST=qode_db
     ports:
-      - 3000:3000
+      - 80:3000
     depends_on:
       - db_loader
