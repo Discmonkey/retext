@@ -6,6 +6,7 @@ import {Source} from "@/model/source";
 import {Code} from "@/model/code";
 import {CodeContainer} from "@/model/codeContainer";
 import {DocumentText} from "@/model/documentText";
+import {Insight} from "@/model/insight";
 
 
 const url = (endpoint: string, params: {[key: string]: any} = {}) => {
@@ -91,7 +92,27 @@ export const API = {
         }
     },
 
+    insight: {
+        async post(project_id: Id, value: string, text_ids: Array<Id>) {
+            const res = await axios.post(url("/insight", {project_id}), {value, text_ids});
 
+            return res.data;
+        },
+    },
+
+    insights: {
+        async get(project_id: Id): Promise<Array<Insight>> {
+            const res = await axios.get(url("/insights", {project_id}));
+
+            return res.data;
+        },
+    },
+
+    insight_text: {
+        async delete(insight_text_id: Id) {
+            await axios.delete(url("/insight_text", {insight_text_id}));
+        }
+    },
 
     source: {
         async get(file_id: Id): Promise<Source> {

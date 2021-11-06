@@ -8,7 +8,7 @@ import (
 )
 
 func TestFileStorePostgresBackend(t *testing.T) {
-	projects, files, _, err := setup()
+	projects, files, _, _, err := setup()
 
 	if err != nil {
 		t.Fatal(err)
@@ -23,29 +23,30 @@ func TestFileStorePostgresBackend(t *testing.T) {
 	store.StubTestStore(t, files, projectId)
 }
 
-func setup() (ProjectStore, FileStore, CodeStore, error) {
+func setup() (ProjectStore, FileStore, CodeStore, InsightStore, error) {
 	conn, err := GetConnection()
 	if err != nil {
-		return ProjectStore{}, FileStore{}, CodeStore{}, err
+		return ProjectStore{}, FileStore{}, CodeStore{}, InsightStore{}, err
 	}
 
 	testDirName := store.CreateTestDir()
 	codeBackend := NewCodeStore(conn)
 	fileBackend := NewFileStore(testDirName, conn)
 	projectBackend := NewProjectStore(conn)
+	insightsBackend := NewInsightStore(conn)
 
-	return projectBackend, fileBackend, codeBackend, nil
+	return projectBackend, fileBackend, codeBackend, insightsBackend, nil
 }
 
 func TestCodeStorePostgresBackend(t *testing.T) {
 
-	projects, files, codes, err := setup()
+	projects, files, codes, insights, err := setup()
 	fatalIf(err, t)
 
 	projectId, err := createTestProject(projects)
 	fatalIf(err, t)
 
-	store.StubTestCodeStore(t, codes, files, projectId)
+	store.StubTestCodeStore(t, codes, files, insights, projectId)
 
 }
 
@@ -56,7 +57,7 @@ func fatalIf(err error, t *testing.T) {
 }
 
 func TestCodeStoreList(t *testing.T) {
-	projects, files, codes, err := setup()
+	projects, files, codes, _, err := setup()
 	fatalIf(err, t)
 
 	projectId, err := createTestProject(projects)

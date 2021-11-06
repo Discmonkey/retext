@@ -9,6 +9,7 @@ import ProjectHub from "@/views/ProjectHub";
 import NotFound from "@/components/nav/NotFound";
 import Buckets from "@/views/Buckets";
 import Bucket from "@/views/Bucket";
+import InsightDisplay from "@/components/InsightDisplay";
 
 Vue.use(VueRouter);
 
@@ -59,6 +60,11 @@ const routes = [
                 path: 'buckets',
                 name: 'Coding Buckets',
                 component: Buckets
+            },
+            {
+                path: 'insights',
+                name: 'Insights',
+                component: InsightDisplay
             }
         ],
     },

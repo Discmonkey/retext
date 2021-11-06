@@ -91,3 +91,8 @@ func LogIf(err error) {
 		log.Println(err)
 	}
 }
+
+func HandleError(message string, w http.ResponseWriter) {
+	err := errors.New(message)
+	HttpNotOk(400, w, err.Error(), err)
+}

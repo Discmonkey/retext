@@ -35,6 +35,12 @@ type ContainerListRow struct {
 	ContainerRow   ContainerRow
 }
 
+type InsightListRow struct {
+	InsightId int64
+	Value     string
+	TextId    sql.NullInt32
+}
+
 type CodeBuilder struct {
 	code *store.Code
 }
@@ -177,4 +183,40 @@ func (c *ContainerListBuilder) Finish() []store.CodeContainer {
 	}
 
 	return c.containers
+}
+
+type InsightBuilder struct {
+	store.Insight
+}
+
+type InsightListBuilder struct {
+	insights []store.Insight
+}
+
+func NewInsightListBuilder() InsightListBuilder {
+	return InsightListBuilder{
+		insights: make([]store.Insight, 0),
+	}
+}
+
+func (b *InsightListBuilder) Push(row InsightListRow) {
+	last := len(b.insights) - 1
+
+	if last == -1 || b.insights[last].Id != row.InsightId {
+		b.insights = append(b.insights, store.Insight{
+			Id:      row.InsightId,
+			Value:   row.Value,
+			TextIds: make([]store.TextId, 0),
+		})
+
+		last += 1
+	}
+
+	if row.TextId.Valid {
+		b.insights[last].TextIds = append(b.insights[last].TextIds, int64(row.TextId.Int32))
+	}
+}
+
+func (b *InsightListBuilder) Finish() []store.Insight {
+	return b.insights
 }
